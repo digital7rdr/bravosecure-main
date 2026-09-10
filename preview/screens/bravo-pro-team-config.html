@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"pro":"#6366F1","background-dark":"#0A0F1E"},fontFamily:{"display":["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .dot-prog{display:flex;gap:5px;align-items:center;}
+  .dp{width:6px;height:6px;border-radius:50%;background:#1E2D45;}
+  .dp.done{background:#6366F1;} .dp.act{background:#6366F1;width:18px;border-radius:3px;}
+
+  .gender-chip{flex:1;padding:10px 4px;border-radius:12px;border:1px solid #1E2D45;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;color:#64748b;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .gender-chip.active{background:rgba(99,102,241,0.12);border-color:#6366F1;color:#a5b4fc;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-2 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-widest uppercase" style="color:#6366F1">Team Configuration</span>
+  </div>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full border" style="color:#6366F1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)">STEP 3/10</span>
+</header>
+
+<div class="px-5 pb-2">
+  <div class="dot-prog">
+    <div class="dp done"></div><div class="dp done"></div>
+    <div class="dp act"></div>
+    <div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div>
+  </div>
+</div>
+
+<main class="flex-1 px-4 pb-32 overflow-y-auto space-y-4 pt-2">
+
+  <!-- Team Composition -->
+  <div class="rounded-2xl overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase px-4 pt-4 pb-2">Team Composition</p>
+
+    <!-- CPOs -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t" style="border-color:#1E2D45">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">CPOs</p>
+        <p class="text-[11px] mt-0.5" style="color:#6366F1">1 CPO &nbsp;·&nbsp; <span id="cpo-rate">€ 1,640/mo</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="decr('cpo')" class="size-8 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06);border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-400" style="font-size:14px">remove</span>
+        </button>
+        <span id="val-cpo" class="text-[16px] font-extrabold text-slate-100 w-6 text-center">2</span>
+        <button onclick="incr('cpo')" class="size-8 rounded-full flex items-center justify-center" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3)">
+          <span class="material-symbols-outlined" style="font-size:14px;color:#6366F1">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vehicles + Drivers -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t" style="border-color:#1E2D45">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Vehicles + Drivers</p>
+        <p class="text-[11px] mt-0.5" style="color:#6366F1">1 Vehicle &nbsp;·&nbsp; <span id="veh-rate">€ 1,800/mo</span></p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="decr('veh')" class="size-8 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06);border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-400" style="font-size:14px">remove</span>
+        </button>
+        <span id="val-veh" class="text-[16px] font-extrabold text-slate-100 w-6 text-center">1</span>
+        <button onclick="incr('veh')" class="size-8 rounded-full flex items-center justify-center" style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3)">
+          <span class="material-symbols-outlined" style="font-size:14px;color:#6366F1">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Driver Only toggle -->
+    <div class="flex items-start gap-3 px-4 py-3 border-t" style="border-color:#1E2D45">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Driver Only (Client Vehicle)</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Client provides armoured vehicle</p>
+      </div>
+      <div id="toggle-driver" onclick="this.classList.toggle('on');updateWarn()" style="position:relative;width:42px;height:24px;border-radius:12px;cursor:pointer;background:#1E2D45;flex-shrink:0;transition:background 0.2s;margin-top:2px">
+        <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform 0.2s" id="driver-knob"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Gender Preference -->
+  <div class="rounded-2xl p-4 space-y-3" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase">Staff Gender Preference</p>
+    <div class="flex gap-2">
+      <button id="chip-male" class="gender-chip" onclick="selectGender('male')">
+        <span class="material-symbols-outlined filled" style="font-size:20px">man</span>
+        MALE ONLY
+      </button>
+      <button id="chip-female" class="gender-chip active" onclick="selectGender('female')">
+        <span class="material-symbols-outlined filled" style="font-size:20px">woman</span>
+        FEMALE ONLY
+      </button>
+    </div>
+  </div>
+
+  <!-- Ops warning -->
+  <div id="warn-ops" class="rounded-xl px-4 py-3 flex items-start gap-2" style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2)">
+    <span class="material-symbols-outlined text-amber-400 shrink-0 mt-0.5" style="font-size:16px">warning</span>
+    <p id="warn-text" class="text-[12px] text-amber-300 leading-relaxed">2 CPOs selected — above baseline. Ops approval required with extended lead time.</p>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2" style="background:linear-gradient(to top,#0A0F1E 75%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3.5 px-5 rounded-xl flex items-center justify-center gap-2"
+    style="background:linear-gradient(160deg,#818cf8,#6366F1,#4338ca);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(99,102,241,0.3);color:white;letter-spacing:0.06em;font-size:0.8rem">
+    CONFIRM TEAM CONFIG
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  let counts={cpo:2,veh:1};
+  const CPO_RATE=1640, VEH_RATE=1800;
+
+  function decr(k){if(counts[k]<=1)return;counts[k]--;update(k);}
+  function incr(k){counts[k]++;update(k);}
+  function update(k){
+    document.getElementById('val-'+k).textContent=counts[k];
+    document.getElementById(k===('cpo')?'cpo-rate':'veh-rate').textContent=
+      '€ '+(counts[k]*(k==='cpo'?CPO_RATE:VEH_RATE)).toLocaleString()+'/mo';
+    updateWarn();
+  }
+  function updateWarn(){
+    const over=counts.cpo>1||counts.veh>1;
+    document.getElementById('warn-ops').style.display=over?'flex':'none';
+    if(over){
+      const msgs=[];
+      if(counts.cpo>1) msgs.push(counts.cpo+' CPOs selected — above baseline');
+      if(counts.veh>1) msgs.push(counts.veh+' vehicles — above baseline');
+      document.getElementById('warn-text').textContent=msgs.join('. ')+'. Ops approval required with extended lead time.';
+    }
+  }
+
+  // Toggle driver-only visual
+  document.getElementById('toggle-driver').addEventListener('click',function(){
+    const on=this.classList.contains('on');
+    this.style.background=on?'#6366F1':'#1E2D45';
+    document.getElementById('driver-knob').style.transform=on?'translateX(18px)':'translateX(0)';
+  });
+
+  function selectGender(g){
+    ['male','female'].forEach(c=>document.getElementById('chip-'+c).classList.remove('active'));
+    document.getElementById('chip-'+g).classList.add('active');
+  }
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('bravo-pro-retainers.html');}
+  function goNext(){nav('bravo-pro-client-profile.html');}
+</script>
+</body></html>

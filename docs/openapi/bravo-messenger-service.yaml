@@ -1,0 +1,1212 @@
+openapi: 3.0.3
+info:
+  title: Bravo Secure — Messenger Service
+  version: 0.1.0
+  description: |
+    Sealed-sender relay, media/vault pre-signed URLs, push registration,
+    WebRTC TURN credentials and SFU stats for Bravo Secure.
+
+    **Staging host:** `https://relay.94-136-184-52.sslip.io` (Contabo VPS, India,
+    fronted by Caddy + Let's Encrypt).
+
+    ---
+
+    ## Getting started as a tester
+
+    Every endpoint below (except `/healthz`) needs a bearer access token
+    minted by the **auth-service** and, for most routes, an extra
+    `X-Signal-Device-Id` header. Follow this three-step bootstrap from a
+    clean machine — no app install needed.
+
+    ### 1. Get a bearer token from auth-service
+
+    The staging auth-service lives at `https://auth.94-136-184-52.sslip.io`
+    and ships with a deterministic OTP (`1234`) so automated SQA works.
+
+        curl -X POST https://auth.94-136-184-52.sslip.io/auth/register \
+          -H 'Content-Type: application/json' \
+          -d '{"phoneE164":"+15551234567","displayName":"Alice QA"}'
+
+        curl -X POST https://auth.94-136-184-52.sslip.io/auth/register/verify \
+          -H 'Content-Type: application/json' \
+          -d '{"phoneE164":"+15551234567","code":"1234","deviceName":"swagger-tester"}'
+
+    The verify response contains `accessToken`, `refreshToken`, and a
+    `deviceId` (auth-service session UUID). Save all three. The response
+    also contains the **Signal numeric device id** (usually `1` for the
+    first device on an account) — you'll need that for the
+    `X-Signal-Device-Id` header on every messenger call.
+
+    ### 2. Authorize in SwaggerHub
+
+    Click the **Authorize** button at the top of this page, select
+    `BearerAuth`, and paste the `accessToken` value (without the word
+    "Bearer" — Swagger adds that). Close the dialog. Every subsequent
+    "Try it out" now sends the header automatically.
+
+    SwaggerHub does NOT auto-send `X-Signal-Device-Id` — add it in the
+    parameters section of each request, or use curl as shown per
+    endpoint.
+
+    ### 3. For E2E envelope tests, bootstrap a second account
+
+    `POST /envelopes` + `GET /envelopes` exercise a sender → recipient
+    flow. Repeat step 1 with a different `phoneE164` (e.g.
+    `+15557654321`) to create "Bob". Bob must upload a Signal pre-key
+    bundle to auth-service `/auth/keys/upload` before Alice can encrypt
+    anything for him — without a bundle, the client-side encrypt step
+    fails and you never reach this messenger-service.
+
+    For a SwaggerHub-only happy path that doesn't need real libsignal
+    encryption, you can submit any base64 blob as `ciphertext` with
+    `type: 1` — the relay treats it as opaque and will return it
+    verbatim on Bob's `GET /envelopes`. That exercises relay routing
+    but NOT real E2E.
+
+    The primary messenger transport is **Socket.IO** at `/ws`; the HTTP
+    endpoints below are the fallback path running the same business
+    logic. All of them require a bearer access token minted by the auth
+    service (see the Auth Service OpenAPI spec).
+
+    ---
+
+    ## End-to-end Signal Protocol — what's guaranteed and how to verify
+
+    Bravo uses the **Signal Protocol** (X3DH + Double Ratchet) for
+    one-to-one encryption, via `@privacyresearch/libsignal-protocol-typescript`
+    on the client. Every message is encrypted on the sender's device
+    with a key only the recipient's device holds. The server sees only
+    opaque ciphertext.
+
+    Three key types, all uploaded to the **auth-service** at
+    `/auth/keys/upload` and fetched via `/auth/keys/{userId}`:
+
+    | Key | Lifetime | Backing table |
+    |---|---|---|
+    | Identity key (Ed25519) | long — one per user | `signal_identities` |
+    | Signed pre-key          | medium, rotated by client | `signal_identities` |
+    | One-time pre-keys       | single use per session | `signal_one_time_prekeys` |
+
+    On top of that, Bravo uses **Sealed Sender**: the relay intentionally
+    strips/ignores the sender identity. The bearer token scopes rate
+    limits only — after delivery the server cannot link an envelope back
+    to its submitter.
+
+    ### How SQA can verify E2E from these APIs (no client needed)
+
+    Run an end-to-end test where Alice sends a message to Bob, then:
+
+    1. **Ciphertext is opaque.** `GET /envelopes` as Bob returns base64
+       in `outerSealed`. Decoding it must yield random bytes, not the
+       plaintext message.
+    2. **Sealed Sender v2.** In the same response, no field reveals
+       Alice's `userId`. The outer ECIES wrap recovers the sender
+       address only inside Bob's client, after AES-GCM authentication
+       against Bob's identity key.
+    3. **Forward secrecy.** Alice sends the literal word "hello" three
+       times. All three `outerSealed` values must be pairwise different
+       (a fresh X25519 ephemeral is minted per send).
+    4. **Bundle shape.** `GET /auth/keys/{aliceUserId}` returns
+       `identityKey`, `signedPreKey` (with `signature`) and a `preKey`
+       (may be `null` if pool is empty).
+    5. **One-time pre-keys are one-time.** Twenty repeated
+       `GET /auth/keys/{aliceUserId}` calls must return twenty
+       **distinct** `preKey.keyId` values (or `null` after the pool
+       drains) — never the same `keyId` twice.
+    6. **Retract removes from the queue.** After
+       `POST /envelopes/retract` with the original `retractToken`, a
+       subsequent `GET /envelopes` as Bob must not include the retracted
+       envelope.
+
+    What SQA cannot prove from APIs alone: decryption correctness (needs
+    a libsignal test harness), MITM resistance (client-side safety
+    numbers), and metadata-leak freedom (server logs + packet capture).
+  contact:
+    name: Bravo Secure
+    email: ranak@bravosecure.com
+
+servers:
+  - url: https://relay.94-136-184-52.sslip.io
+    description: Staging (AWS EC2, TLS via Caddy)
+  - url: http://94.136.184.52:3100
+    description: Staging (direct HTTP — legacy, browser-blocked from HTTPS origins)
+  - url: http://127.0.0.1:3100
+    description: Local dev
+
+tags:
+  - name: Health
+  - name: Envelopes
+    description: |
+      Sealed-sender relay (send / pull / ack / retract).
+
+      The server only ever sees **opaque ciphertext** — plaintext is
+      encrypted and decrypted on the device using the Signal Protocol.
+      The submitter's identity is intentionally not recorded ("sealed
+      sender"); the bearer token scopes rate limits only.
+
+      SQA checks:
+      - base64-decoded `ciphertext` must be random bytes, never plaintext
+      - no response field reveals the sender's `userId`
+      - sending the same plaintext twice yields two different ciphertexts
+      - retracted envelopes disappear from the recipient's next pull
+  - name: Media
+    description: Unencrypted media S3 pre-signing
+  - name: Vault
+    description: Encrypted personal vault S3 pre-signing
+  - name: Push
+    description: Push / VoIP token registration
+  - name: WebRTC
+  - name: SFU
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok: {type: boolean, example: true}
+        service: {type: string, example: messenger-service}
+        now: {type: string, format: date-time}
+
+    UnauthorizedError:
+      type: object
+      properties:
+        statusCode: {type: integer, example: 401}
+        error: {type: string, example: Unauthorized}
+        message: {type: string, example: Unauthorized}
+
+    ValidationError:
+      type: object
+      properties:
+        statusCode: {type: integer, example: 400}
+        error: {type: string, example: Bad Request}
+        message:
+          type: array
+          items: {type: string}
+
+    Ok:
+      type: object
+      properties:
+        ok: {type: boolean, example: true}
+
+    RecipientAddress:
+      type: object
+      required: [userId, deviceId]
+      properties:
+        userId: {type: string, format: uuid}
+        deviceId: {type: integer, minimum: 1, example: 1}
+
+    SendEnvelopeBody:
+      type: object
+      required: [recipient, outerSealed]
+      properties:
+        recipient: {$ref: '#/components/schemas/RecipientAddress'}
+        outerSealed:
+          type: string
+          description: |
+            Sealed Sender v2 outer ECIES wrap (base64). The libsignal
+            SessionCipher output AND the sender's Signal address both
+            travel encrypted inside this single string under an
+            X25519+AES-256-GCM envelope keyed off the recipient's
+            identity public key. The relay treats it as opaque bytes;
+            no field on the wire links the envelope back to the sender.
+          example: AjkP9w...base64...==
+          minLength: 60
+          maxLength: 700000
+        clientMsgId:
+          type: string
+          description: Idempotency key — server dedupes on this for retries
+        expiresAtSec:
+          type: integer
+          description: Unix seconds — if sooner than the default dwell, Redis auto-evicts the ciphertext at that time (disappearing-message support)
+
+    SendEnvelopeResponse:
+      type: object
+      required: [envelopeId, deliveredNow, retractToken]
+      properties:
+        envelopeId: {type: string, format: uuid}
+        clientMsgId:
+          {type: string, description: echo of the idempotency key from the request, nullable: true}
+        deliveredNow:
+          {type: boolean, description: true if recipient was online and got it live over WS}
+        retractToken:
+          type: string
+          format: uuid
+          description: |
+            Capability token for retracting this envelope. Keep locally;
+            pass to `POST /envelopes/retract` to evict before delivery.
+            Single-use. Sealed-sender preserving — the server learns
+            nothing about the original sender from the token.
+
+    RetractResponse:
+      type: object
+      required: [retracted]
+      properties:
+        retracted:
+          type: boolean
+          description: |
+            `true` if the envelope was evicted from Redis. `false` if the
+            token was unknown, already consumed, or the envelope had
+            already been delivered/acked. Idempotent — replays return
+            `{retracted: false}` without error.
+
+    StoredEnvelope:
+      type: object
+      properties:
+        envelopeId: {type: string, format: uuid}
+        outerSealed: {type: string, description: Sealed Sender v2 outer ECIES wrap (base64)}
+        createdAtMs: {type: integer, format: int64}
+        expiresAtSec: {type: integer, nullable: true}
+
+    PullResponse:
+      type: object
+      properties:
+        envelopes:
+          type: array
+          items: {$ref: '#/components/schemas/StoredEnvelope'}
+
+    RetractBody:
+      type: object
+      required: [retractToken]
+      properties:
+        retractToken:
+          type: string
+          pattern: '^[0-9a-f-]{36}$'
+          description: UUID returned by the original send
+
+    MediaUploadUrlBody:
+      type: object
+      required: [contentLength, contentType]
+      properties:
+        contentLength:
+          type: integer
+          minimum: 1
+          maximum: 52428800
+          example: 102400
+          description: Size of the blob the client will PUT, in bytes. Max 50 MiB. S3 will reject a PUT whose Content-Length differs from this value.
+        contentType:
+          type: string
+          pattern: '^[a-zA-Z0-9!#$&^_.+-]+/[a-zA-Z0-9!#$&^_.+-]+$'
+          example: application/octet-stream
+          description: MIME type — use `application/octet-stream` for opaque encrypted blobs.
+
+    MediaUploadUrlResponse:
+      type: object
+      required: [uploadUrl, objectKey, expiresAt]
+      properties:
+        uploadUrl:
+          type: string
+          format: uri
+          description: Presigned PUT URL — upload the blob directly to S3 with this URL. Do not attach any other headers.
+        objectKey:
+          type: string
+          example: 'chats/2026-04-23/9f3e8d…bin'
+          description: S3 object key. Pass this to `POST /media/download-url/{key}` later to get a read URL.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Unix seconds when the presigned URL stops being accepted by S3.
+          example: 1776928123
+
+    MediaDownloadUrlResponse:
+      type: object
+      required: [downloadUrl, expiresAt]
+      properties:
+        downloadUrl:
+          type: string
+          format: uri
+          description: Presigned GET URL — fetch the blob directly from S3.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Unix seconds when the presigned URL stops being accepted.
+          example: 1776928123
+
+    PushRegisterBody:
+      type: object
+      required: [token, platform]
+      properties:
+        token: {type: string, description: FCM/APNs token}
+        platform: {type: string, enum: [ios, android]}
+
+    PushUnregisterBody:
+      type: object
+      required: [token]
+      properties:
+        token: {type: string}
+
+    TurnCredentialsResponse:
+      type: object
+      required: [username, credential, urls, expiresAt]
+      properties:
+        username:
+          type: string
+          example: '1776928123:f8d2e4a1-…'
+          description: TURN REST-API username — `<expiresAt>:<userId>` by TURN REST convention.
+        credential:
+          type: string
+          description: Base64 HMAC-SHA1 of `username` keyed by the TURN server's static auth secret.
+        urls:
+          type: array
+          items: {type: string, example: 'turn:turn.example.com:3478?transport=udp'}
+          description: ICE server URLs the RN client plugs straight into `RTCPeerConnection.iceServers`.
+        expiresAt:
+          type: integer
+          format: int64
+          description: Unix seconds when this credential stops being accepted by the TURN server. Fetch a new one before this.
+          example: 1776928123
+
+    SfuStats:
+      type: object
+      required: [rooms, participants, stubbed]
+      properties:
+        rooms: {type: integer, example: 0}
+        participants: {type: integer, example: 0}
+        stubbed:
+          type: boolean
+          example: true
+          description: |
+            Always `true` in Phase 1 — the SFU is mounted but not wired
+            to a real media server yet. Flips to `false` once Phase 2
+            lands. Consumers can gate UI on this field to show "group
+            calls coming soon" vs the live call surface.
+
+  parameters:
+    XSignalDeviceId:
+      name: X-Signal-Device-Id
+      in: header
+      required: true
+      description: |
+        The caller's **Signal-layer** device id (integer ≥ 1). Required on
+        every JWT-guarded endpoint in this service. The relay uses it to
+        key per-device envelope queues — the `device_id` claim inside the
+        access token is auth-service's session UUID, not the numeric
+        Signal device id.
+
+        Omitting this header returns `400 missing_signal_device_id`,
+        not `401`.
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+    XMfaProof:
+      name: X-Mfa-Proof
+      in: header
+      required: true
+      description: |
+        Fresh **action-token** (a short-lived JWT) proving the caller
+        just completed a step-up — biometric, TOTP, or explicit
+        vault-access challenge. Issued by auth-service. The token's
+        `purpose` must be in the server's allowlist and its `iat` must
+        be fresher than `vault.mfaMaxAgeSec` (default 300s).
+
+        Omitting this header or presenting an expired/mismatched token
+        returns `401 missing_mfa_proof` / `401 invalid_mfa_proof`.
+      schema:
+        type: string
+        example: eyJhbGciOiJIUzI1NiIs...
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ValidationError'}
+    Unauthorized:
+      description: Missing / invalid bearer token
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/UnauthorizedError'}
+    NoContent:
+      description: Success, empty body
+
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      security: []
+      description: |
+        Plain liveness probe — returns `{ok:true, service:"messenger-service", now:"<iso>"}`.
+        Load balancers and uptime monitors hit this; it's the only
+        endpoint on the service with no auth.
+
+        **Auth:** none.
+
+        **Preconditions:** none. The process just needs to be up. Does
+        not check Redis, S3, or auth-service connectivity — a 200 here
+        only proves the Node process is accepting HTTP.
+
+        **Business meaning:** if this 200s but the `/envelopes` routes
+        500, the process is alive but a dependency (Redis) is down.
+
+        **Example curl:**
+
+            curl https://relay.94-136-184-52.sslip.io/healthz
+
+        **Common failures:**
+        - `000` / connection refused — TLS or the Caddy front door is down.
+        - Anything non-200 — restart the container.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HealthResponse'}
+
+  /envelopes:
+    post:
+      tags: [Envelopes]
+      summary: Submit a sealed envelope
+      description: |
+        Submit a sealed-sender envelope for delivery to one recipient
+        device. The server persists the opaque ciphertext, tries a live
+        fan-out over the Socket.IO channel, and returns an `envelopeId`
+        plus a single-use `retractToken` for M12 unsend.
+
+        **Auth:** requires bearer access token minted by auth-service,
+        plus header `X-Signal-Device-Id: <n>` (the caller's Signal
+        numeric device id, usually 1). The JWT is used only for
+        rate-limit / abuse scoping — the submitter's user id is
+        intentionally **not** persisted alongside the envelope.
+
+        **Preconditions:**
+        - Recipient must have already uploaded a Signal pre-key bundle
+          to auth-service `POST /auth/keys/upload`. Without this, the
+          client can't produce a type-3 PreKeySignalMessage.
+        - Client must have fetched that bundle via auth-service
+          `GET /auth/keys/{recipientUserId}` and run `libsignal.SessionCipher.encrypt`
+          locally. The libsignal SessionCipher output is then wrapped
+          again under a Sealed Sender v2 outer ECIES envelope (X25519
+          ephemeral DH against the recipient's identity key, AES-256-GCM
+          with binding AAD); the resulting bytes are base64-encoded
+          into `outerSealed`.
+
+        **Business meaning:** Sealed Sender v2 — the relay never learns
+        who sent the envelope. The sender's address travels encrypted
+        inside `outerSealed`, AES-GCM-bound to the recipient's identity
+        key, and is recovered only inside the recipient's client. The
+        30-day default dwell is shortened to `expiresAtSec` when the
+        sender wants a disappearing message; the Redis TTL enforces
+        auto-eviction even if the recipient never comes online.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/envelopes \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "recipient": {"userId":"b2c1e3f4-1111-4222-9333-444455556666","deviceId":1},
+                "outerSealed": "AjkP9w...base64...==",
+                "clientMsgId": "a1a2a3a4-0000-4fff-8fff-111122223333",
+                "expiresAtSec": 1800000000
+              }'
+
+        **Common failures:**
+        - `400 invalid_recipient` — `recipient.userId` missing or
+          `recipient.deviceId < 1`.
+        - `400 invalid_ciphertext` — `ciphertext.body` empty, or `type`
+          is not `1` (Whisper) or `3` (PreKey). Plain strings fail here.
+        - `400 ciphertext_too_large` — body exceeds `relay.maxCiphertextBytes`
+          (default 256 KiB).
+        - `400 expires_in_past` — `expiresAtSec` is already in the past.
+        - `401 missing_bearer` / `401 invalid_token` — token missing or
+          expired. `400 missing_signal_device_id` — header absent.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SendEnvelopeBody'}
+      responses:
+        '202':
+          description: Accepted (queued for delivery)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SendEnvelopeResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+    get:
+      tags: [Envelopes]
+      summary: Pull pending envelopes for the current caller
+      description: |
+        Pulls the queue of pending envelopes addressed to the caller's
+        `(userId, signalDeviceId)` pair. Envelopes stay on the relay
+        until ACK'd or their dwell/TTL expires (30 days default, less
+        if the sender set `expiresAtSec`).
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header — the Signal numeric device id is the queue partition
+        key. A user with two devices (phone + iPad) has two queues.
+
+        **Preconditions:** envelopes must have been submitted via
+        `POST /envelopes` addressed to this caller's userId + signal
+        deviceId. None will appear if the sender typo'd the recipient.
+
+        **Business meaning:** opaque ciphertext — decryption happens on
+        device using the Signal session state held in SQLCipher. The
+        server has no key and cannot decode. `after` is a cursor
+        (`createdAtMs` of the last successful ack); pass 0 on first
+        fetch. `limit` is clamped to `relay.maxPullLimit` (default 100).
+        No response field reveals the sender's userId — that is the
+        Sealed Sender invariant SQA verifies.
+
+        **Example curl:**
+
+            curl "https://relay.94-136-184-52.sslip.io/envelopes?after=0&limit=50" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `401 missing_bearer` / `401 invalid_token` — token missing or
+          expired.
+        - `400 missing_signal_device_id` — header absent or non-numeric.
+        - Empty `envelopes: []` is a valid 200 response, not a failure
+          — the queue is simply empty for this device.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+        - in: query
+          name: after
+          schema: {type: integer, format: int64, default: 0}
+          description: Only envelopes with `createdAtMs` > this value
+        - in: query
+          name: limit
+          schema: {type: integer, default: 50, maximum: 100}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PullResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /envelopes/{id}/ack:
+    post:
+      tags: [Envelopes]
+      summary: Ack an envelope (stop redelivery)
+      description: |
+        Acknowledges that the caller has successfully pulled + decrypted
+        the envelope, so the relay can hard-delete it from the queue.
+        Idempotent — acking an already-deleted envelope returns 204.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The caller must be the original recipient; cross-user
+        ack attempts are rejected to avoid leaking existence.
+
+        **Preconditions:** envelope must have been sent via
+        `POST /envelopes` and the caller must have received it in a
+        prior `GET /envelopes`. Calling this before the envelope exists
+        is harmless (returns 204 silently).
+
+        **Business meaning:** ACK is what removes an envelope from the
+        queue. Without it, the same envelope will be redelivered on
+        the next pull until its dwell TTL (30 days default) expires.
+        Clients should ack only after the ciphertext has been
+        decrypted AND persisted locally.
+
+        **Example curl:**
+
+            curl -X POST "https://relay.94-136-184-52.sslip.io/envelopes/e1e2e3e4-5555-4666-9777-888899990000/ack" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `403 not_recipient` — token belongs to a user/device that is
+          not the envelope's recipient. Server refuses to confirm or
+          deny existence.
+        - `401 missing_bearer` / `401 invalid_token` — standard auth.
+        - `400 missing_signal_device_id` — header absent.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '204': {$ref: '#/components/responses/NoContent'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /envelopes/retract:
+    post:
+      tags: [Envelopes]
+      summary: Retract / unsend a previously submitted envelope
+      description: |
+        Sender-initiated unsend. Presents the single-use `retractToken`
+        the caller received from the original `POST /envelopes` submit
+        response, and the relay hard-deletes the envelope from the
+        recipient's pending queue.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header for the controller-level guard. The real authorization
+        is the **capability token** in the body — only a caller
+        holding that random UUID can retract. This preserves Sealed
+        Sender: the server never re-links sender identity to the
+        envelope to authorize.
+
+        **Preconditions:** the original envelope must have been
+        submitted via `POST /envelopes` (which returns the
+        `retractToken`). Tokens are single-use; a replay returns
+        `{retracted:false}` idempotently instead of failing.
+
+        **Business meaning:** closes the Phase-1 gap where a
+        disappearing message could sit on the relay for the full 30-day
+        dwell if the recipient was offline. If the retract happens
+        before the recipient pulls, the envelope is gone. If the
+        recipient already pulled, this won't claw it back from their
+        device — client-side tombstones handle that UX.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/envelopes/retract \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "Content-Type: application/json" \
+              -d '{"retractToken":"8b5f0c32-9a10-4b3e-9c82-aabbccddeeff"}'
+
+        **Common failures:**
+        - `400 invalid_retract_token` — not a UUID-shaped string.
+        - `200 {"retracted": false}` — token valid but already consumed,
+          or the envelope already auto-expired. Not an error.
+        - `401 missing_bearer` / `401 invalid_token` — standard auth.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RetractBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RetractResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /media/upload-url:
+    post:
+      tags: [Media]
+      summary: Get an S3 pre-signed PUT for a media upload
+      description: |
+        Returns a short-lived presigned S3 PUT URL plus the server-
+        generated object key (`att/<uuid>`) the client will reference
+        from the sealed envelope. The client encrypts the blob locally
+        with AES-256 BEFORE the PUT — this service never handles
+        plaintext bytes.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header.
+
+        **Preconditions:** S3-compatible storage must be configured on
+        the service (`media.accessKeyId`, `media.secretAccessKey`,
+        `media.bucket`). On staging these are provisioned; in local
+        dev without them you'll get `400 media_storage_not_configured`.
+
+        **Business meaning:** attachment blobs are "session media" — no
+        per-file MFA, 5-minute presign TTL, client-side AES encryption
+        is mandatory. The decryption key travels in-band inside the
+        sealed Signal envelope (never through HTTP). Object keys are
+        server-generated UUIDs; client-supplied paths are ignored.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/media/upload-url \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "Content-Type: application/json" \
+              -d '{"contentType":"image/jpeg","contentLength":102400}'
+
+        Then PUT the encrypted bytes to `uploadUrl` with the **exact**
+        `Content-Length` and `Content-Type` you declared — mismatches
+        fail the presigned signature check.
+
+        **Common failures:**
+        - `400 invalid_content_length` — missing, <=0, or > `media.maxUploadBytes`
+          (default 50 MiB).
+        - `400 invalid_content_type` — not a valid `type/subtype` pattern,
+          or > 100 chars.
+        - `400 media_storage_not_configured` — S3 creds missing on the
+          service (staging: should never happen; local dev: expected
+          without env vars).
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MediaUploadUrlBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MediaUploadUrlResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '503':
+          description: MEDIA_S3_* not configured on staging
+
+  /media/download-url/{key}:
+    post:
+      tags: [Media]
+      summary: Get an S3 pre-signed GET for a media download
+      description: |
+        Returns a 5-minute presigned S3 GET URL for an existing
+        attachment blob. The client then fetches the ciphertext from
+        S3 directly and decrypts locally with the AES key it extracted
+        from the sealed Signal envelope that referenced this object.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. No MFA — attachments are session media (per-message
+        ephemeral), distinct from vault files.
+
+        **Preconditions:** the object key must match the pattern
+        `att/<uuid>` — this is the format the upload-url endpoint
+        returned. The caller usually got this key out of a decrypted
+        envelope. No listing API exists — you can only download keys
+        you already know.
+
+        **Business meaning:** the blob itself is AES-256 ciphertext;
+        S3 serves raw bytes, and the client decrypts. The 5-minute TTL
+        means SQA must use the returned URL promptly.
+
+        **Example curl:**
+
+            curl -X POST "https://relay.94-136-184-52.sslip.io/media/download-url/att%2F9f4a3c20-0000-4000-a000-000000000001" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        Note the `att/<uuid>` path segment must be URL-encoded (the
+        slash becomes `%2F`).
+
+        **Common failures:**
+        - `400 invalid_object_key` — key does not match `att/<uuid>`
+          format (e.g. pointing at a `vault/` key).
+        - `400 media_storage_not_configured` — S3 creds missing.
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+        - in: path
+          name: key
+          required: true
+          schema: {type: string}
+          description: URL-encoded S3 object key
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MediaDownloadUrlResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /vault/upload-url:
+    post:
+      tags: [Vault]
+      summary: Pre-signed PUT for encrypted vault upload
+      description: |
+        Returns a 60-second presigned S3 PUT URL plus a server-generated
+        object key (`vault/<uuid>`) for a new vault file. The client
+        encrypts bytes locally with AES-256 before the PUT — this
+        service never sees plaintext and never holds the encryption key.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header AND a fresh MFA action-token in `X-Mfa-Proof`. The
+        action-token must be minted by auth-service, have a purpose
+        in the allowlist (`biometric-verified`, `totp-verified`,
+        `vault-access`), and be fresher than `vault.mfaMaxAgeSec`
+        (default 300s). Its `sub` + `device_id` must match the access
+        token's.
+
+        **Preconditions:**
+        - Caller must have cleared a biometric or TOTP challenge client-
+          side and exchanged it with auth-service for an action-token.
+        - S3-compatible storage must be configured on the service.
+
+        **Business meaning:** vault files are long-lived encrypted
+        blobs — distinct from M6 attachments. The 60-second presign
+        TTL is tighter than media's 5 minutes, and every upload is
+        audit-logged (user, device, IP, hashed object key). Upload-
+        time MFA is a defense-in-depth measure: a stolen access-token
+        alone cannot silently seed vault content.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/vault/upload-url \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "X-Mfa-Proof: $ACTION_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"contentType":"application/octet-stream","contentLength":524288}'
+
+        **Common failures:**
+        - `401 missing_mfa_proof` — no `X-Mfa-Proof` header.
+        - `401 invalid_mfa_proof` / `401 mfa_sub_mismatch` / `401 mfa_device_mismatch`
+          — action-token is wrong purpose, stale, or issued to a
+          different subject/device.
+        - `400 invalid_content_length` — missing / <=0 / > 50 MiB.
+        - `400 invalid_content_type` — bad MIME pattern.
+        - `400 vault_storage_not_configured` — S3 creds missing.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+        - $ref: '#/components/parameters/XMfaProof'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MediaUploadUrlBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MediaUploadUrlResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /vault/download-url/{key}:
+    post:
+      tags: [Vault]
+      summary: Pre-signed GET for encrypted vault download
+      description: |
+        Returns a 60-second presigned S3 GET URL for an existing vault
+        blob. The client fetches the ciphertext from S3 and decrypts
+        with the user's vault key (derived from their passphrase /
+        biometric-unlocked keychain entry) — the server never sees
+        plaintext.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header AND a fresh `X-Mfa-Proof` action-token. Every vault
+        access is gated by MFA and the access is written to the
+        vault audit log with user id, auth device id, source IP, and
+        a sha256 hash of the object key.
+
+        **Preconditions:**
+        - Object key must match `vault/<uuid>` (as returned by
+          `POST /vault/upload-url`).
+        - Caller must hold a fresh action-token (<= 300s old) whose
+          `sub` + `device_id` match the access token.
+
+        **Business meaning:** the 60s presign TTL plus per-call MFA
+        give short-lived, auditable access to long-lived encrypted
+        content. A leaked download URL auto-expires almost immediately.
+        The audit log entry is written whether the outcome is `granted`
+        or `denied` — SQA can verify denial events appear for bad keys.
+
+        **Example curl:**
+
+            curl -X POST "https://relay.94-136-184-52.sslip.io/vault/download-url/vault%2Fc1d2e3f4-5555-4666-9777-888899990000" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "X-Mfa-Proof: $ACTION_TOKEN"
+
+        **Common failures:**
+        - `400 invalid_object_key` — key is not `vault/<uuid>`
+          (e.g. passing an `att/...` attachment key). Audit-logged
+          as `denied`.
+        - `401 missing_mfa_proof` / `401 invalid_mfa_proof` — MFA
+          header absent or stale.
+        - `401 mfa_sub_mismatch` / `401 mfa_device_mismatch` —
+          action-token subject/device differs from access-token.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+        - $ref: '#/components/parameters/XMfaProof'
+        - in: path
+          name: key
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MediaDownloadUrlResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /push/register:
+    post:
+      tags: [Push]
+      summary: Register a push token (FCM / APNs)
+      description: |
+        Registers a DATA push token (regular APNs for iOS, FCM for
+        Android) for the caller's user+device pair. Used for
+        envelope-delivery wake hints — the push payload carries NO
+        message content, only a wake signal that tells the app to
+        pull `/envelopes`.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The caller's userId + auth-session deviceId (from the
+        JWT claims) form the Redis key, so a given device can have
+        exactly one DATA token at a time — re-registering overwrites.
+
+        **Preconditions:** the caller must have obtained a push token
+        from the OS (FCM registration on Android, APNs registration
+        on iOS). Tokens are validated only by shape: 10–4096 chars,
+        `[A-Za-z0-9+/=_\-.:]`.
+
+        **Business meaning:** phase-1 ships REGISTRATION only — actual
+        APNs/FCM delivery is stubbed (logs `push.stub.enqueue`). Tokens
+        expire from Redis after 90 days of non-refresh. Permanent rule:
+        push payloads NEVER carry message content.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/push/register \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "Content-Type: application/json" \
+              -d '{"platform":"ios","token":"fP3aRk-6C9QK7..._fake_apns_token_..."}'
+
+        **Common failures:**
+        - `400` — `platform` not in `[ios, android]`, or `token` fails
+          the length/charset validation.
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PushRegisterBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+    delete:
+      tags: [Push]
+      summary: Unregister a push token
+      description: |
+        Unregisters (deletes) the DATA push token for the caller's
+        user+device pair. Call this on logout or when the OS tells the
+        app its token is stale.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The caller's userId + auth-session deviceId key the
+        Redis entry — no body token is needed; the controller
+        identifies the target record purely from JWT claims.
+
+        **Preconditions:** none. Deleting an entry that doesn't exist
+        is a no-op success.
+
+        **Business meaning:** prevents further wake-pushes to that
+        device. Idempotent.
+
+        **Example curl:**
+
+            curl -X DELETE https://relay.94-136-184-52.sslip.io/push/register \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `401` — standard auth failures. No other failure paths.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PushUnregisterBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /push/register-voip:
+    post:
+      tags: [Push]
+      summary: Register an iOS PushKit/VoIP token
+      description: |
+        Registers a VoIP-specific token for the caller's user+device
+        pair. On iOS this MUST be a PushKit token (distinct from a
+        regular APNs token) so the OS can wake the app into a CallKit-
+        answered state for inbound calls. On Android, apps post the
+        same FCM token here and to `/push/register` so the dispatch
+        layer can flip high-priority + bypass Doze on the call path.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. Uses the same shape as `/push/register` but stores
+        under a separate Redis prefix (`push-voip-token:`).
+
+        **Preconditions:** the caller must have registered with
+        PushKit (iOS) or requested high-priority FCM (Android) and
+        obtained a token from the OS.
+
+        **Business meaning:** inbound-call rings on a locked/background
+        phone require a VoIP push — a regular APNs push is too slow
+        and cannot wake into CallKit. VoIP payload carries ONLY
+        `{callId, wake:true}`; the actual SDP offer lands via WS
+        after the device wakes and reconnects. Phase 1 ships
+        registration; delivery is stubbed.
+
+        **Example curl:**
+
+            curl -X POST https://relay.94-136-184-52.sslip.io/push/register-voip \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1" \
+              -H "Content-Type: application/json" \
+              -d '{"platform":"ios","token":"9f1c...fake_pushkit_token..."}'
+
+        **Common failures:**
+        - `400` — `platform` or `token` fails DTO validation.
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PushRegisterBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+    delete:
+      tags: [Push]
+      summary: Unregister a VoIP token
+      description: |
+        Unregisters the VoIP (PushKit / high-priority FCM) token for
+        the caller's user+device pair.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The Redis key is derived from JWT claims; no body is
+        required for targeting.
+
+        **Preconditions:** none. Deleting a missing entry is a no-op
+        success.
+
+        **Business meaning:** after this call, inbound-call pushes to
+        this device stop. Used on logout or when the OS invalidates
+        the PushKit token.
+
+        **Example curl:**
+
+            curl -X DELETE https://relay.94-136-184-52.sslip.io/push/register-voip \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PushUnregisterBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /webrtc/turn-credentials:
+    get:
+      tags: [WebRTC]
+      summary: Short-lived TURN credentials (HMAC-SHA1, REST-auth)
+      description: |
+        Issues short-lived TURN credentials in the coturn
+        `use-auth-secret` REST pattern. Returned fields plug straight
+        into an `RTCPeerConnection.iceServers` entry.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The caller's userId is embedded into the TURN username
+        (sanitized to `[a-zA-Z0-9_-]`) so coturn's access log can
+        attribute bandwidth usage during abuse investigations.
+
+        **Preconditions:** the service must be configured with
+        `turn.staticAuthSecret` and `turn.urls` — on staging these are
+        set; a 500 `turn_not_configured` / `turn_urls_missing` means
+        env vars are missing.
+
+        **Business meaning:** TURN is the relay-of-last-resort for
+        NAT-traversal-hard WebRTC 1:1 calls. `username` is
+        `"<expiresAtUnix>:<sanitizedUserId>"`, `credential` is
+        `base64(HMAC-SHA1(staticSecret, username))`, TTL defaults to
+        24h (`turn.ttlSeconds`). coturn rejects any request where
+        `now > expiresAtUnix` — stolen creds have a hard wall-clock
+        expiry. Media packets are still SRTP-encrypted end-to-end;
+        the TURN server only forwards opaque UDP.
+
+        **Example curl:**
+
+            curl https://relay.94-136-184-52.sslip.io/webrtc/turn-credentials \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `500 turn_not_configured` — `turn.staticAuthSecret` env var
+          missing on the messenger-service process.
+        - `500 turn_urls_missing` — `turn.urls` list is empty.
+        - `401` — standard auth failures.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TurnCredentialsResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /sfu/stats:
+    get:
+      tags: [SFU]
+      summary: SFU runtime stats (debug)
+      description: |
+        Debug endpoint — returns current SFU (group-call) runtime
+        stats. Phase-1 returns stubbed zeros (`rooms:0, participants:0,
+        stubbed:true`); Phase-2 plumbs this to real mediasoup worker
+        metrics.
+
+        **Auth:** requires bearer access token + `X-Signal-Device-Id`
+        header. The `SfuController` is wrapped in `JwtHttpGuard`.
+
+        **Preconditions:** none beyond auth.
+
+        **Business meaning:** lets clients discover whether the SFU
+        surface is up without having to initiate a group call. Useful
+        for health dashboards; not a security-sensitive endpoint
+        because the stats don't leak room ids or participant identity
+        (those are opaque server-assigned tags by design).
+
+        **Example curl:**
+
+            curl https://relay.94-136-184-52.sslip.io/sfu/stats \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "X-Signal-Device-Id: 1"
+
+        **Common failures:**
+        - `401` — auth missing / invalid (controller is guarded).
+        - `200 {"rooms":0,"participants":0,"stubbed":true}` is the
+          expected staging response until Phase-2 lands.
+      parameters:
+        - $ref: '#/components/parameters/XSignalDeviceId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SfuStats'}

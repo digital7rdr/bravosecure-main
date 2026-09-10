@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#2563EB",
+          "background-dark": "#0A0F1E",
+        },
+        fontFamily: { "display": ["Manrope", "sans-serif"] },
+        borderRadius: {
+          "DEFAULT": "0.5rem",
+          "lg": "1rem",
+          "xl": "1.5rem",
+          "full": "9999px"
+        },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; min-height: max(884px, 100dvh); }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .active-tab .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+
+  /* Drawer animation */
+  #notif-overlay { transition: opacity 0.3s ease; }
+  #notif-drawer { transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
+  #notif-overlay.hidden { display: none; }
+  #notif-overlay.closing { opacity: 0; }
+  #notif-drawer.closing { transform: translateY(100%); }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 min-h-screen flex flex-col">
+
+<!-- Top Bar -->
+<header class="px-4 pt-12 pb-3 flex items-center justify-between border-b border-primary/10 sticky top-0 bg-background-dark/80 backdrop-blur-md z-50">
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined text-primary text-[24px]">shield</span>
+    <span class="font-bold tracking-widest text-lg">BRAVO</span>
+  </div>
+  <div class="flex items-center gap-4">
+    <button id="notif-btn" class="relative cursor-pointer" onclick="openDrawer()">
+      <span class="material-symbols-outlined text-slate-400">notifications</span>
+      <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-600 ring-2 ring-background-dark"></span>
+    </button>
+    <button onclick="openProfileDrawer()" class="size-8 rounded-full overflow-hidden border border-primary/30 hover:border-primary transition-colors focus:outline-none">
+      <div class="size-full rounded-full flex items-center justify-center text-xs font-bold" style="background:#112236; color:#60A5FA;">JA</div>
+    </button>
+  </div>
+</header>
+
+<main class="flex-1 overflow-y-auto pb-36">
+
+  <!-- Status Badge -->
+  <div class="flex justify-center py-3">
+    <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+      <span class="text-xs font-bold tracking-wider text-emerald-500 uppercase">Secure</span>
+    </div>
+  </div>
+
+  <!-- Module Tiles -->
+  <div class="px-4 mb-3 space-y-2">
+
+    <!-- Messenger -->
+    <div onclick="navigateTo('screens/messenger-home.html', 'Conversations', 'Messenger/Home')" class="w-full bg-slate-900/50 rounded-xl border border-white/5 border-l-4 border-l-purple-600 p-3.5 flex items-center gap-3 cursor-pointer hover:bg-slate-800/60 active:scale-[0.98] transition-all">
+      <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(147,51,234,0.15)">
+        <span class="material-symbols-outlined text-purple-400 text-[22px]">lock</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-bold">Messenger</h3>
+        <p class="text-[11px] text-slate-400">Encrypted comms & channels</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-white" style="background:#7C3AED">3 UNREAD</span>
+        <span class="material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Bravo Lite -->
+    <div onclick="navigateTo('screens/booking-type.html', 'Booking Type', 'Booking/Type')" class="w-full bg-slate-900/50 rounded-xl border border-white/5 border-l-4 border-l-primary p-3.5 flex items-center gap-3 cursor-pointer hover:bg-slate-800/60 active:scale-[0.98] transition-all">
+      <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15)">
+        <span class="material-symbols-outlined text-primary text-[22px]">shield</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-bold">Bravo Lite</h3>
+        <p class="text-[11px] text-slate-400">Book security & protection</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-primary"></span>
+        <span class="material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Bravo Pro -->
+    <div onclick="navigateTo('screens/bravo-pro-landing.html', 'Bravo Pro', 'BravoPro/Landing')" class="w-full bg-slate-900/50 rounded-xl border border-white/5 border-l-4 border-l-indigo-500 p-3.5 flex items-center gap-3 cursor-pointer hover:bg-slate-800/60 active:scale-[0.98] transition-all">
+      <div class="size-10 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.14)">
+        <span class="material-symbols-outlined text-indigo-400 text-[22px]">verified_user</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-bold">Bravo Pro</h3>
+        <p class="text-[11px] text-slate-400">VIP & corporate subscriptions</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold text-indigo-300 border border-indigo-500/30" style="background:rgba(99,102,241,0.1)">PRO</span>
+        <span class="material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="px-4">
+    <h2 class="text-xs font-bold tracking-wider text-slate-400 uppercase mb-2 px-1">Recent Activity</h2>
+    <div class="space-y-1">
+
+      <div class="flex items-center gap-3 p-2.5 bg-slate-900/50 rounded-lg border border-white/5">
+        <div class="h-2 w-2 rounded-full bg-red-500 shrink-0"></div>
+        <div class="flex-1">
+          <p class="text-xs font-medium">Geofence breach detected</p>
+          <p class="text-[10px] text-slate-500">Zone Alpha • Perimeter A</p>
+        </div>
+        <span class="text-[10px] text-slate-600 font-medium shrink-0">2m ago</span>
+      </div>
+
+      <div class="flex items-center gap-3 p-2.5 bg-slate-900/50 rounded-lg border border-white/5">
+        <div class="h-2 w-2 rounded-full bg-emerald-500 shrink-0"></div>
+        <div class="flex-1">
+          <p class="text-xs font-medium">Operator check-in</p>
+          <p class="text-[10px] text-slate-500">Shield-04 • HQ Post</p>
+        </div>
+        <span class="text-[10px] text-slate-600 font-medium shrink-0">15m ago</span>
+      </div>
+
+      <div class="flex items-center gap-3 p-2.5 bg-slate-900/50 rounded-lg border border-white/5">
+        <div class="h-2 w-2 rounded-full bg-primary shrink-0"></div>
+        <div class="flex-1">
+          <p class="text-xs font-medium">Message received</p>
+          <p class="text-[10px] text-slate-500">Encrypted Channel • Admin</p>
+        </div>
+        <span class="text-[10px] text-slate-600 font-medium shrink-0">1h ago</span>
+      </div>
+
+      <div class="flex items-center gap-3 p-2.5 bg-slate-900/50 rounded-lg border border-white/5">
+        <div class="h-2 w-2 rounded-full bg-slate-500 shrink-0"></div>
+        <div class="flex-1">
+          <p class="text-xs font-medium">System backup completed</p>
+          <p class="text-[10px] text-slate-500">Cloud Sync • Node-09</p>
+        </div>
+        <span class="text-[10px] text-slate-600 font-medium shrink-0">3h ago</span>
+      </div>
+
+      <div class="flex items-center gap-3 p-2.5 bg-slate-900/50 rounded-lg border border-white/5">
+        <div class="h-2 w-2 rounded-full bg-primary shrink-0"></div>
+        <div class="flex-1">
+          <p class="text-xs font-medium">Booking confirmed</p>
+          <p class="text-[10px] text-slate-500">Transport-V2 • London</p>
+        </div>
+        <span class="text-[10px] text-slate-600 font-medium shrink-0">5h ago</span>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+
+<!-- ── Notification Drawer ─────────────────────────────── -->
+<div id="notif-overlay" class="hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex flex-col justify-end" onclick="closeDrawer(event)">
+  <div id="notif-drawer" class="bg-background-dark w-full h-[75%] rounded-t-xl flex flex-col shadow-2xl border-t border-primary/20" onclick="event.stopPropagation()">
+
+    <!-- Drag Handle -->
+    <div class="flex justify-center pt-3 pb-1 cursor-pointer" onclick="closeDrawer()">
+      <div class="w-10 h-1 bg-primary/30 rounded-full"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-5 py-3 flex justify-between items-center border-b border-primary/10">
+      <h2 class="text-base font-bold">Notifications</h2>
+      <button class="text-primary font-semibold text-xs hover:opacity-80 transition-opacity">Mark all read</button>
+    </div>
+
+    <!-- List -->
+    <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+
+      <!-- Alert — Red -->
+      <div class="flex items-start gap-3 p-3 bg-primary/5 border-l-4 border-red-500 rounded-lg">
+        <div class="size-9 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-red-500 text-[18px]">report</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-sm leading-tight">Security Breach Detected</h3>
+            <span class="text-[10px] text-slate-500 uppercase shrink-0">2m ago</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">Unauthorized motion detected in Zone 4. Security protocol initiated.</p>
+        </div>
+      </div>
+
+      <!-- Booking — Blue -->
+      <div class="flex items-start gap-3 p-3 bg-primary/5 border-l-4 border-primary rounded-lg">
+        <div class="size-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-primary text-[18px]">confirmation_number</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-sm leading-tight">Executive Transport Confirmed</h3>
+            <span class="text-[10px] text-slate-500 uppercase shrink-0">45m ago</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">Secure transport for Friday 10:00 PM confirmed with Agent "Specter".</p>
+        </div>
+      </div>
+
+      <!-- Message — Purple -->
+      <div class="flex items-start gap-3 p-3 bg-primary/5 border-l-4 border-purple-500 rounded-lg">
+        <div class="size-9 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-purple-400 text-[18px]">chat_bubble</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-sm leading-tight">Encrypted Message</h3>
+            <span class="text-[10px] text-slate-500 uppercase shrink-0">1h ago</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">Operational Command has sent updated mission parameters.</p>
+        </div>
+      </div>
+
+      <!-- Read — Dimmed -->
+      <div class="flex items-start gap-3 p-3 border-l-4 border-white/10 rounded-lg opacity-50">
+        <div class="size-9 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-slate-500 text-[18px]">check_circle</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start gap-2">
+            <h3 class="font-bold text-sm leading-tight">System Update Complete</h3>
+            <span class="text-[10px] text-slate-500 uppercase shrink-0">3h ago</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">All firmware in the West Wing hub successfully patched.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── SOS Floating Button ─────────────────────────────── -->
+<div class="fixed bottom-6 left-5 z-[55]">
+  <div class="flex items-center gap-4">
+
+    <!-- SOS button -->
+    <button onclick="openSOS()"
+      class="relative flex flex-col items-center justify-center select-none"
+      style="width:72px; height:72px;">
+      <!-- Pulse rings -->
+      <span class="absolute inset-0 rounded-full opacity-40 animate-ping" style="background:rgba(220,38,38,0.35); animation-duration:2s;"></span>
+      <span class="absolute inset-0 rounded-full opacity-20 animate-ping" style="background:rgba(220,38,38,0.25); animation-duration:2s; animation-delay:0.7s;"></span>
+      <!-- Button face -->
+      <span class="relative z-10 flex flex-col items-center justify-center rounded-full font-black text-white shadow-2xl"
+        style="width:72px; height:72px; background:linear-gradient(145deg,#ef4444,#b91c1c); box-shadow:0 0 0 3px rgba(220,38,38,0.3), 0 8px 28px rgba(220,38,38,0.55); font-size:15px; letter-spacing:0.06em;">
+        <span class="material-symbols-outlined filled" style="font-size:22px; font-variation-settings:'FILL' 1;">emergency</span>
+        SOS
+      </span>
+    </button>
+
+  </div>
+</div>
+
+<!-- ── SOS Overlay ─────────────────────────────────────── -->
+<div id="sos-overlay" style="display:none" class="fixed inset-0 z-[70] flex-col bg-background-dark">
+
+  <!-- State: Idle -->
+  <div id="sos-idle" style="display:none" class="flex-col flex-1">
+    <header class="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-primary/10 bg-background-dark/80 backdrop-blur-md">
+      <button onclick="closeSOS()" class="flex items-center justify-center size-9 rounded-full hover:bg-primary/10 transition-colors">
+        <span class="material-symbols-outlined text-slate-300">arrow_back</span>
+      </button>
+      <span class="font-bold tracking-widest">BRAVO</span>
+    </header>
+    <div class="flex-1 flex flex-col items-center justify-center px-8 gap-8">
+      <div class="text-center">
+        <h1 class="text-2xl font-extrabold tracking-tight mb-1">Emergency SOS</h1>
+        <p class="text-sm text-slate-400">Hold the button for 3 seconds to activate</p>
+      </div>
+      <div class="relative flex items-center justify-center">
+        <div class="absolute size-36 rounded-full border border-red-500/30 animate-ping" style="animation-duration:2s"></div>
+        <div class="absolute size-28 rounded-full border border-red-500/40 animate-ping" style="animation-duration:2s;animation-delay:0.6s"></div>
+        <div class="relative flex items-center justify-center">
+          <svg class="absolute size-[88px] -rotate-90" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="45" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="4"/>
+            <circle id="hold-ring" cx="48" cy="48" r="45" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283" style="transition:stroke-dashoffset 3s linear"/>
+          </svg>
+          <button id="sos-hold-btn"
+            class="size-20 rounded-full bg-red-600 text-white font-black text-xl shadow-2xl shadow-red-600/50 flex items-center justify-center select-none z-10 transition-transform active:scale-95"
+            onmousedown="startHold()" onmouseup="cancelHold()" onmouseleave="cancelHold()"
+            ontouchstart="startHold(event)" ontouchend="cancelHold()" ontouchcancel="cancelHold()">
+            SOS
+          </button>
+        </div>
+      </div>
+      <div class="w-full space-y-2">
+        <div class="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+          <div><p class="text-xs font-bold">Location Shared</p><p class="text-[10px] text-slate-400">GPS coordinates sent to Ops Room</p></div>
+        </div>
+        <div class="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary text-[20px]">headset_mic</span>
+          <div><p class="text-xs font-bold">Ops Room On Standby</p><p class="text-[10px] text-slate-400">Response team ready to deploy</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State: Activating -->
+  <div id="sos-activating" style="display:none" class="flex-col flex-1">
+    <header class="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-red-900/30 bg-red-950/60 backdrop-blur-md">
+      <button onclick="cancelHold()" class="flex items-center justify-center size-9 rounded-full hover:bg-red-500/10 transition-colors">
+        <span class="material-symbols-outlined text-slate-300">arrow_back</span>
+      </button>
+      <span class="font-bold tracking-widest text-red-300">ACTIVATING SOS</span>
+    </header>
+    <div class="flex-1 flex flex-col items-center justify-center px-8 gap-8">
+      <p class="text-sm text-red-300">Keep holding the button...</p>
+      <div class="relative flex items-center justify-center">
+        <svg class="absolute size-[120px] -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="56" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="5"/>
+          <circle id="act-ring" cx="60" cy="60" r="56" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352" style="transition:stroke-dashoffset 3s linear"/>
+        </svg>
+        <div class="size-24 rounded-full bg-red-700 flex items-center justify-center shadow-2xl shadow-red-600/60 z-10">
+          <span id="countdown-num" class="text-white font-black text-4xl">3</span>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500 uppercase tracking-widest">Release to cancel</p>
+    </div>
+  </div>
+
+  <!-- State: Activated -->
+  <div id="sos-activated" style="display:none" class="flex-col flex-1 relative overflow-hidden">
+    <div class="absolute inset-0 bg-red-950/95 z-0"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-red-900/50 to-background-dark z-0"></div>
+    <div class="relative z-10 flex flex-col flex-1">
+      <header class="px-4 pt-12 pb-3 flex items-center justify-between">
+        <span class="font-bold tracking-widest text-red-300">SOS ACTIVE</span>
+        <span class="text-xs text-red-400/70">Activated at <span id="activated-time">--:--</span></span>
+      </header>
+      <div class="flex-1 flex flex-col items-center justify-center px-8 gap-6">
+        <div class="relative flex items-center justify-center">
+          <div class="absolute size-52 rounded-full border border-red-500/20 animate-ping" style="animation-duration:1.8s"></div>
+          <div class="absolute size-44 rounded-full border border-red-500/30 animate-ping" style="animation-duration:1.8s;animation-delay:0.6s"></div>
+          <div class="absolute size-44 rounded-full border-4 border-primary/60"></div>
+          <div class="size-40 rounded-full bg-red-700 flex items-center justify-center shadow-2xl shadow-red-600/60 z-10">
+            <span class="material-symbols-outlined text-white" style="font-size:72px;font-variation-settings:'FILL' 1">emergency_home</span>
+          </div>
+        </div>
+        <div class="text-center">
+          <h2 class="text-3xl font-extrabold uppercase tracking-tight text-white mb-1">SOS Active</h2>
+          <p class="text-primary font-bold">Ops Room Notified</p>
+        </div>
+        <!-- Map mockup -->
+        <div class="w-full rounded-xl overflow-hidden border border-red-900/40">
+          <div class="px-3 py-2 bg-red-950/80 border-b border-red-900/30">
+            <p class="text-[10px] font-bold text-primary uppercase tracking-widest">Live Response Tracking</p>
+          </div>
+          <div class="h-32 bg-background-dark relative">
+            <svg class="absolute inset-0 w-full h-full opacity-20"><defs><pattern id="g" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0L0 0 0 24" fill="none" stroke="#2563EB" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#g)"/></svg>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+              <div class="absolute size-5 rounded-full bg-red-600 animate-ping opacity-70"></div>
+              <div class="size-4 rounded-full bg-red-600 border-2 border-white z-10"></div>
+            </div>
+          </div>
+        </div>
+        <button onclick="cancelSOS()" class="w-full border-2 border-red-500/40 text-red-200 hover:bg-red-500/10 py-3.5 rounded-xl font-bold uppercase tracking-widest text-sm transition-all">
+          Cancel SOS
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Profile / Settings Drawer ──────────────────────── -->
+<div id="profile-overlay" class="hidden fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm flex" onclick="closeProfileDrawer(event)">
+  <aside id="profile-drawer" class="relative z-50 flex h-full w-10/12 flex-col border-r border-primary/10 shadow-2xl overflow-y-auto"
+    style="background:#0A0F1E; transform:translateX(-100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);"
+    onclick="event.stopPropagation()">
+
+    <!-- User Profile -->
+    <div class="px-5 pt-12 pb-5 border-b border-primary/10">
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <div class="size-14 rounded-full p-0.5" style="border:2px solid #2563EB;">
+            <div class="size-full rounded-full flex items-center justify-center text-lg font-bold" style="background:#112236; color:#60A5FA;">JA</div>
+          </div>
+          <div class="absolute bottom-0 right-0 size-3.5 rounded-full border-2" style="background:#00C851; border-color:#0A0F1E;"></div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <h2 class="text-base font-bold text-slate-100">James A.</h2>
+            <span class="px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full" style="background:rgba(37,99,235,0.15); color:#60A5FA; border:1px solid rgba(37,99,235,0.25);">Individual</span>
+          </div>
+          <a class="text-[12px] font-semibold flex items-center gap-1 text-blue-400" href="#">
+            Edit Profile <span class="material-symbols-outlined" style="font-size:12px;">edit</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <nav class="flex-1 px-4 py-4">
+      <ul class="flex flex-col gap-1">
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" style="background:rgba(37,99,235,0.07);" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">person</span><span class="text-[13px] font-semibold">My Profile</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">calendar_today</span><span class="text-[13px] font-semibold">My Bookings</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">verified</span><span class="text-[13px] font-semibold">Bravo Pro</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li class="pb-2 mb-1" style="border-bottom:1px solid #1E2D45;">
+          <a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">support_agent</span><span class="text-[13px] font-semibold">Agent Portal</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">security</span><span class="text-[13px] font-semibold">Security Settings</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">notifications</span><span class="text-[13px] font-semibold">Notification Settings</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+        <li><a class="flex h-11 items-center justify-between rounded-xl px-3 hover:bg-primary/10 transition-colors" href="#">
+          <div class="flex items-center gap-3"><span class="material-symbols-outlined text-[19px]" style="color:#60A5FA;">help</span><span class="text-[13px] font-semibold">Help &amp; Support</span></div>
+          <span class="material-symbols-outlined text-[17px] text-slate-600">chevron_right</span>
+        </a></li>
+      </ul>
+    </nav>
+
+    <!-- Bottom -->
+    <div class="p-4 border-t" style="border-color:#1E2D45;">
+      <button class="flex w-full items-center gap-3 rounded-xl px-4 py-3 hover:bg-red-500/10 transition-colors" style="color:#FF3B3B;">
+        <span class="material-symbols-outlined text-[19px]">logout</span>
+        <span class="text-[13px] font-bold">Log Out</span>
+      </button>
+      <div class="mt-3 flex flex-col items-center gap-0.5 opacity-40">
+        <p class="text-[11px] font-semibold text-slate-400">OmniDevX Studio</p>
+        <p class="text-[10px] text-slate-500">v1.0.0</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  // ── SOS Logic ──
+  let holdTimer = null, cdInterval = null, cdVal = 3;
+
+  function openSOS() {
+    document.getElementById('sos-overlay').style.display = 'flex';
+    showSOSState('sos-idle');
+  }
+  function closeSOS() {
+    cancelHold();
+    document.getElementById('sos-overlay').style.display = 'none';
+  }
+  function showSOSState(id) {
+    ['sos-idle','sos-activating','sos-activated'].forEach(s => {
+      document.getElementById(s).style.display = 'none';
+    });
+    document.getElementById(id).style.display = 'flex';
+  }
+  function startHold(e) {
+    if (e) e.preventDefault();
+    showSOSState('sos-activating');
+    cdVal = 3;
+    document.getElementById('countdown-num').textContent = cdVal;
+    const ring = document.getElementById('act-ring');
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = '352';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ring.style.transition = 'stroke-dashoffset 3s linear';
+      ring.style.strokeDashoffset = '0';
+    }));
+    cdInterval = setInterval(() => {
+      cdVal--;
+      document.getElementById('countdown-num').textContent = Math.max(cdVal, 0);
+      if (cdVal <= 0) clearInterval(cdInterval);
+    }, 1000);
+    holdTimer = setTimeout(activateSOS, 3000);
+  }
+  function cancelHold() {
+    clearTimeout(holdTimer); clearInterval(cdInterval);
+    holdTimer = null;
+    const ring = document.getElementById('act-ring');
+    ring.style.transition = 'none'; ring.style.strokeDashoffset = '352';
+    if (document.getElementById('sos-activated').style.display === 'flex') return;
+    if (document.getElementById('sos-overlay').style.display === 'flex') showSOSState('sos-idle');
+  }
+  function activateSOS() {
+    clearInterval(cdInterval);
+    const now = new Date();
+    document.getElementById('activated-time').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    showSOSState('sos-activated');
+  }
+  function cancelSOS() {
+    closeSOS();
+  }
+
+  // ── Cross-screen navigation (calls parent index.html) ──
+  function navigateTo(src, name, route) {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(src));
+      window.parent.loadScreen(src, navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  // ── Profile Drawer ──
+  function openProfileDrawer() {
+    const overlay = document.getElementById('profile-overlay');
+    const drawer  = document.getElementById('profile-drawer');
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      drawer.style.transform = 'translateX(0)';
+    }));
+  }
+  function closeProfileDrawer(e) {
+    const overlay = document.getElementById('profile-overlay');
+    const drawer  = document.getElementById('profile-drawer');
+    drawer.style.transform = 'translateX(-100%)';
+    setTimeout(() => overlay.classList.add('hidden'), 360);
+  }
+
+  // ── Notification Drawer ──
+  function openDrawer() {
+    const overlay = document.getElementById('notif-overlay');
+    const drawer = document.getElementById('notif-drawer');
+    overlay.classList.remove('hidden');
+    // Force reflow then animate in
+    drawer.style.transform = 'translateY(100%)';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        drawer.style.transform = 'translateY(0)';
+        overlay.style.opacity = '1';
+      });
+    });
+  }
+
+  function closeDrawer(e) {
+    const overlay = document.getElementById('notif-overlay');
+    const drawer = document.getElementById('notif-drawer');
+    drawer.style.transform = 'translateY(100%)';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.classList.add('hidden'), 320);
+  }
+</script>
+
+</body></html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure — Role Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { "primary": "#2563EB", "background-dark": "#0A0F1E" },
+        fontFamily: { "display": ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  main { scrollbar-width: none; }
+  main::-webkit-scrollbar { display: none; }
+
+  /* Role card */
+  .role-card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: #0D1929; border: 1.5px solid #1E2D45;
+    border-radius: 16px; padding: 16px;
+    cursor: pointer; width: 100%; text-align: left;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .role-card:active { transform: scale(0.99); }
+  .role-card.selected {
+    border-color: #2563EB;
+    background: rgba(37,99,235,0.08);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.25), 0 0 24px rgba(37,99,235,0.12);
+  }
+
+  /* Radio dot */
+  .radio-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid #1E2D45; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .radio-dot.checked {
+    border-color: #2563EB; background: #2563EB;
+  }
+  .radio-dot.checked::after {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: #fff;
+  }
+
+  /* Feature bullets */
+  .feature-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: #94a3b8; font-weight: 500;
+  }
+  .feature-item::before {
+    content: ''; width: 5px; height: 5px;
+    border-radius: 50%; background: #2563EB; flex-shrink: 0;
+  }
+
+  /* Corporate extra fields — !important overrides Tailwind forms plugin */
+  .corp-field {
+    background: #0A0F1E !important;
+    border: 1px solid #1E2D45 !important;
+    border-radius: 10px !important;
+    padding: 12px 14px !important;
+    color: #f1f5f9 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    font-family: 'Manrope', sans-serif !important;
+    width: 100% !important;
+    outline: none !important;
+    box-shadow: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+  }
+  .corp-field:focus {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.2) !important;
+    outline: none !important;
+  }
+  .corp-field::placeholder { color: #475569 !important; }
+
+  /* CTA */
+  .cta-btn {
+    width: 100%; padding: 17px 24px;
+    background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 36px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius: 18px; color: #fff;
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+  }
+  .cta-btn:hover  { filter: brightness(1.08); }
+  .cta-btn:active { transform: scale(0.97); box-shadow: 0 5px 16px rgba(37,99,235,0.4); }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+  <!-- Scrollable main -->
+  <main class="flex-1 px-5 pt-4 pb-28 overflow-y-auto">
+
+    <!-- Back + step -->
+    <div class="flex items-center justify-between mb-5">
+      <button onclick="goBack()" class="flex size-9 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+        <span class="material-symbols-outlined text-slate-100 text-[18px]">arrow_back</span>
+      </button>
+      <span class="text-[10px] font-bold tracking-widest uppercase text-slate-500">4 / 4</span>
+      <div class="size-9"></div>
+    </div>
+
+    <!-- Title -->
+    <p class="text-[10px] font-bold tracking-[3px] uppercase text-blue-400 mb-2">Select Your Role</p>
+    <h1 class="text-[22px] font-extrabold leading-tight tracking-tight text-slate-100 mb-1.5">
+      Who are you?
+    </h1>
+    <p class="text-slate-400 text-[12px] leading-snug mb-6">
+      Your role determines your features and access level.
+    </p>
+
+    <!-- Role cards -->
+    <div class="flex flex-col gap-3">
+
+      <!-- Individual User — selected by default -->
+      <button class="role-card selected" id="card-individual" onclick="selectRole('individual')">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex size-10 items-center justify-center rounded-[11px] shrink-0" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.25);">
+              <span class="material-symbols-outlined text-blue-400 text-[20px]">person</span>
+            </div>
+            <div class="text-left">
+              <p class="text-[13px] font-extrabold text-slate-100 uppercase tracking-wide">Individual User</p>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Personal account with Messenger,<br/>Bravo Secure services and VBG</p>
+            </div>
+          </div>
+          <div class="radio-dot checked" id="radio-individual"></div>
+        </div>
+        <!-- Features -->
+        <div id="features-individual" class="flex flex-col gap-1.5 pt-1 border-t border-white/5">
+          <div class="feature-item">Bravo Lite booking</div>
+          <div class="feature-item">Messenger &amp; calls</div>
+          <div class="feature-item">Virtual Bodyguard</div>
+        </div>
+      </button>
+
+      <!-- Corporate User -->
+      <button class="role-card" id="card-corporate" onclick="selectRole('corporate')">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="flex size-10 items-center justify-center rounded-[11px] shrink-0" style="background:rgba(37,99,235,0.10); border:1px solid #1E2D45;">
+              <span class="material-symbols-outlined text-slate-400 text-[20px]">corporate_fare</span>
+            </div>
+            <div class="text-left">
+              <p class="text-[13px] font-extrabold text-slate-100 uppercase tracking-wide">Corporate User</p>
+              <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Linked to a company account with team<br/>management, Bravo Pro and dept channels</p>
+            </div>
+          </div>
+          <div class="radio-dot" id="radio-corporate"></div>
+        </div>
+        <!-- Corporate extra fields (shown when selected) -->
+        <div id="corp-fields" class="hidden flex-col gap-2.5 pt-1 border-t border-white/5">
+          <input class="corp-field" type="text" placeholder="Company / Organisation name" onclick="event.stopPropagation()"/>
+          <input class="corp-field" type="text" placeholder="Business registration number (optional)" onclick="event.stopPropagation()"/>
+        </div>
+      </button>
+
+    </div>
+  </main>
+
+  <!-- Fixed CTA -->
+  <div class="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+    <button onclick="confirmRole()" class="cta-btn">
+      Confirm Role &amp; Finish
+      <span class="material-symbols-outlined" style="font-size:19px">arrow_forward</span>
+    </button>
+  </div>
+
+<script>
+  let selectedRole = 'individual';
+
+  function selectRole(role) {
+    selectedRole = role;
+    const roles = ['individual', 'corporate'];
+    roles.forEach(r => {
+      const card  = document.getElementById('card-' + r);
+      const radio = document.getElementById('radio-' + r);
+      if (r === role) {
+        card.classList.add('selected');
+        radio.classList.add('checked');
+      } else {
+        card.classList.remove('selected');
+        radio.classList.remove('checked');
+      }
+    });
+
+    // Show corporate extra fields
+    const corpFields = document.getElementById('corp-fields');
+    if (role === 'corporate') {
+      corpFields.style.display = 'flex';
+    } else {
+      corpFields.style.display = 'none';
+    }
+  }
+
+  function confirmRole() {
+    sessionStorage.setItem('userRole', selectedRole);
+    nav('home-selection.html');
+  }
+
+  function goBack() { nav('permissions.html'); }
+
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+</script>
+</body></html>

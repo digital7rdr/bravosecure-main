@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Messenger — Video Call</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ primary:"#2563EB","bg-dark":"#0A0F1E" },
+      fontFamily:{ display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  html, body { height:100%; overflow:hidden; font-family:'Manrope',sans-serif; margin:0; }
+  * { scrollbar-width:none; }
+  *::-webkit-scrollbar { display:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* Simulated remote video feed */
+  .video-bg {
+    background: radial-gradient(ellipse at 50% 35%, #1a1f35 0%, #0A0F1E 80%);
+  }
+
+  @keyframes pulse-soft {
+    0%,100% { opacity:0.6; }
+    50%      { opacity:1; }
+  }
+
+  .ctrl-circle {
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(8px);
+    transition:background 0.15s, transform 0.1s;
+    cursor:pointer;
+  }
+  .ctrl-circle:active { transform:scale(0.92); }
+  .ctrl-circle.active { background:rgba(37,99,235,0.35); border-color:rgba(37,99,235,0.5); }
+
+  .ctrl-label {
+    font-size:9px; font-weight:800; letter-spacing:1.5px;
+    text-transform:uppercase; color:rgba(255,255,255,0.5);
+    margin-top:5px;
+  }
+
+  /* Signal bars */
+  .sig-bar {
+    width:3px; border-radius:1px; background:rgba(255,255,255,0.9);
+    display:inline-block;
+  }
+  .sig-bar.dim { background:rgba(255,255,255,0.2); }
+
+  /* PiP */
+  .pip {
+    position:absolute; bottom:0; right:0;
+    width:76px; height:100px;
+    border-radius:14px; overflow:hidden;
+    border:2px solid rgba(255,255,255,0.2);
+    background:linear-gradient(160deg,#1a1f35,#0d1929);
+    display:flex; align-items:center; justify-content:center;
+    cursor:grab;
+    box-shadow:0 4px 16px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body class="video-bg text-white h-screen flex flex-col" style="position:relative;">
+
+<!-- Remote video area (full screen) -->
+<div class="absolute inset-0 video-bg z-0"></div>
+
+<!-- Top overlay gradient -->
+<div class="absolute top-0 left-0 right-0 z-10 pointer-events-none" style="height:160px;background:linear-gradient(to bottom,rgba(0,0,0,0.75) 0%,transparent 100%);"></div>
+
+<!-- Bottom overlay gradient -->
+<div class="absolute bottom-0 left-0 right-0 z-10 pointer-events-none" style="height:200px;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,transparent 100%);"></div>
+
+<!-- Top status bar -->
+<div class="relative z-20 flex items-start justify-between px-5 pt-10">
+  <!-- Name + status -->
+  <div>
+    <p class="text-[13px] font-extrabold uppercase tracking-[2px] text-white">Marcus Thornton</p>
+    <div class="flex items-center gap-1.5 mt-0.5">
+      <span class="inline-block size-1.5 rounded-full" style="background:#22c55e; animation:pulse-soft 2s infinite;"></span>
+      <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#22c55e;">Connected · 02:23</span>
+    </div>
+  </div>
+  <!-- Signal + AES badge -->
+  <div class="flex flex-col items-end gap-1.5">
+    <!-- Signal bars -->
+    <div class="flex items-end gap-[3px]">
+      <div class="sig-bar" style="height:6px;"></div>
+      <div class="sig-bar" style="height:9px;"></div>
+      <div class="sig-bar" style="height:12px;"></div>
+      <div class="sig-bar" style="height:15px;"></div>
+      <div class="sig-bar dim" style="height:18px;"></div>
+    </div>
+    <!-- AES badge -->
+    <div class="flex items-center gap-1 px-2.5 py-1 rounded-full" style="background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3);">
+      <span class="material-symbols-outlined filled text-green-400" style="font-size:11px;">lock</span>
+      <span class="text-[9px] font-bold uppercase tracking-widest text-green-400">AES-256 Encrypted</span>
+    </div>
+  </div>
+</div>
+
+<!-- Remote contact photo (center — shown when camera is off / connecting) -->
+<div class="absolute inset-0 z-5 flex items-center justify-center" style="padding-bottom:60px; pointer-events:none;">
+  <div class="rounded-full overflow-hidden" style="width:110px;height:110px;box-shadow:0 0 0 3px rgba(124,58,237,0.4),0 8px 40px rgba(124,58,237,0.4);">
+    <img src="https://i.pravatar.cc/220?img=3" alt="Marcus Thornton"
+         style="width:100%;height:100%;object-fit:cover;display:block;"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+    <div style="display:none;width:100%;height:100%;background:rgba(124,58,237,0.2);border:2px solid rgba(124,58,237,0.3);align-items:center;justify-content:center;">
+      <span class="material-symbols-outlined filled text-purple-300" style="font-size:54px;">person</span>
+    </div>
+  </div>
+</div>
+
+<!-- PiP self-preview -->
+<div class="pip z-20" style="bottom:140px; right:16px;" id="pip">
+  <span class="material-symbols-outlined filled text-slate-600" style="font-size:28px;">person</span>
+</div>
+
+<!-- Controls bar -->
+<div id="controls" class="absolute bottom-0 left-0 right-0 z-20 px-3 pb-10 pt-4">
+  <div class="flex justify-between items-center gap-1">
+
+    <div class="flex flex-col items-center">
+      <button class="ctrl-circle" onclick="toggleCtrl(this,'flip_camera_android','flip_camera_android')">
+        <span class="material-symbols-outlined text-white" style="font-size:18px;">flip_camera_android</span>
+      </button>
+      <span class="ctrl-label">Flip</span>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <button class="ctrl-circle" id="btn-mute" onclick="toggleCtrl(this,'mic','mic_off')">
+        <span class="material-symbols-outlined text-white" id="ico-mute" style="font-size:18px;">mic</span>
+      </button>
+      <span class="ctrl-label">Mute</span>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <button class="ctrl-circle active" id="btn-video" onclick="toggleCtrl(this,'videocam','videocam_off')">
+        <span class="material-symbols-outlined text-white" id="ico-video" style="font-size:18px;">videocam</span>
+      </button>
+      <span class="ctrl-label">Video</span>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <button class="ctrl-circle" id="btn-blur" onclick="toggleCtrl(this,'blur_on','blur_off')">
+        <span class="material-symbols-outlined text-white" id="ico-blur" style="font-size:18px;">blur_on</span>
+      </button>
+      <span class="ctrl-label">Blur</span>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <button class="ctrl-circle" style="background:rgba(37,99,235,0.35); border-color:rgba(37,99,235,0.5);" onclick="void(0)">
+        <span class="material-symbols-outlined text-blue-300" style="font-size:18px;">person_add</span>
+      </button>
+      <span class="ctrl-label">Add</span>
+    </div>
+
+    <div class="flex flex-col items-center">
+      <button onclick="nav('messenger-home.html')" class="ctrl-circle" style="background:linear-gradient(135deg,#dc2626,#b91c1c); border-color:rgba(220,38,38,0.5); box-shadow:0 4px 18px rgba(220,38,38,0.5);">
+        <span class="material-symbols-outlined filled text-white" style="font-size:18px;">call_end</span>
+      </button>
+      <span class="ctrl-label" style="color:#f87171;">End</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+
+  function toggleCtrl(btn, iconOn, iconOff) {
+    const isActive = btn.classList.toggle('active');
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) icon.textContent = isActive ? iconOff : iconOn;
+  }
+
+  // Auto-hide controls
+  let hideTimer;
+  function resetHide() {
+    clearTimeout(hideTimer);
+    document.getElementById('controls').style.opacity = '1';
+    hideTimer = setTimeout(() => {
+      document.getElementById('controls').style.opacity = '0';
+    }, 4000);
+  }
+  document.body.addEventListener('click', resetHide);
+  resetHide();
+  document.getElementById('controls').style.transition = 'opacity 0.4s';
+</script>
+</body></html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"pro":"#6366F1","background-dark":"#0A0F1E"},fontFamily:{"display":["Manrope","sans-serif"]},borderRadius:{"DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px"}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .dot-prog{display:flex;gap:5px;align-items:center;}
+  .dp{width:6px;height:6px;border-radius:50%;background:#1E2D45;}
+  .dp.done{background:#6366F1;} .dp.act{background:#6366F1;width:18px;border-radius:3px;}
+
+  .risk-bar-wrap{height:6px;background:#1E2D45;border-radius:9999px;overflow:hidden;}
+  .risk-bar-fill{height:100%;border-radius:9999px;transition:width 1s ease;}
+
+  .event-card{background:#0D1929;border:1px solid #1E2D45;border-radius:1rem;overflow:hidden;transition:border-color 0.2s;}
+  .event-card.high{border-left:3px solid #ef4444;}
+  .event-card.medium{border-left:3px solid #f59e0b;}
+  .event-card.low{border-left:3px solid #22c55e;}
+
+  .expand-body{display:none;} .expand-body.open{display:block;}
+
+  @keyframes bar-in{from{width:0}to{width:var(--w)}}
+  .bar-anim{animation:bar-in 1.2s ease forwards;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-widest uppercase" style="color:#6366F1">Risk Review</span>
+  </div>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full border" style="color:#6366F1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)">STEP 5/10</span>
+</header>
+
+<div class="px-5 pb-3">
+  <div class="dot-prog">
+    <div class="dp done"></div><div class="dp done"></div><div class="dp done"></div><div class="dp done"></div>
+    <div class="dp act"></div>
+    <div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div><div class="dp"></div>
+  </div>
+</div>
+
+<main class="flex-1 px-4 pb-36 overflow-y-auto space-y-4">
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-3 gap-2">
+    <div class="p-3 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-xl font-extrabold text-slate-100">14</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Events</p>
+    </div>
+    <div class="p-3 rounded-xl text-center" style="background:#0D1929;border:1px solid rgba(239,68,68,0.3)">
+      <p class="text-xl font-extrabold text-red-400">3</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Flagged</p>
+    </div>
+    <div class="p-3 rounded-xl text-center" style="background:#0D1929;border:1px solid rgba(34,197,94,0.2)">
+      <p class="text-xl font-extrabold text-emerald-400">11</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Cleared</p>
+    </div>
+  </div>
+
+  <p class="text-[10px] font-bold tracking-widest uppercase text-slate-500 px-1">Risk Assessment · Flagged Events</p>
+
+  <!-- Event 1 — HIGH -->
+  <div class="event-card high">
+    <div class="p-3.5 cursor-pointer" onclick="toggleExpand('ev1')">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-100">NEOM HQ Meeting — Riyadh</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Feb 14 · 09:00 — 13:00</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3)">HIGH</span>
+          <span class="material-symbols-outlined text-slate-500" style="font-size:16px" id="ic-ev1">expand_more</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex-1 risk-bar-wrap">
+          <div class="risk-bar-fill bar-anim" style="--w:78%;width:78%;background:linear-gradient(90deg,#f59e0b,#ef4444)"></div>
+        </div>
+        <span class="text-[10px] font-bold text-red-400 shrink-0">78/100</span>
+      </div>
+    </div>
+    <div class="expand-body open px-3.5 pb-3.5" id="ev1">
+      <div class="pt-3 space-y-2" style="border-top:1px solid rgba(239,68,68,0.15)">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">Risk Factors</p>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-red-400 shrink-0"></span><p class="text-[11px] text-slate-300">High-profile public venue</p></div>
+          <div class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-red-400 shrink-0"></span><p class="text-[11px] text-slate-300">500+ unvetted attendees</p></div>
+          <div class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-red-400 shrink-0"></span><p class="text-[11px] text-slate-300">Open access areas</p></div>
+        </div>
+        <div class="p-2.5 rounded-lg mt-2" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2)">
+          <div class="flex items-center gap-1.5 mb-1"><span class="material-symbols-outlined filled text-[12px]" style="color:#6366F1">auto_awesome</span><p class="text-[9px] font-bold uppercase tracking-widest" style="color:#6366F1">AI Recommendation</p></div>
+          <p class="text-[11px] text-slate-300">1 CPO + advance pre-assessment</p>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button onclick="approveEvent('ev1',this)" class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1 transition-all" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">
+            <span class="material-symbols-outlined text-sm">check</span> Approve
+          </button>
+          <button class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1" style="background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">
+            <span class="material-symbols-outlined text-sm">escalator_warning</span> Escalate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event 2 — MEDIUM -->
+  <div class="event-card medium">
+    <div class="p-3.5 cursor-pointer" onclick="toggleExpand('ev2')">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-100">Gala Dinner — Waldorf Astoria</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Feb 16 · 19:00 — 23:00</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3)">MEDIUM</span>
+          <span class="material-symbols-outlined text-slate-500" style="font-size:16px" id="ic-ev2">expand_more</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex-1 risk-bar-wrap">
+          <div class="risk-bar-fill bar-anim" style="--w:52%;width:52%;background:linear-gradient(90deg,#22c55e,#f59e0b)"></div>
+        </div>
+        <span class="text-[10px] font-bold text-amber-400 shrink-0">52/100</span>
+      </div>
+    </div>
+    <div class="expand-body px-3.5 pb-3.5" id="ev2">
+      <div class="pt-3 space-y-2" style="border-top:1px solid rgba(245,158,11,0.15)">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400">Risk Factors</p>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-amber-400 shrink-0"></span><p class="text-[11px] text-slate-300">Evening event, low visibility</p></div>
+          <div class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-amber-400 shrink-0"></span><p class="text-[11px] text-slate-300">Known dignitaries attending</p></div>
+        </div>
+        <div class="p-2.5 rounded-lg mt-2" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2)">
+          <div class="flex items-center gap-1.5 mb-1"><span class="material-symbols-outlined filled text-[12px]" style="color:#6366F1">auto_awesome</span><p class="text-[9px] font-bold uppercase tracking-widest" style="color:#6366F1">AI Recommendation</p></div>
+          <p class="text-[11px] text-slate-300">Standard CPO coverage sufficient</p>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button onclick="approveEvent('ev2',this)" class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">
+            <span class="material-symbols-outlined text-sm">check</span> Approve
+          </button>
+          <button class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1" style="background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">
+            <span class="material-symbols-outlined text-sm">escalator_warning</span> Escalate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event 3 — LOW -->
+  <div class="event-card low">
+    <div class="p-3.5 cursor-pointer" onclick="toggleExpand('ev3')">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-100">DIFC Board Meeting</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Feb 18 · 10:00 — 12:00</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#86efac;border:1px solid rgba(34,197,94,0.25)">LOW</span>
+          <span class="material-symbols-outlined text-slate-500" style="font-size:16px" id="ic-ev3">expand_more</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex-1 risk-bar-wrap">
+          <div class="risk-bar-fill bar-anim" style="--w:22%;width:22%;background:#22c55e"></div>
+        </div>
+        <span class="text-[10px] font-bold text-emerald-400 shrink-0">22/100</span>
+      </div>
+    </div>
+    <div class="expand-body px-3.5 pb-3.5" id="ev3">
+      <div class="pt-3 space-y-2" style="border-top:1px solid rgba(34,197,94,0.15)">
+        <div class="p-2.5 rounded-lg" style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2)">
+          <div class="flex items-center gap-1.5 mb-1"><span class="material-symbols-outlined filled text-[12px]" style="color:#6366F1">auto_awesome</span><p class="text-[9px] font-bold uppercase tracking-widest" style="color:#6366F1">AI Recommendation</p></div>
+          <p class="text-[11px] text-slate-300">Controlled secure venue · driver only required</p>
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button onclick="approveEvent('ev3',this)" class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">
+            <span class="material-symbols-outlined text-sm">check</span> Approve
+          </button>
+          <button class="flex-1 py-2 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1" style="background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.25)">
+            <span class="material-symbols-outlined text-sm">escalator_warning</span> Escalate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 space-y-2" style="background:linear-gradient(to top,#0A0F1E 75%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2"
+    style="background:linear-gradient(160deg,#818cf8,#6366F1,#4338ca);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(99,102,241,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem">
+    APPROVE ALL → ASSIGN TEAM
+  </button>
+  <button onclick="escalateToOps()" class="w-full font-bold py-3 px-6 rounded-xl text-slate-400 text-xs tracking-widest border border-slate-800 hover:border-red-500/40 hover:text-red-400 transition-all">
+    ESCALATE TO OPS DIRECTOR
+  </button>
+</footer>
+
+<script>
+  function toggleExpand(id) {
+    const body = document.getElementById(id);
+    const icon = document.getElementById('ic-'+id);
+    body.classList.toggle('open');
+    icon.textContent = body.classList.contains('open') ? 'expand_less' : 'expand_more';
+  }
+  function approveEvent(id, btn) {
+    const card = btn.closest('.event-card');
+    card.style.opacity='0.5';
+    btn.innerHTML='<span class="material-symbols-outlined text-sm">check_circle</span> Approved';
+    btn.style.background='rgba(34,197,94,0.25)';
+  }
+  function goBack(){if(window.parent&&window.parent.loadScreen){const n=window.parent.document.querySelector('[onclick*="bravo-pro-ai-scheduling"]')||window.parent.document.querySelector('.nav-item.active');window.parent.loadScreen('screens/bravo-pro-ai-scheduling.html',n||document.createElement('div'));}}
+  function goNext(){if(window.parent&&window.parent.loadScreen){const n=window.parent.document.querySelector('[onclick*="bravo-pro-assigned-team"]')||window.parent.document.querySelector('.nav-item.active');window.parent.loadScreen('screens/bravo-pro-assigned-team.html',n||document.createElement('div'));}}
+
+  function escalateToOps() {
+    const overlay = document.getElementById('escalate-overlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+  }
+  function closeEscalate() {
+    const overlay = document.getElementById('escalate-overlay');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+  }
+  function confirmEscalate() {
+    const overlay = document.getElementById('escalate-overlay');
+    overlay.innerHTML = `
+      <div class="w-full mx-4 rounded-2xl p-6 text-center space-y-4" style="background:#0D1929;border:1px solid rgba(239,68,68,0.3);">
+        <div class="size-14 rounded-full flex items-center justify-center mx-auto" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);">
+          <span class="material-symbols-outlined text-red-400" style="font-size:28px;">check_circle</span>
+        </div>
+        <div>
+          <p class="text-white font-extrabold text-base">Escalated Successfully</p>
+          <p class="text-slate-400 text-xs mt-1">Ops Director has been notified and will take command shortly.</p>
+        </div>
+        <button onclick="closeEscalate()" class="w-full py-3 rounded-xl font-bold text-xs tracking-widest text-white" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);">CLOSE</button>
+      </div>`;
+  }
+</script>
+
+<!-- Escalate Overlay -->
+<div id="escalate-overlay" class="hidden fixed inset-0 z-50 items-end justify-center pb-6" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);">
+  <div class="w-full mx-4 rounded-2xl p-6 space-y-4" style="background:#0D1929;border:1px solid rgba(239,68,68,0.3);">
+    <div class="flex items-center gap-3">
+      <div class="size-12 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);">
+        <span class="material-symbols-outlined text-red-400" style="font-size:22px;">emergency</span>
+      </div>
+      <div>
+        <p class="text-white font-extrabold text-sm">Escalate to Ops Director?</p>
+        <p class="text-slate-400 text-[11px] mt-0.5">This will immediately alert command and transfer mission authority.</p>
+      </div>
+    </div>
+    <div class="px-3 py-2.5 rounded-xl text-[11px] text-red-300 leading-relaxed" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);">
+      ⚠ Use only when risks exceed field agent authority or an emergency protocol is required.
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeEscalate()" class="flex-1 py-3 rounded-xl font-bold text-xs tracking-widest text-slate-400 border border-slate-700">CANCEL</button>
+      <button onclick="confirmEscalate()" class="flex-1 py-3 rounded-xl font-bold text-xs tracking-widest text-white" style="background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 4px 14px rgba(220,38,38,0.35);">CONFIRM</button>
+    </div>
+  </div>
+</div>
+</body></html>

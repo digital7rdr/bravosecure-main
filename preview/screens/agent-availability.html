@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .mode-card{flex:1;border:1px solid #1E2D45;background:#0D1929;border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .mode-card.selected{border-color:rgba(37,99,235,0.55);background:rgba(37,99,235,0.08);}
+  .mode-card:active{transform:scale(0.97);}
+
+  .day-btn{width:36px;height:36px;border-radius:50%;border:1px solid #1E2D45;background:#0D1929;font-size:11px;font-weight:700;color:#475569;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
+  .day-btn.on{background:rgba(37,99,235,0.15);border-color:rgba(37,99,235,0.45);color:#93c5fd;}
+
+  .cap-badge{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;border:1px solid rgba(37,99,235,0.2);background:rgba(37,99,235,0.06);font-size:11px;font-weight:700;color:#93c5fd;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Availability</h1>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full" style="color:#2563EB;border:1px solid rgba(37,99,235,0.3);background:rgba(37,99,235,0.08)">STEP 5/6</span>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 pt-2 space-y-5">
+
+  <!-- Deployment Mode -->
+  <div>
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Deployment Mode</p>
+    <div class="grid grid-cols-2 gap-2">
+      <div id="mode-fulltime" class="mode-card selected" onclick="selectMode('fulltime')">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#2563EB">bolt</span>
+        <p class="text-[12px] font-extrabold text-slate-100 uppercase tracking-wider">Full Time</p>
+        <p class="text-[10px] text-slate-500">960 hrs/mo</p>
+      </div>
+      <div id="mode-parttime" class="mode-card" onclick="selectMode('parttime')">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:22px">schedule</span>
+        <p class="text-[12px] font-extrabold text-slate-400 uppercase tracking-wider">Part Time</p>
+        <p class="text-[10px] text-slate-600">Flex-time</p>
+      </div>
+      <div id="mode-oncall" class="mode-card" onclick="selectMode('oncall')">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:22px">phone_in_talk</span>
+        <p class="text-[12px] font-extrabold text-slate-400 uppercase tracking-wider">On Call</p>
+        <p class="text-[10px] text-slate-600">As required</p>
+      </div>
+      <div id="mode-project" class="mode-card" onclick="selectMode('project')">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:22px">assignment</span>
+        <p class="text-[12px] font-extrabold text-slate-400 uppercase tracking-wider">Project</p>
+        <p class="text-[10px] text-slate-600">Per engagement</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Days -->
+  <div>
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Available Days</p>
+    <div class="flex justify-between gap-1">
+      <button id="day-M"  class="day-btn on" onclick="toggleDay('M')">M</button>
+      <button id="day-T"  class="day-btn on" onclick="toggleDay('T')">T</button>
+      <button id="day-W"  class="day-btn on" onclick="toggleDay('W')">W</button>
+      <button id="day-Th" class="day-btn on" onclick="toggleDay('Th')">T</button>
+      <button id="day-F"  class="day-btn on" onclick="toggleDay('F')">F</button>
+      <button id="day-Sa" class="day-btn"    onclick="toggleDay('Sa')">S</button>
+      <button id="day-Su" class="day-btn"    onclick="toggleDay('Su')">S</button>
+    </div>
+  </div>
+
+  <!-- Capabilities -->
+  <div>
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Capabilities</p>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">military_tech</span>
+        Armed Ops
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">directions_car</span>
+        Armoured Vehicle
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">language</span>
+        EN, AR
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">settings_input_antenna</span>
+        Sigint
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">medical_services</span>
+        First Aid
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+      <div class="cap-badge">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">flight</span>
+        UAS Certified
+        <span class="material-symbols-outlined filled text-emerald-400 ml-auto" style="font-size:13px">check</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem">
+    SAVE → UPLOAD DOCUMENTS
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  function selectMode(m){
+    ['fulltime','parttime','oncall','project'].forEach(x=>{
+      const el=document.getElementById('mode-'+x);
+      const a=x===m;
+      el.classList.toggle('selected',a);
+      el.querySelector('.material-symbols-outlined').style.color=a?'#2563EB':'';
+      el.querySelectorAll('p')[0].style.color=a?'#f1f5f9':'#6b7280';
+    });
+  }
+  function toggleDay(d){document.getElementById('day-'+d).classList.toggle('on');}
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('agent-coverage.html');}
+  function goNext(){nav('agent-docs-upload.html');}
+</script>
+</body></html>

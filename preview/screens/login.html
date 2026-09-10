@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { "primary": "#2563EB", "background-dark": "#0A0F1E", "neutral-dark": "#0D1929" },
+        fontFamily: { "display": ["Manrope", "sans-serif"] },
+        borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-background-dark text-slate-100 font-display flex flex-col" style="height:100dvh">
+<main class="flex-1 flex flex-col max-w-[480px] mx-auto w-full px-6 overflow-y-auto" style="scrollbar-width:none">
+
+  <!-- Logo + title -->
+  <div class="pt-16 pb-8 flex flex-col items-center shrink-0">
+    <div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg mb-6 shadow-lg shadow-primary/20">
+      <span class="material-symbols-outlined text-[#0A0F1E] text-[28px]">shield</span>
+    </div>
+    <h1 class="text-3xl font-bold tracking-tight text-slate-100">Welcome back</h1>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-primary/10 mb-8 shrink-0">
+    <button id="tab-phone" onclick="switchTab('phone')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-primary text-primary transition-colors">Phone</button>
+    <button id="tab-email" onclick="switchTab('email')" class="flex-1 pb-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition-colors">Email</button>
+  </div>
+
+  <!-- Phone fields -->
+  <div id="fields-phone" class="flex flex-col gap-4">
+    <div class="flex gap-3">
+      <div class="w-24 h-14 bg-neutral-dark rounded-xl flex items-center justify-center gap-2 border border-primary/5">
+        <div class="w-6 h-4 rounded-sm overflow-hidden bg-cover bg-center" style="background-image: url('https://flagcdn.com/w40/ae.png');"></div>
+        <span class="text-slate-100 text-sm font-medium">+971</span>
+      </div>
+      <div class="flex-1">
+        <input class="w-full h-14 bg-neutral-dark rounded-xl border-none focus:ring-1 focus:ring-primary text-slate-100 placeholder:text-slate-600 px-4" placeholder="Mobile number" type="tel"/>
+      </div>
+    </div>
+    <button onclick="goToOtp()" class="mt-4 w-full h-14 bg-primary hover:bg-primary/90 text-[#0A0F1E] font-bold rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center">
+      Continue
+    </button>
+    <button class="mt-2 text-slate-500 text-sm font-medium hover:text-primary text-center w-full">
+      Sign in differently
+    </button>
+  </div>
+
+  <!-- Email fields -->
+  <div id="fields-email" class="hidden flex-col gap-4">
+    <input class="w-full h-14 bg-neutral-dark rounded-xl border-none focus:ring-1 focus:ring-primary text-slate-100 placeholder:text-slate-600 px-4" placeholder="Email address" type="email"/>
+    <input class="w-full h-14 bg-neutral-dark rounded-xl border-none focus:ring-1 focus:ring-primary text-slate-100 placeholder:text-slate-600 px-4" placeholder="Password" type="password"/>
+    <div class="flex justify-end">
+      <button class="text-xs text-primary font-semibold">Forgot password?</button>
+    </div>
+    <button onclick="goToDashboard()" class="w-full h-14 bg-primary hover:bg-primary/90 text-[#0A0F1E] font-bold rounded-xl shadow-lg shadow-primary/10 flex items-center justify-center">
+      Continue
+    </button>
+    <button class="mt-2 text-slate-500 text-sm font-medium hover:text-primary text-center w-full">
+      Sign in differently
+    </button>
+  </div>
+
+</main>
+
+<!-- Footer — pinned at bottom, never overlaps -->
+<footer class="shrink-0 pb-10 pt-4 flex flex-col items-center gap-2 max-w-[480px] mx-auto w-full">
+  <div class="flex gap-1 mb-2">
+    <span class="text-slate-500 text-sm">Don't have an account?</span>
+    <button onclick="goToRegister()" class="text-primary text-sm font-bold hover:text-primary/80 transition-colors">Create account</button>
+  </div>
+  <span class="material-symbols-outlined text-primary text-[20px]">lock</span>
+  <p class="text-slate-500 text-xs text-center leading-relaxed">All communications protected by<br/>Signal Protocol</p>
+</footer>
+<script>
+  function goToOtp() {
+    // Phone login → needs OTP
+    sessionStorage.setItem('authFlow', 'login');
+    if (window.parent && window.parent.loadScreen) {
+      const nav = window.parent.document.querySelector('[onclick*="otp.html"]') ||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/otp.html', nav || document.createElement('div'));
+    }
+  }
+
+  function goToDashboard() {
+    // Email login → password already verified, skip OTP, go direct
+    localStorage.setItem('bs_session', 'active');
+    if (window.parent && window.parent.loadScreen) {
+      const nav = window.parent.document.querySelector('[onclick*="dashboard"]') ||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/dashboard.html', nav || document.createElement('div'));
+    }
+  }
+
+  function goToRegister() {
+    sessionStorage.setItem('authFlow', 'register');
+    if (window.parent && window.parent.loadScreen) {
+      const nav = window.parent.document.querySelector('[onclick*="register.html"]') ||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/register.html', nav || document.createElement('div'));
+    }
+  }
+
+  // Auto-login if session cached
+  if (localStorage.getItem('bs_session') === 'active') {
+    goToDashboard();
+  }
+
+  function switchTab(tab) {
+    const isPhone = tab === 'phone';
+    document.getElementById('tab-phone').classList.toggle('border-primary', isPhone);
+    document.getElementById('tab-phone').classList.toggle('text-primary', isPhone);
+    document.getElementById('tab-phone').classList.toggle('border-transparent', !isPhone);
+    document.getElementById('tab-phone').classList.toggle('text-slate-500', !isPhone);
+    document.getElementById('tab-email').classList.toggle('border-primary', !isPhone);
+    document.getElementById('tab-email').classList.toggle('text-primary', !isPhone);
+    document.getElementById('tab-email').classList.toggle('border-transparent', isPhone);
+    document.getElementById('tab-email').classList.toggle('text-slate-500', isPhone);
+    document.getElementById('fields-phone').style.display = isPhone ? 'flex' : 'none';
+    document.getElementById('fields-email').style.display = isPhone ? 'none' : 'flex';
+    document.getElementById('fields-phone').classList.remove('hidden');
+    document.getElementById('fields-email').classList.remove('hidden');
+  }
+</script>
+</body></html>

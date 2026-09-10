@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+      fontFamily: { display: ["Manrope", "sans-serif"] },
+    }},
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; background: #0A0F1E; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="text-slate-100 h-screen flex flex-col">
+
+<!-- Floating header (over hero image) -->
+<header class="shrink-0 flex items-center justify-between px-4 absolute top-0 left-0 right-0 z-20" style="padding-top:50px; padding-bottom:12px;">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full transition-colors" style="background:rgba(10,15,30,0.6); backdrop-filter:blur(8px);">
+    <span class="material-symbols-outlined text-slate-200" style="font-size:20px;">arrow_back</span>
+  </button>
+  <div class="flex items-center gap-2">
+    <button id="btn-bookmark" onclick="toggleBookmark()" class="size-9 flex items-center justify-center rounded-full transition-colors" style="background:rgba(10,15,30,0.6); backdrop-filter:blur(8px);">
+      <span id="icon-bookmark" class="material-symbols-outlined text-slate-200" style="font-size:20px;">bookmark</span>
+    </button>
+    <button class="size-9 flex items-center justify-center rounded-full transition-colors" style="background:rgba(10,15,30,0.6); backdrop-filter:blur(8px);">
+      <span class="material-symbols-outlined text-slate-200" style="font-size:20px;">share</span>
+    </button>
+  </div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto">
+
+  <!-- Hero image -->
+  <div class="relative w-full" style="height:260px; background:#0D2240;">
+    <div class="absolute inset-0 bg-cover bg-center" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuAaRrHNNT22fzCdYHEYEmXecL6Uh6oeulTBdzFkDdgaOY5BUQKgeI1Z4Z6zum5J-ZXfWIUYvty3DQn5p6u_X9meR-3eMHwb-TQFcVsnHjQpqlAhHV95NP-WlbDIYn_2UipELZApZkLU2xMngWG0X91synqlUfv6d0UxOFZtHc2w3ZwbA59lowZnYlCf3F9sjwFWsR6o-4R5AjVGVfNDfGUvaQ19xISqdYOEQOp0-qER1rntNxgI2Vx4Bs69qW2dlFwSRStiYPkCtoqy');"></div>
+    <!-- Gradient overlay -->
+    <div class="absolute inset-0" style="background:linear-gradient(to bottom, rgba(10,15,30,0.2) 0%, rgba(10,15,30,0.85) 100%);"></div>
+    <!-- Breaking badge -->
+    <div class="absolute top-[200px] left-4">
+      <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-white" style="background:#DC2626;">Breaking Alert</span>
+    </div>
+  </div>
+
+  <!-- Article body -->
+  <div class="px-4 pt-5 pb-24 space-y-5">
+
+    <!-- Category + region + trending badges -->
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider" style="background:rgba(220,38,38,0.15);color:#f87171;border:1px solid rgba(220,38,38,0.3)">BREAKING</span>
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider" style="background:rgba(37,99,235,0.15);color:#93c5fd;border:1px solid rgba(37,99,235,0.3)">AE</span>
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider" style="background:rgba(37,99,235,0.1);color:#60a5fa;border:1px solid rgba(37,99,235,0.2)">UAE</span>
+      <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1" style="background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3)">
+        <span class="material-symbols-outlined filled" style="font-size:10px">trending_up</span>TRENDING
+      </span>
+      <span class="text-slate-500 text-[11px] ml-auto">2 hrs ago · 4 min read</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 class="text-[21px] font-extrabold leading-snug text-white">
+      DIFC Records Highest Q1 Transaction Volume in 5 Years
+    </h1>
+
+    <!-- Byline -->
+    <div class="flex items-center gap-3 py-3 border-t border-b" style="border-color:#1E2D45;">
+      <div class="size-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style="background:#2563EB;">BN</div>
+      <div>
+        <p class="text-[12px] font-bold text-slate-200">Bravo News Channel</p>
+        <p class="text-[11px] text-slate-500">Geographic Business Intelligence · 2 hrs ago</p>
+      </div>
+      <span class="ml-auto px-2 py-1 rounded-lg text-[10px] font-bold" style="color:#60a5fa;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.2);">VERIFIED</span>
+    </div>
+
+    <!-- Standfirst -->
+    <div class="px-4 py-3.5 rounded-xl" style="background:#0D1929;border-left:3px solid #2563EB;">
+      <p class="text-[13px] font-semibold text-slate-200 leading-relaxed">Office and residential demand surges as Dubai cements its position as the MENA financial hub of record.</p>
+    </div>
+
+    <!-- Body text -->
+    <div class="space-y-4 text-[14px] text-slate-300 leading-relaxed">
+      <p>
+        The Dubai International Financial Centre recorded AED 4.2 billion in real estate transactions during Q1 2025, the highest quarterly figure since 2020. Analysts point to increased HNW relocation from European markets and zero capital gains tax.
+      </p>
+      <p>
+        Grade-A office vacancy fell to 3.1%, tightening supply outlook. Developers EMAAR and Nakheel announced accelerated tower starts in the Gate District.
+      </p>
+    </div>
+
+    <!-- Tags / hashtags -->
+    <div class="flex flex-wrap gap-2 pt-1">
+      <span class="px-2.5 py-1 rounded-full text-[11px] text-slate-400" style="background:#1E2D45;">#REAL_ESTATE</span>
+      <span class="px-2.5 py-1 rounded-full text-[11px] text-slate-400" style="background:#1E2D45;">#DIFC</span>
+      <span class="px-2.5 py-1 rounded-full text-[11px] text-slate-400" style="background:#1E2D45;">#GCC-Intelligence</span>
+    </div>
+
+    <!-- Related Stories -->
+    <div class="space-y-2 pt-1">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Related Stories</p>
+      <div class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#0D1929;border:1px solid #1E2D45;" onclick="void(0)">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.1)">
+          <span class="material-symbols-outlined filled text-emerald-400" style="font-size:18px">lock</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-slate-200 leading-snug">UAE Cybersecurity Framework V2.0 Issued</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">UAE · 8 hrs ago</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#0D1929;border:1px solid #1E2D45;" onclick="void(0)">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1)">
+          <span class="material-symbols-outlined filled text-blue-400" style="font-size:18px">flight</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-slate-200 leading-snug">Emirates Orders 50 Boeing 777X</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">UAE · 1 day ago</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Bottom action bar -->
+<div class="shrink-0 px-4 py-3 flex items-center gap-3 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button class="flex-1 py-3 rounded-xl font-bold text-[13px] text-white transition-all active:scale-[0.98]" style="background:#2563EB; box-shadow:0 4px 14px rgba(37,99,235,0.35);">
+    Request Briefing
+  </button>
+  <button onclick="goBack()" class="px-4 py-3 rounded-xl font-bold text-[13px] text-slate-400 transition-all" style="background:#0D1929; border:1px solid #1E2D45;">
+    Back
+  </button>
+</div>
+
+<script>
+  let bookmarked = false;
+
+  function toggleBookmark() {
+    bookmarked = !bookmarked;
+    const icon = document.getElementById('icon-bookmark');
+    icon.classList.toggle('filled', bookmarked);
+    icon.style.color = bookmarked ? '#2563EB' : '';
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const nav = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick')?.includes('news-feed')) ||
+        window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/news-feed.html', nav || document.createElement('div'));
+    }
+  }
+</script>
+
+</body></html>

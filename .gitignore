@@ -1,0 +1,145 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Environment — never commit real secrets (root + any nested service)
+.env
+.env.local
+.env.staging
+.env.*.local
+.env.contabo
+apps/**/.env
+apps/**/.env.local
+
+# Developer env handoff doc — contains real secrets (Contabo/API/SSH + keys).
+# Share over a secure channel only; must NEVER be committed.
+ENV_SETUP.md
+
+# Firebase Admin SDK service account — private key, must NEVER be committed.
+# Lives at the project root for local builds; on EC2 it lives at
+# /home/ubuntu/bravo/firebase-service-account.json (mounted into the
+# messenger-service container).
+*firebase-adminsdk*.json
+firebase-service-account.json
+apps/**/.env.*.local
+
+# APNs auth keys (.p8) — a single one of these can send push to EVERY user
+# of every app on the team, and Apple only lets you download it once.
+# Keep them out of the repo; on the server they live outside the checkout
+# and are referenced by APNS_VOIP_KEY_PATH.
+*.p8
+AuthKey_*.p8
+
+# SSH keys / cloud credentials — never commit private keys
+*.pem
+*.key
+*.p12
+.ssh/
+
+# Personal / local tool state (scheduled tasks, local overrides)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Internal review documents — never auto-publish
+*.docx
+
+# Supabase CLI local state (generated)
+supabase/.temp/
+supabase/.branches/
+
+# Native build output
+android/
+ios/
+android.backup-*/
+ios.backup-*/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# Sensitive documents
+*.pdf
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Bravo device / crash logs captured during testing — may contain
+# plaintext message bodies, JWTs, or device identifiers; never commit.
+bravo-log*.txt
+bravo-log*.log
+bravo_log*.txt
+bravo_log*.log
+bravo_call*.txt
+bravo_call*.log
+bravo_groupcall*.txt
+bravo_groupcall*.log
+bravosecure_logs.txt
+# ADB / call test-capture reports (large, regenerable, may contain plaintext)
+*_CALL_TEST_REPORT.html
+
+# Local AWS / cloud credential dumps — never commit.
+Aws creds
+aws-creds*
+aws_creds*
+
+# Local working notes / private audit trackers — these are personal
+# scratchpads, not project artifacts. Anything that becomes shared
+# documentation belongs in docs/ and should be committed explicitly.
+BRAVO_LITE_AUDIT_TRACKER.md
+lesson.md
+
+# TypeScript
+*.tsbuildinfo
+
+# User-uploaded files (KYC docs, agent uploads — never commit)
+apps/auth-service/uploads/
+
+# Next.js build cache
+apps/ops-console/.next/
+apps/**/.next/
+
+# Local AWS staging notes (contains IPs / personal staging info)
+AWS_STAGING.md
+STAGING_API_TESTING.md
+SESSION_SUMMARY.md
+.aider*
+
+# Jest coverage output
+coverage/
+
+# B-111-B: checked-in iOS native sources (plugins copy them into the generated ios/ at prebuild)
+!native/ios/
+
+# Local iOS release output (archives, ipas, logs) — large, regenerable
+.ios-release/
+
+# Raw brand-photo drops. The optimised output in src/assets/imagery is
+# committed instead - see scripts/optimize-imagery.py.
+Proton Drive Download*/
+
+# local safety copies of the curated android/ tree (scripts/mac-android-prebuild.sh)
+.android-backups/
+.android-prebuild-drift-*.diff
+
+# staging env for local hot-reload. NOT named .env*.local on purpose:
+# Expo SDK 54 dev bundling pulls every root .env*.local into the module graph
+# and Babel then fails to parse it. See docs/runbooks/MAC_QUICKSTART.md.
+config/staging.env
+
+# production secrets — generated on the box by deploy/production/make-env.sh
+deploy/production/.env
+deploy/production/.env.*
+deploy/production/secrets/
+
+# QA perf traces (24 MB each) — keep them out of every clone
+docs/qa/perf-runs/*.pftrace

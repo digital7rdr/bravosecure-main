@@ -1,0 +1,231 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <!-- On-duty location heartbeat (auto-dispatch Step 5): report the agency's
+       location while Online so the matchmaker can rank it. Background survival
+       additionally needs a FOREGROUND_SERVICE_LOCATION foreground service.
+       Mapbox audit H-5: declared-but-unbuilt background location is a Play
+       review risk — kept by product decision; build the location FGS. -->
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30"/>
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+  <uses-permission android:name="android.permission.CAMERA"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+  <uses-permission android:name="android.permission.READ_CONTACTS"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+  <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+  <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+  <uses-permission android:name="android.permission.VIBRATE"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <!-- Foreground service for active calls — Android 14+ requires
+       the typed permissions below or the OS suspends mic/camera the
+       moment the screen turns off. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+  <!-- WhatsApp-style incoming-call ring over the lock screen: notifee's fullScreenAction
+       (callNotification.ts) requires USE_FULL_SCREEN_INTENT on Android 10+, else it silently
+       degrades to a plain heads-up. FOREGROUND_SERVICE_PHONE_CALL matches the phoneCall FGS type
+       declared on VoiceConnectionService (CallKeep) — without it Android 14+ throws on a typed
+       call FGS. -->
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL"/>
+  <!-- B-70: phoneCall-typed FGS eligibility on Android 14+ needs
+       MANAGE_OWN_CALLS (self-managed ConnectionService). CallKeep's library
+       manifest already merges it; declared here too so the eligibility
+       contract is visible and survives a library manifest change. -->
+  <uses-permission android:name="android.permission.MANAGE_OWN_CALLS"/>
+  <!-- react-native-callkeep / Android Telecom ConnectionService.
+       BIND_TELECOM_CONNECTION_SERVICE allows our self-managed
+       ConnectionService to be bound by the system Telecom layer.
+       READ_PHONE_STATE / READ_PHONE_NUMBERS / CALL_PHONE are required
+       at the Telecom contract level even when self-managed; the runtime
+       prompt only asks for phone-account access. -->
+  <uses-permission android:name="android.permission.BIND_TELECOM_CONNECTION_SERVICE"/>
+  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+  <uses-permission android:name="android.permission.READ_PHONE_NUMBERS"/>
+  <uses-permission android:name="android.permission.CALL_PHONE"/>
+  <!-- P2-BR-1: Signal-style battery-optimization exemption so killed-app FCM
+       (messages + call rings) survives aggressive OEM power managers
+       (TECNO/HiOS, MIUI, ColorOS, ...). Fired via
+       ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS from
+       BatteryOptimizationModule when the user accepts the in-app
+       "notification reliability" card. Google Play policy restricts this
+       permission to specific app categories — acceptable here because Bravo
+       distributes via Firebase App Distribution, not Play. Revisit if a Play
+       listing is ever planned. -->
+  <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+  <!-- P3 (background-reliability audit 2026-07-10): notifee's library manifest
+       merges SCHEDULE_EXACT_ALARM but the app never schedules trigger
+       notifications — strip it (targetSdk 33+ Play declaration risk). -->
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove"/>
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW"/>
+      <category android:name="android.intent.category.BROWSABLE"/>
+      <data android:scheme="https"/>
+    </intent>
+  </queries>
+  <!--
+       Round 7 / security audit hardening:
+       - allowBackup="false" — adb backup must NOT be able to extract
+         this app's sandbox (SQLCipher DB, AsyncStorage tokens, keychain).
+         Matches Signal / WhatsApp posture for an E2E messenger.
+       - usesCleartextTraffic="false" — refuse plain-HTTP traffic to ANY
+         host. All Bravo endpoints are TLS; a compromised Wi-Fi MITM can
+         no longer redirect us to a cleartext relay.
+       - enableOnBackInvokedCallback="false" — MUST stay false for this
+         stack. react-native-screens 4.x does NOT implement Android's
+         predictive-back (OnBackInvokedCallback) API — the maintainers
+         have said it almost certainly won't land in v4 (it needs
+         synchronous Fragment transactions that the new API forbids).
+         With the flag TRUE, Android 13+ routes the edge-swipe / back
+         gesture through OnBackInvokedDispatcher, which neither
+         react-navigation/native-stack 6.x nor rn-screens consumes — so
+         the gesture falls through to the system default and BACKGROUNDS
+         THE APP (top activity → launcher) on every screen instead of
+         popping the in-app stack. Observed signature: predictive-back
+         registered (OnBackPressedDispatcher$Api34Impl) but the JS nav
+         stack never consumes it; visibilityChanged newVisibility=false +
+         BLASTBufferQueue destructor with mFinished=false (NOT a crash —
+         the app is merely sent home).
+         With the flag FALSE, the predictive-back system animation +
+         OnBackInvokedCallback are ignored, but the OnBackPressedDispatcher
+         / OnBackPressedCallback path STILL fires — and that is exactly
+         what RN 0.81's BackHandler + react-navigation + rn-screens consume.
+         So every screen's BackHandler override (VaultLock /
+         IncomingGroupCall / BackupRestore / OpsRoomReview / CallScreen /
+         GroupCallScreen) runs and back pops the in-app stack.
+
+         VERIFIED on targetSdk 36 (this build actually runs as
+         target_sdk_version=36 per device logcat — NOT 35 as the Expo
+         default suggests). RN 0.81's Android-16 guidance is explicit:
+         Android 16 stops calling the legacy onBackPressed()/KEYCODE_BACK,
+         but "BackHandler should continue to work" via OnBackPressedDispatcher,
+         and setting enableOnBackInvokedCallback=false is the supported
+         opt-out that keeps OnBackPressedCallback working. Revisit only if
+         rn-screens ships real predictive-back AND we choose to adopt the
+         system animation.
+         Refs: reactnative.dev/blog/2025/08/12/react-native-0.81 ;
+         github.com/software-mansion/react-native-screens/discussions/2540
+  -->
+  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="false" android:theme="@style/AppTheme" android:supportsRtl="true" android:enableOnBackInvokedCallback="false" android:usesCleartextTraffic="false">
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
+    <!-- Monochrome notification small icon for any server notification-block FCM
+         push (data-only pushes draw via notifee with the same ic_stat_bravo).
+         Without this, a notification-block push renders the full-color launcher
+         as a solid white blob in the status bar. -->
+    <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_bravo"/>
+    <!-- B-66: accent color for the tinted small icon on notification-block
+         pushes (notifee paths pass the same color from JS). tools:replace —
+         react-native-firebase_messaging's library manifest ships its own
+         default (@color/white); ours must win at merge time. -->
+    <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notificationAccent" tools:replace="android:resource"/>
+    <!-- Foldable / large-screen posture:
+         - resizeableActivity="true" — opt in to being resized across a fold /
+           unfold and into split-screen. configChanges already lists
+           screenSize|screenLayout so the fold delivers a config change and
+           relayouts in place (no activity recreate) — the RN side must read
+           the LIVE window (useWindowDimensions / useContentWidth), NOT a
+           value frozen at module load, or media/columns clip after unfold.
+         - screenOrientation="portrait" is KEPT deliberately: the app-wide
+           responsive system (@utils/scaling) reads Dimensions once at module
+           load and relies on portrait lock to stay correct across ~80 screens.
+           Unlocking rotation is a separate, app-wide change (make scaling
+           reactive first), not a messenger fix — do NOT flip it here. -->
+    <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:resizeableActivity="true" android:screenOrientation="portrait">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="exp+bravo-secure"/>
+      </intent-filter>
+    </activity>
+    <!-- Call foreground service. The phoneCall+microphone+camera type tags tell
+         Android 14+ to keep capture alive across screen-off and
+         backgrounding. B-70: phoneCall (we run a self-managed Telecom
+         ConnectionService via CallKeep, which qualifies) grants the
+         while-in-use exemption when the FGS starts from the background —
+         without it the killed-app answer path had its mic denied
+         ("Foreground service started from background can not have …
+         microphone access"). Started/stopped by JS via the
+         BravoCallForeground native module. -->
+    <service
+        android:name=".CallForegroundService"
+        android:exported="false"
+        android:foregroundServiceType="phoneCall|microphone|camera"/>
+    <!-- react-native-callkeep services. Injected by hand because the
+         existing android/ tree has custom Kotlin (CallForegroundService)
+         that `expo prebuild` would overwrite. Mirrors what
+         @config-plugins/react-native-callkeep would inject. -->
+    <!-- P2-BR-2: the library headless task for this service is never
+         registered, so an external startService() from any co-installed app
+         would NPE/crash Bravo (killing an active call/WS). It is only ever
+         started from inside this process — keep it un-exported.
+         tools:node="merge" + explicit exported=false overrides the
+         library-manifest value at merge time. -->
+    <service
+        android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService"
+        android:exported="false"
+        tools:node="merge"/>
+    <service
+        android:name="io.wazo.callkeep.VoiceConnectionService"
+        android:exported="true"
+        android:label="Bravo Secure"
+        android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+        android:foregroundServiceType="phoneCall|microphone|camera">
+      <intent-filter>
+        <action android:name="android.telecom.ConnectionService"/>
+      </intent-filter>
+    </service>
+    <!-- B-89 MG-03 — mission GPS foreground service. notifee's library
+         manifest declares app.notifee.core.ForegroundService with no
+         type; Android 14+ (targetSdk 34+) hard-requires the declared
+         foregroundServiceType to include `location` for a location FGS,
+         so merge it in here. Started from JS at mission go-live
+         (missionForegroundService.ts) so the CPO's telemetry watcher
+         keeps running with the screen off. -->
+    <service
+        android:name="app.notifee.core.ForegroundService"
+        android:foregroundServiceType="location"
+        tools:node="merge"/>
+    <!-- W4/B-685 boot diet — Mapbox registers TWO androidx.startup
+         initializers that load libmapbox-common.so + libmapbox-maps.so and
+         init the SDK at PROCESS CREATE, ~4s before JS even runs, for every
+         account including messenger-only ones that never mount a map
+         (device-measured 2026-08-29: init at +0.6s, first JS at +4.9s).
+         Removing the meta-data entries makes Mapbox fall back to its own
+         ON-DEMAND initialization (MapboxInitializer.init runs at first map
+         use — the "attempt 1" retry wrapper exists for exactly this).
+         ⚠ OWED before release: an AGENCY/CPO account opening the live
+         tracker on a device (the on-demand path is unexercised until then;
+         see DEAD_PHONE_SMOOTHNESS_PLAN.md W4 status). -->
+    <provider
+        android:name="androidx.startup.InitializationProvider"
+        android:authorities="${applicationId}.androidx-startup"
+        android:exported="false"
+        tools:node="merge">
+      <meta-data
+          android:name="com.mapbox.common.MapboxSDKCommonInitializer"
+          tools:node="remove"/>
+      <!-- ⚠ the FQCN carries a `.loader.` segment (verified in the MERGED
+           manifest — the logcat tag truncates the package and lies). -->
+      <meta-data
+          android:name="com.mapbox.maps.loader.MapboxMapsInitializer"
+          tools:node="remove"/>
+    </provider>
+  </application>
+</manifest>

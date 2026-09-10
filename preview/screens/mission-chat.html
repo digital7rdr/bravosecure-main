@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "ops":"#0EA5E9","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  /* Chat bubbles */
+  .bubble-ops   { background:#0D2A3F; border:1px solid rgba(14,165,233,0.25); border-radius:0 1rem 1rem 1rem; max-width:80%; }
+  .bubble-agent { background:#1A0A2E; border:1px solid rgba(124,58,237,0.25); border-radius:1rem 0 1rem 1rem; max-width:80%; }
+  .bubble-system{ background:rgba(30,45,69,0.5); border:1px solid #1E2D45; border-radius:0.75rem; max-width:90%; }
+  .bubble-file  { background:#0D1929; border:1px solid #1E2D45; border-radius:0.75rem; }
+
+  /* Fade in messages */
+  @keyframes msg-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .msg { animation:msg-in 0.3s ease both; }
+  .msg:nth-child(1){animation-delay:0.1s}
+  .msg:nth-child(2){animation-delay:0.2s}
+  .msg:nth-child(3){animation-delay:0.35s}
+  .msg:nth-child(4){animation-delay:0.5s}
+  .msg:nth-child(5){animation-delay:0.65s}
+  .msg:nth-child(6){animation-delay:0.8s}
+  .msg:nth-child(7){animation-delay:0.95s}
+  .msg:nth-child(8){animation-delay:1.1s}
+  .msg:nth-child(9){animation-delay:1.25s}
+
+  /* Typing indicator */
+  @keyframes typing-dot { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+  .typing-dot:nth-child(1){animation:typing-dot 1.2s ease infinite;animation-delay:0s}
+  .typing-dot:nth-child(2){animation:typing-dot 1.2s ease infinite;animation-delay:0.2s}
+  .typing-dot:nth-child(3){animation:typing-dot 1.2s ease infinite;animation-delay:0.4s}
+
+  /* Send button -->
+  .send-btn:active { transform:scale(0.93); }
+
+  /* Input */
+  .chat-input {
+    background:#0D1929 !important;
+    border:1px solid #1E2D45 !important;
+    color:#f1f5f9 !important;
+    border-radius:0.75rem !important;
+    font-family:'Manrope',sans-serif !important;
+    font-size:0.875rem !important;
+    line-height:1.5 !important;
+    padding:0.5rem 0.75rem !important;
+    outline:none !important;
+    resize:none !important;
+    height:40px;
+    min-height:40px;
+    max-height:100px;
+    overflow-y:hidden;
+    display:block;
+  }
+  .chat-input:focus { border-color:#0EA5E9 !important; box-shadow:0 0 0 3px rgba(14,165,233,0.1) !important; }
+  .chat-input::placeholder { color:#475569 !important; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 border-b" style="background:#0A0F1E;border-color:#1E2D45">
+  <div class="flex items-center gap-3 mb-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors shrink-0">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <!-- Group avatar stack -->
+    <div class="flex -space-x-2 shrink-0">
+      <div class="size-8 rounded-full border-2 border-[#0A0F1E] flex items-center justify-center text-[10px] font-bold" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white;z-index:4">SC</div>
+      <div class="size-8 rounded-full border-2 border-[#0A0F1E] flex items-center justify-center text-[10px] font-bold" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white;z-index:3">MJ</div>
+      <div class="size-8 rounded-full border-2 border-[#0A0F1E] flex items-center justify-center text-[10px] font-bold" style="background:linear-gradient(135deg,#D4AF37,#B8962E);color:white;z-index:2">RP</div>
+      <div class="size-8 rounded-full border-2 border-[#0A0F1E] flex items-center justify-center text-[10px] font-bold" style="background:#1E2D45;color:#64748b;z-index:1">+1</div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <h2 class="text-sm font-bold text-slate-100 truncate">Mission Group · BS-8829</h2>
+        <div class="flex items-center gap-1 px-1.5 py-0.5 rounded-full shrink-0" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">
+          <span class="size-1.5 rounded-full bg-red-400 pulse-dot inline-block"></span>
+          <span class="text-[9px] font-bold text-red-400">LIVE</span>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-500">4 members · VIP Airport Transfer</p>
+    </div>
+    <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors shrink-0">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">more_vert</span>
+    </button>
+  </div>
+
+  <!-- Mission info banner -->
+  <div class="flex items-center gap-3 p-2.5 rounded-xl" style="background:#0D1929;border:1px solid rgba(14,165,233,0.2)">
+    <span class="material-symbols-outlined filled shrink-0" style="font-size:16px;color:#0EA5E9">my_location</span>
+    <div class="flex-1 min-w-0">
+      <p class="text-[10px] font-bold text-slate-300 truncate">DXB T3 → DIFC Tower · 18 Mar · 06:30</p>
+      <div class="flex items-center gap-2">
+        <div class="flex-1 h-1 rounded-full" style="background:#1E2D45">
+          <div class="h-1 rounded-full" style="background:linear-gradient(90deg,#0EA5E9,#38bdf8);width:68%"></div>
+        </div>
+        <span class="text-[9px] font-bold text-sky-400 shrink-0">68% · ETA 14 min</span>
+      </div>
+    </div>
+    <span class="text-[9px] font-bold px-2 py-1 rounded-full shrink-0" style="background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.2)">EN ROUTE</span>
+  </div>
+</header>
+
+<!-- Messages -->
+<main id="chat-body" class="flex-1 overflow-y-auto px-4 py-4 space-y-3" style="scrollbar-width:none">
+
+  <!-- System: group created -->
+  <div class="msg flex justify-center">
+    <div class="bubble-system px-3 py-2 text-center">
+      <p class="text-[10px] text-slate-500">Mission group created by <span class="text-sky-400 font-semibold">Sarah Chen (Ops)</span> · 18 Mar, 05:30</p>
+    </div>
+  </div>
+
+  <!-- System: members joined -->
+  <div class="msg flex justify-center">
+    <div class="bubble-system px-3 py-2 text-center">
+      <p class="text-[10px] text-slate-500">Marcus Johnson, Reza Patel, Sam Kowalski joined</p>
+    </div>
+  </div>
+
+  <!-- Ops message: briefing -->
+  <div class="msg flex gap-2.5">
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div>
+    <div>
+      <p class="text-[10px] text-sky-400 font-bold mb-1">Sarah Chen <span class="text-slate-600 font-normal">· Ops Lead</span></p>
+      <div class="bubble-ops p-3">
+        <p class="text-sm text-slate-200 leading-relaxed">Mission Brief: VIP client Abdullah Al-Rashid. Terminal 3, Gate 22. Black suit + tie required. Armoured SUV confirmed. Client may have 1 personal assistant.</p>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1">05:31</p>
+    </div>
+  </div>
+
+  <!-- Ops: file share -->
+  <div class="msg flex gap-2.5">
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div>
+    <div>
+      <div class="bubble-file p-3 flex items-center gap-3" style="max-width:260px">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(14,165,233,0.12)">
+          <span class="material-symbols-outlined filled" style="font-size:20px;color:#38bdf8">description</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-bold text-slate-200 truncate">Mission_Brief_BS8829.pdf</p>
+          <p class="text-[10px] text-slate-500">2.4 MB · PDF</p>
+        </div>
+        <span class="material-symbols-outlined text-sky-400" style="font-size:18px">download</span>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1">05:31</p>
+    </div>
+  </div>
+
+  <!-- Agent: confirmed -->
+  <div class="msg flex gap-2.5 justify-end">
+    <div>
+      <div class="bubble-agent p-3 text-right">
+        <p class="text-sm text-slate-200">Confirmed. Reading brief now. In position at T3 by 06:10.</p>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1 text-right">Marcus J. · 05:38</p>
+    </div>
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">MJ</div>
+  </div>
+
+  <!-- Agent 2: confirmed -->
+  <div class="msg flex gap-2.5 justify-end">
+    <div>
+      <div class="bubble-agent p-3 text-right">
+        <p class="text-sm text-slate-200">Vehicle prepped and staged. VR7 armour confirmed. ETA terminal 06:05.</p>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1 text-right">Reza P. (Driver) · 05:45</p>
+    </div>
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#D4AF37,#B8962E);color:white">RP</div>
+  </div>
+
+  <!-- System: status update -->
+  <div class="msg flex justify-center">
+    <div class="bubble-system px-3 py-2 text-center">
+      <p class="text-[10px]"><span class="text-sky-400 font-bold">Status update:</span> <span class="text-slate-400">Client boarded · EN ROUTE (68%)</span> <span class="text-slate-600">· 06:42</span></p>
+    </div>
+  </div>
+
+  <!-- Ops: update -->
+  <div class="msg flex gap-2.5">
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div>
+    <div>
+      <p class="text-[10px] text-sky-400 font-bold mb-1">Sarah Chen <span class="text-slate-600 font-normal">· Ops</span></p>
+      <div class="bubble-ops p-3">
+        <p class="text-sm text-slate-200">ETA check — client mentioned slight delay at security. How are you progressing?</p>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1">06:48</p>
+    </div>
+  </div>
+
+  <!-- Agent: copy -->
+  <div class="msg flex gap-2.5 justify-end">
+    <div>
+      <div class="bubble-agent p-3 text-right">
+        <p class="text-sm text-slate-200">Copy that. Client ETA revised 07:00. Holding at covered bay, no issues.</p>
+      </div>
+      <p class="text-[9px] text-slate-600 mt-1 text-right">Marcus J. · 06:50 <span class="material-symbols-outlined filled text-sky-400" style="font-size:12px">done_all</span></p>
+    </div>
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">MJ</div>
+  </div>
+
+  <!-- Typing indicator -->
+  <div class="msg flex gap-2.5" id="typing-indicator">
+    <div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div>
+    <div class="bubble-ops px-4 py-3 flex items-center gap-1">
+      <span class="typing-dot size-1.5 rounded-full bg-sky-400 inline-block"></span>
+      <span class="typing-dot size-1.5 rounded-full bg-sky-400 inline-block"></span>
+      <span class="typing-dot size-1.5 rounded-full bg-sky-400 inline-block"></span>
+    </div>
+  </div>
+
+</main>
+
+<!-- Group expires notice -->
+<div class="px-4 py-2 flex items-center gap-2" style="background:rgba(14,165,233,0.06);border-top:1px solid rgba(14,165,233,0.15);border-bottom:1px solid rgba(14,165,233,0.15)">
+  <span class="material-symbols-outlined filled" style="font-size:14px;color:#0EA5E9">info</span>
+  <p class="text-[10px] text-slate-500">This group is <span class="text-sky-400 font-semibold">mission-scoped</span> · auto-archives when mission completes (est. 18:30)</p>
+</div>
+
+<!-- Input bar -->
+<div class="px-4 py-2.5 flex items-end gap-2" style="background:#0A0F1E;border-top:1px solid #1E2D45">
+  <!-- Quick status buttons -->
+  <button onclick="sendQuickStatus('En route')" class="size-9 flex items-center justify-center rounded-full shrink-0 transition-all" style="background:#0D1929;border:1px solid #1E2D45" title="Status update">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:18px">my_location</span>
+  </button>
+  <!-- Attach -->
+  <button class="size-9 flex items-center justify-center rounded-full shrink-0" style="background:#0D1929;border:1px solid #1E2D45">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:18px">attach_file</span>
+  </button>
+  <!-- Text input -->
+  <textarea id="msg-input" class="chat-input flex-1" placeholder="Message mission group..." oninput="autoGrow(this)" onkeydown="handleKey(event)"></textarea>
+  <!-- Send -->
+  <button onclick="sendMessage()" class="send-btn size-9 flex items-center justify-center rounded-full shrink-0 transition-all" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);box-shadow:0 4px 12px rgba(14,165,233,0.35)">
+    <span class="material-symbols-outlined filled text-white" style="font-size:18px">send</span>
+  </button>
+</div>
+
+<!-- SOS bar -->
+<div class="px-4 pb-4 pt-1" style="background:#0A0F1E">
+  <button class="w-full py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all" style="background:rgba(239,68,68,0.06);color:#f87171;border:1px solid rgba(239,68,68,0.2)" onclick="triggerSOS()">
+    <span class="material-symbols-outlined filled" style="font-size:16px">emergency</span>
+    SOS — Emergency Escalation
+  </button>
+</div>
+
+<script>
+  // Scroll to bottom
+  const body = document.getElementById('chat-body');
+  body.scrollTop = body.scrollHeight;
+
+  // Hide typing after 3s
+  setTimeout(() => {
+    const ti = document.getElementById('typing-indicator');
+    ti.style.opacity = '0';
+    ti.style.transition = 'opacity 0.4s';
+    setTimeout(() => ti.remove(), 400);
+  }, 3000);
+
+  function autoGrow(el) {
+    el.style.overflowY = 'hidden';
+    el.style.height = '40px';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    el.style.overflowY = el.scrollHeight > 100 ? 'auto' : 'hidden';
+  }
+
+  function handleKey(e) {
+    if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+
+  function sendMessage() {
+    const inp = document.getElementById('msg-input');
+    const text = inp.value.trim();
+    if(!text) return;
+    addMessage(text, 'agent', 'You');
+    inp.value = '';
+    inp.style.height = 'auto';
+  }
+
+  function sendQuickStatus(status) {
+    addSystemMessage('Status update from Marcus J.: ' + status);
+  }
+
+  function addMessage(text, type, sender) {
+    const div = document.createElement('div');
+    if(type === 'agent') {
+      div.className = 'flex gap-2.5 justify-end';
+      div.innerHTML = `<div><div class="bubble-agent p-3 text-right"><p class="text-sm text-slate-200">${text}</p></div><p class="text-[9px] text-slate-600 mt-1 text-right">Now <span class="material-symbols-outlined filled text-sky-400" style="font-size:12px">done_all</span></p></div><div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">MJ</div>`;
+    } else {
+      div.className = 'flex gap-2.5';
+      div.innerHTML = `<div class="size-7 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-1" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div><div><div class="bubble-ops p-3"><p class="text-sm text-slate-200">${text}</p></div><p class="text-[9px] text-slate-600 mt-1">Now</p></div>`;
+    }
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function addSystemMessage(text) {
+    const div = document.createElement('div');
+    div.className = 'flex justify-center';
+    div.innerHTML = `<div class="bubble-system px-3 py-2 text-center"><p class="text-[10px] text-slate-500">${text}</p></div>`;
+    body.appendChild(div);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function triggerSOS() {
+    addSystemMessage('🚨 SOS ESCALATED by Marcus J. — Ops notified immediately');
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="agent-home"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-home.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

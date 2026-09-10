@@ -1,0 +1,14 @@
+[
+  {
+    "name": "JS bundle (release)",
+    "path": "dist/_expo/static/js/**/*.js",
+    "limit": "5 MB",
+    "gzip": false
+  },
+  {
+    "name": "JS bundle (release, gzip)",
+    "path": "dist/_expo/static/js/**/*.js",
+    "limit": "1.5 MB",
+    "gzip": true
+  }
+]

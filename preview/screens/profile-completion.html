@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { "primary": "#2563EB", "background-dark": "#0A0F1E" },
+        fontFamily: { "display": ["Manrope", "sans-serif"] },
+        borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+  main::-webkit-scrollbar { display: none; }
+  main { scrollbar-width: none; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="flex items-center p-4">
+    <button onclick="goBack()" class="flex items-center justify-center size-10 rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-100">arrow_back</span>
+    </button>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 px-6 pb-44 overflow-y-auto">
+
+    <!-- Progress -->
+    <div class="mb-6">
+      <span class="text-xs font-medium text-primary block mb-1.5">Step 4 of 4</span>
+      <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+        <div class="h-full bg-primary rounded-full w-full"></div>
+      </div>
+    </div>
+
+    <!-- Heading -->
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold mb-1">Complete your profile</h1>
+      <p class="text-slate-400 text-sm">Help us personalise your experience</p>
+    </div>
+
+    <!-- Avatar Upload -->
+    <div class="flex flex-col items-center gap-3 mb-8">
+      <div class="relative cursor-pointer group">
+        <div class="size-24 rounded-full border-2 border-dashed border-primary flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors">
+          <span class="material-symbols-outlined text-primary text-3xl">photo_camera</span>
+        </div>
+        <div class="absolute bottom-0 right-0 size-7 bg-primary rounded-full flex items-center justify-center shadow-lg">
+          <span class="material-symbols-outlined text-white text-sm">add</span>
+        </div>
+      </div>
+      <p class="text-primary text-sm font-semibold">Upload photo</p>
+    </div>
+
+    <!-- Form Fields -->
+    <div class="flex flex-col gap-4">
+
+      <!-- Full Name -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Full name <span class="text-primary">*</span></label>
+        <input
+          class="w-full bg-slate-900/60 border border-slate-700 focus:border-primary rounded-xl h-14 px-4 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+          placeholder="Enter your full name"
+          type="text"/>
+      </div>
+
+      <!-- Company -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Company / Organisation</label>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-primary/70 px-2 py-0.5 rounded bg-primary/10 border border-primary/20">Optional</span>
+        </div>
+        <input
+          class="w-full bg-slate-900/60 border border-slate-700 focus:border-primary rounded-xl h-14 px-4 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+          placeholder="Enter company name"
+          type="text"/>
+      </div>
+
+      <!-- Nationality -->
+      <div class="flex flex-col gap-1.5" style="position:relative">
+        <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Nationality</label>
+        <button id="nat-btn" onclick="toggleNat()" class="w-full bg-slate-900/60 border border-slate-700 hover:border-primary/50 rounded-xl h-14 px-4 flex items-center justify-between text-slate-100 transition-all group">
+          <div class="flex items-center gap-3">
+            <img id="nat-flag" src="https://flagcdn.com/w40/ae.png" class="w-6 h-4 rounded-sm object-cover shrink-0"/>
+            <span class="text-sm" id="nat-label">United Arab Emirates</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors text-xl">expand_more</span>
+        </button>
+        <!-- Dropdown -->
+        <div id="nat-dropdown" class="hidden absolute left-0 right-0 z-50 rounded-xl overflow-hidden border border-slate-700" style="top:calc(100% + 4px);background:#0D1929;max-height:220px;overflow-y:auto;scrollbar-width:none">
+          <input id="nat-search" oninput="filterNat(this.value)" placeholder="Search country…" class="w-full px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none border-b border-slate-700" style="background:#07111f"/>
+          <div id="nat-list"></div>
+        </div>
+      </div>
+
+      <!-- Emergency Contact -->
+      <div class="flex flex-col gap-1.5" style="position:relative">
+        <label class="text-xs font-medium text-slate-400 uppercase tracking-wider">Emergency contact <span class="text-primary">*</span></label>
+        <div class="flex rounded-xl border border-slate-700 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50 transition-all overflow-visible" style="background:rgba(15,23,42,0.6)">
+          <!-- Clickable country code -->
+          <button type="button" id="ec-btn" onclick="toggleEc()" class="flex items-center gap-1.5 px-3 shrink-0 border-r border-slate-700 hover:bg-white/5 transition-colors rounded-l-xl">
+            <img id="ec-flag" src="https://flagcdn.com/w40/ae.png" class="w-5 h-3.5 rounded-sm object-cover shrink-0"/>
+            <span id="ec-dial" class="text-slate-300 text-sm font-semibold">+971</span>
+            <span class="material-symbols-outlined text-slate-500" style="font-size:14px">expand_more</span>
+          </button>
+          <input
+            class="flex-1 h-14 px-4 text-slate-100 placeholder:text-slate-600 focus:outline-none text-sm"
+            style="background:transparent;border:none;box-shadow:none"
+            placeholder="50 000 0000"
+            type="tel"/>
+        </div>
+        <!-- Country code dropdown -->
+        <div id="ec-dropdown" class="hidden absolute left-0 right-0 z-50 rounded-xl border border-slate-700 overflow-hidden" style="top:calc(100% + 4px);background:#0D1929;max-height:220px;overflow-y:auto;scrollbar-width:none">
+          <input id="ec-search" oninput="filterEc(this.value)" placeholder="Search country…" class="w-full px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none border-b border-slate-700" style="background:#07111f;box-shadow:none"/>
+          <div id="ec-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A0F1E] via-[#0A0F1E] to-transparent flex flex-col gap-3">
+    <button onclick="goToDashboard()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl transition-colors shadow-lg shadow-primary/20">
+      Complete Setup
+    </button>
+    <button onclick="goToDashboard()" class="w-full text-slate-500 hover:text-slate-300 font-medium text-sm py-2 transition-colors">
+      Skip for now
+    </button>
+  </footer>
+
+<script>
+const COUNTRIES = [
+  {name:'Afghanistan',code:'af'},{name:'Albania',code:'al'},{name:'Algeria',code:'dz'},
+  {name:'Argentina',code:'ar'},{name:'Australia',code:'au'},{name:'Austria',code:'at'},
+  {name:'Bahrain',code:'bh'},{name:'Bangladesh',code:'bd'},{name:'Belgium',code:'be'},
+  {name:'Brazil',code:'br'},{name:'Bulgaria',code:'bg'},{name:'Cambodia',code:'kh'},
+  {name:'Cameroon',code:'cm'},{name:'Canada',code:'ca'},{name:'Chile',code:'cl'},
+  {name:'China',code:'cn'},{name:'Colombia',code:'co'},{name:'Croatia',code:'hr'},
+  {name:'Czech Republic',code:'cz'},{name:'Denmark',code:'dk'},{name:'Ecuador',code:'ec'},
+  {name:'Egypt',code:'eg'},{name:'Ethiopia',code:'et'},{name:'Finland',code:'fi'},
+  {name:'France',code:'fr'},{name:'Germany',code:'de'},{name:'Ghana',code:'gh'},
+  {name:'Greece',code:'gr'},{name:'Hungary',code:'hu'},{name:'India',code:'in'},
+  {name:'Indonesia',code:'id'},{name:'Iran',code:'ir'},{name:'Iraq',code:'iq'},
+  {name:'Ireland',code:'ie'},{name:'Israel',code:'il'},{name:'Italy',code:'it'},
+  {name:'Japan',code:'jp'},{name:'Jordan',code:'jo'},{name:'Kazakhstan',code:'kz'},
+  {name:'Kenya',code:'ke'},{name:'Kuwait',code:'kw'},{name:'Lebanon',code:'lb'},
+  {name:'Libya',code:'ly'},{name:'Malaysia',code:'my'},{name:'Mexico',code:'mx'},
+  {name:'Morocco',code:'ma'},{name:'Mozambique',code:'mz'},{name:'Myanmar',code:'mm'},
+  {name:'Nepal',code:'np'},{name:'Netherlands',code:'nl'},{name:'New Zealand',code:'nz'},
+  {name:'Nigeria',code:'ng'},{name:'Norway',code:'no'},{name:'Oman',code:'om'},
+  {name:'Pakistan',code:'pk'},{name:'Palestine',code:'ps'},{name:'Peru',code:'pe'},
+  {name:'Philippines',code:'ph'},{name:'Poland',code:'pl'},{name:'Portugal',code:'pt'},
+  {name:'Qatar',code:'qa'},{name:'Romania',code:'ro'},{name:'Russia',code:'ru'},
+  {name:'Saudi Arabia',code:'sa'},{name:'Serbia',code:'rs'},{name:'Singapore',code:'sg'},
+  {name:'Somalia',code:'so'},{name:'South Africa',code:'za'},{name:'South Korea',code:'kr'},
+  {name:'Spain',code:'es'},{name:'Sri Lanka',code:'lk'},{name:'Sudan',code:'sd'},
+  {name:'Sweden',code:'se'},{name:'Switzerland',code:'ch'},{name:'Syria',code:'sy'},
+  {name:'Tanzania',code:'tz'},{name:'Thailand',code:'th'},{name:'Tunisia',code:'tn'},
+  {name:'Turkey',code:'tr'},{name:'Uganda',code:'ug'},{name:'Ukraine',code:'ua'},
+  {name:'United Arab Emirates',code:'ae'},{name:'United Kingdom',code:'gb'},
+  {name:'United States',code:'us'},{name:'Uruguay',code:'uy'},{name:'Uzbekistan',code:'uz'},
+  {name:'Venezuela',code:'ve'},{name:'Vietnam',code:'vn'},{name:'Yemen',code:'ye'},
+  {name:'Zimbabwe',code:'zw'}
+];
+
+function buildList(items) {
+  const list = document.getElementById('nat-list');
+  list.innerHTML = '';
+  items.forEach(c => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 transition-colors text-left';
+    row.innerHTML = `<img src="https://flagcdn.com/w40/${c.code}.png" class="w-6 h-4 rounded-sm object-cover shrink-0"/><span>${c.name}</span>`;
+    row.onclick = () => selectNat(c);
+    list.appendChild(row);
+  });
+}
+
+function toggleNat() {
+  const dd = document.getElementById('nat-dropdown');
+  dd.classList.toggle('hidden');
+  if (!dd.classList.contains('hidden')) {
+    document.getElementById('nat-search').value = '';
+    buildList(COUNTRIES);
+    document.getElementById('nat-search').focus();
+  }
+}
+
+function filterNat(q) {
+  const filtered = COUNTRIES.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
+  buildList(filtered);
+}
+
+function selectNat(c) {
+  document.getElementById('nat-flag').src = `https://flagcdn.com/w40/${c.code}.png`;
+  document.getElementById('nat-label').textContent = c.name;
+  document.getElementById('nat-dropdown').classList.add('hidden');
+}
+
+// Close nationality on outside click
+document.addEventListener('click', e => {
+  const natWrap = document.getElementById('nat-btn').closest('div');
+  if (!natWrap.contains(e.target)) document.getElementById('nat-dropdown').classList.add('hidden');
+  const ecWrap = document.getElementById('ec-btn').closest('div');
+  if (!ecWrap.contains(e.target)) document.getElementById('ec-dropdown').classList.add('hidden');
+});
+
+// ── Emergency contact country code picker ──
+const DIAL_COUNTRIES = [
+  {name:'UAE',code:'ae',dial:'+971'},{name:'Saudi Arabia',code:'sa',dial:'+966'},
+  {name:'Qatar',code:'qa',dial:'+974'},{name:'Kuwait',code:'kw',dial:'+965'},
+  {name:'Bahrain',code:'bh',dial:'+973'},{name:'Oman',code:'om',dial:'+968'},
+  {name:'India',code:'in',dial:'+91'},{name:'Pakistan',code:'pk',dial:'+92'},
+  {name:'Bangladesh',code:'bd',dial:'+880'},{name:'Sri Lanka',code:'lk',dial:'+94'},
+  {name:'Nepal',code:'np',dial:'+977'},{name:'Philippines',code:'ph',dial:'+63'},
+  {name:'Indonesia',code:'id',dial:'+62'},{name:'Malaysia',code:'my',dial:'+60'},
+  {name:'Singapore',code:'sg',dial:'+65'},{name:'Thailand',code:'th',dial:'+66'},
+  {name:'Vietnam',code:'vn',dial:'+84'},{name:'China',code:'cn',dial:'+86'},
+  {name:'Japan',code:'jp',dial:'+81'},{name:'South Korea',code:'kr',dial:'+82'},
+  {name:'United Kingdom',code:'gb',dial:'+44'},{name:'United States',code:'us',dial:'+1'},
+  {name:'Canada',code:'ca',dial:'+1'},{name:'Australia',code:'au',dial:'+61'},
+  {name:'New Zealand',code:'nz',dial:'+64'},{name:'Germany',code:'de',dial:'+49'},
+  {name:'France',code:'fr',dial:'+33'},{name:'Italy',code:'it',dial:'+39'},
+  {name:'Spain',code:'es',dial:'+34'},{name:'Netherlands',code:'nl',dial:'+31'},
+  {name:'Belgium',code:'be',dial:'+32'},{name:'Switzerland',code:'ch',dial:'+41'},
+  {name:'Sweden',code:'se',dial:'+46'},{name:'Norway',code:'no',dial:'+47'},
+  {name:'Denmark',code:'dk',dial:'+45'},{name:'Poland',code:'pl',dial:'+48'},
+  {name:'Turkey',code:'tr',dial:'+90'},{name:'Russia',code:'ru',dial:'+7'},
+  {name:'Egypt',code:'eg',dial:'+20'},{name:'Jordan',code:'jo',dial:'+962'},
+  {name:'Lebanon',code:'lb',dial:'+961'},{name:'Iraq',code:'iq',dial:'+964'},
+  {name:'Iran',code:'ir',dial:'+98'},{name:'Morocco',code:'ma',dial:'+212'},
+  {name:'Algeria',code:'dz',dial:'+213'},{name:'Tunisia',code:'tn',dial:'+216'},
+  {name:'Libya',code:'ly',dial:'+218'},{name:'Sudan',code:'sd',dial:'+249'},
+  {name:'Ethiopia',code:'et',dial:'+251'},{name:'Kenya',code:'ke',dial:'+254'},
+  {name:'Nigeria',code:'ng',dial:'+234'},{name:'Ghana',code:'gh',dial:'+233'},
+  {name:'South Africa',code:'za',dial:'+27'},{name:'Tanzania',code:'tz',dial:'+255'},
+  {name:'Uganda',code:'ug',dial:'+256'},{name:'Brazil',code:'br',dial:'+55'},
+  {name:'Mexico',code:'mx',dial:'+52'},{name:'Argentina',code:'ar',dial:'+54'},
+  {name:'Colombia',code:'co',dial:'+57'},{name:'Chile',code:'cl',dial:'+56'},
+];
+
+function buildEcList(items) {
+  const list = document.getElementById('ec-list');
+  list.innerHTML = '';
+  items.forEach(c => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 transition-colors text-left';
+    row.innerHTML = `<img src="https://flagcdn.com/w40/${c.code}.png" class="w-5 h-3.5 rounded-sm object-cover shrink-0"/><span class="flex-1">${c.name}</span><span class="text-slate-500 font-mono text-xs">${c.dial}</span>`;
+    row.onclick = () => selectEc(c);
+    list.appendChild(row);
+  });
+}
+
+function toggleEc() {
+  const dd = document.getElementById('ec-dropdown');
+  dd.classList.toggle('hidden');
+  if (!dd.classList.contains('hidden')) {
+    document.getElementById('ec-search').value = '';
+    buildEcList(DIAL_COUNTRIES);
+    setTimeout(() => document.getElementById('ec-search').focus(), 50);
+  }
+}
+
+function filterEc(q) {
+  const filtered = DIAL_COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(q.toLowerCase()) || c.dial.includes(q)
+  );
+  buildEcList(filtered);
+}
+
+function selectEc(c) {
+  document.getElementById('ec-flag').src = `https://flagcdn.com/w40/${c.code}.png`;
+  document.getElementById('ec-dial').textContent = c.dial;
+  document.getElementById('ec-dropdown').classList.add('hidden');
+}
+
+buildEcList(DIAL_COUNTRIES);
+buildList(COUNTRIES);
+
+function nav(screen) {
+  if (!window.parent || !window.parent.loadScreen) return;
+  const el = window.parent.document.querySelector('.nav-item.active') || document.createElement('div');
+  window.parent.loadScreen('screens/' + screen, el);
+}
+function goToDashboard() {
+  localStorage.setItem('bs_session', 'active');
+  nav('dashboard.html');
+}
+function goBack() { nav('permissions.html'); }
+</script>
+</body></html>

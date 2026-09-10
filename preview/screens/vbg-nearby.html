@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VBG — Nearby Key Points</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; background: #0A0F1E; color: #F1F5F9; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Map background — same grid style as live-tracking */
+  .map-bg {
+    background-color: #060A12;
+    background-image:
+      radial-gradient(circle at 50% 50%, rgba(37,99,235,0.10) 0%, transparent 55%),
+      linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 28px 28px, 28px 28px;
+  }
+
+  /* Geofence rings */
+  @keyframes ring-pulse {
+    0%   { opacity: 0.35; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0;    transform: translate(-50%,-50%) scale(1.08); }
+  }
+  .geo-ring-anim { animation: ring-pulse 2.5s ease-out infinite; }
+
+  /* User dot pulse */
+  @keyframes user-pulse {
+    0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(37,99,235,0.6); }
+    50%      { box-shadow: 0 0 0 8px rgba(37,99,235,0); }
+  }
+  .user-dot { animation: user-pulse 2s ease-in-out infinite; }
+
+  @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+  .live-pulse { animation: pulse-live 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body style="height:100%; display:flex; flex-direction:column;">
+
+<!-- Header -->
+<header style="background:#060C18; border-bottom:1px solid #1E2D45; display:flex; align-items:center; padding:50px 14px 12px; gap:10px; flex-shrink:0;">
+  <button onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-home.html', null)" style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid #1E2D45; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:18px; color:#94A3B8;">arrow_back</span>
+  </button>
+  <div>
+    <div style="font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#F1F5F9;">Nearby Key Points</div>
+    <div style="font-size:9px; color:#475569;">Locate nearby key points for quick access and emergencies.</div>
+  </div>
+</header>
+
+<!-- Alerts row -->
+<div style="background:#060C18; padding:8px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #1E2D45; flex-shrink:0;">
+  <div style="display:flex; align-items:center; gap:4px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35); border-radius:9999px; padding:3px 9px;">
+    <span class="live-pulse" style="width:5px; height:5px; border-radius:50%; background:#EF4444; display:block;"></span>
+    <span style="font-size:9px; font-weight:700; color:#F87171; letter-spacing:0.5px;">5 ACTIVE ALERTS</span>
+  </div>
+  <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:9999px; padding:3px 9px;">
+    <span style="font-size:8px; font-weight:700; color:#FCA5A5; letter-spacing:0.5px; text-transform:uppercase;">THREAT LEVEL: ELEVATED</span>
+  </div>
+</div>
+
+<!-- Tactical Map -->
+<div class="map-bg" style="flex:1; position:relative; min-height:0;">
+
+  <!-- Geofence rings (centered on user) -->
+  <div style="position:absolute; left:50%; top:50%; width:200px; height:200px; border-radius:50%; border:1px solid rgba(37,99,235,0.25); transform:translate(-50%,-50%);"></div>
+  <div class="geo-ring-anim" style="position:absolute; left:50%; top:50%; width:200px; height:200px; border-radius:50%; border:1.5px solid rgba(37,99,235,0.3); transform-origin:50% 50%;"></div>
+  <div style="position:absolute; left:50%; top:50%; width:130px; height:130px; border-radius:50%; border:1px solid rgba(37,99,235,0.18); transform:translate(-50%,-50%);"></div>
+  <div style="position:absolute; left:50%; top:50%; width:65px; height:65px; border-radius:50%; border:1px solid rgba(37,99,235,0.15); transform:translate(-50%,-50%);"></div>
+
+  <!-- User location (blue pin, center) -->
+  <div class="user-dot" style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#2563EB; border:2.5px solid #fff; z-index:10;"></div>
+
+  <!-- Police Station — top-left -->
+  <div style="position:absolute; left:22%; top:28%; transform:translate(-50%,-100%); text-align:center; z-index:5;">
+    <div style="width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); border:2px solid #10B981; display:flex; align-items:center; justify-content:center; margin:0 auto 3px;">
+      <span style="font-size:13px;">🛡️</span>
+    </div>
+    <div style="font-size:7px; font-weight:700; color:#34D399; white-space:nowrap;">Police Station</div>
+    <div style="font-size:7px; color:#94A3B8;">0.5 km</div>
+  </div>
+
+  <!-- Hospital — top-right -->
+  <div style="position:absolute; left:72%; top:22%; transform:translate(-50%,-100%); text-align:center; z-index:5;">
+    <div style="width:28px; height:28px; border-radius:50%; background:rgba(239,68,68,0.15); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; margin:0 auto 3px;">
+      <span style="font-size:13px;">➕</span>
+    </div>
+    <div style="font-size:7px; font-weight:700; color:#F87171; white-space:nowrap;">Hospital</div>
+    <div style="font-size:7px; color:#94A3B8;">1.5 km</div>
+  </div>
+
+  <!-- Embassy — right-center -->
+  <div style="position:absolute; left:78%; top:52%; transform:translate(-50%,-100%); text-align:center; z-index:5;">
+    <div style="width:28px; height:28px; border-radius:50%; background:rgba(234,179,8,0.15); border:2px solid #EAB308; display:flex; align-items:center; justify-content:center; margin:0 auto 3px;">
+      <span style="font-size:13px;">🏛️</span>
+    </div>
+    <div style="font-size:7px; font-weight:700; color:#FDE047; white-space:nowrap;">Embassy</div>
+    <div style="font-size:7px; color:#94A3B8;">10 km</div>
+  </div>
+
+  <!-- Hospital 2 — bottom-left -->
+  <div style="position:absolute; left:25%; top:68%; transform:translate(-50%,-100%); text-align:center; z-index:5;">
+    <div style="width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.15); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; margin:0 auto 3px;">
+      <span style="font-size:11px;">➕</span>
+    </div>
+    <div style="font-size:7px; font-weight:700; color:#F87171; white-space:nowrap;">Hospital</div>
+    <div style="font-size:7px; color:#94A3B8;">0.3 km</div>
+  </div>
+
+  <!-- Hospital 3 — bottom-center-left -->
+  <div style="position:absolute; left:40%; top:76%; transform:translate(-50%,-100%); text-align:center; z-index:5;">
+    <div style="width:24px; height:24px; border-radius:50%; background:rgba(239,68,68,0.15); border:2px solid #EF4444; display:flex; align-items:center; justify-content:center; margin:0 auto 3px;">
+      <span style="font-size:11px;">➕</span>
+    </div>
+    <div style="font-size:7px; font-weight:700; color:#F87171; white-space:nowrap;">Hospital</div>
+    <div style="font-size:7px; color:#94A3B8;">0.9 km</div>
+  </div>
+
+  <!-- Map controls -->
+  <div style="position:absolute; right:10px; bottom:14px; display:flex; flex-direction:column; gap:6px; z-index:10;">
+    <button style="width:30px; height:30px; border-radius:8px; background:#0D1929; border:1px solid #1E2D45; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+      <span class="material-symbols-outlined" style="font-size:15px; color:#94A3B8;">add</span>
+    </button>
+    <button style="width:30px; height:30px; border-radius:8px; background:#0D1929; border:1px solid #1E2D45; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+      <span class="material-symbols-outlined" style="font-size:15px; color:#94A3B8;">remove</span>
+    </button>
+    <button style="width:30px; height:30px; border-radius:8px; background:#0D1929; border:1px solid #1E2D45; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+      <span class="material-symbols-outlined filled" style="font-size:15px; color:#2563EB;">my_location</span>
+    </button>
+  </div>
+</div>
+
+<!-- Legend + CTA -->
+<div style="background:#060C18; border-top:1px solid #1E2D45; padding:10px 14px; flex-shrink:0;">
+  <!-- Legend -->
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:4px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#10B981; border:1.5px solid #34D399;"></div>
+      <span style="font-size:8px; color:#94A3B8; font-weight:600;">Police</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#EF4444; border:1.5px solid #F87171;"></div>
+      <span style="font-size:8px; color:#94A3B8; font-weight:600;">Hospital</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#EAB308; border:1.5px solid #FDE047;"></div>
+      <span style="font-size:8px; color:#94A3B8; font-weight:600;">Embassy</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <div style="width:10px; height:10px; border-radius:50%; background:#475569; border:1.5px solid #64748B;"></div>
+      <span style="font-size:8px; color:#94A3B8; font-weight:600;">Bus</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <button onclick="parent && parent.loadScreen && parent.loadScreen('screens/zone-map.html', null)" style="width:100%; background:linear-gradient(135deg, #1D4ED8, #2563EB); border:none; border-radius:10px; padding:12px; font-size:11px; font-weight:700; color:#fff; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+    <span class="material-symbols-outlined filled" style="font-size:16px;">local_taxi</span>
+    REQUEST SECURE TRANSFER
+  </button>
+</div>
+
+</body></html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "bg-dark":"#0A0F1E", surface:"#0D1929", "border-dim":"#1E2D45" },
+      fontFamily:{ display:["Manrope","sans-serif"] },
+      borderRadius:{ DEFAULT:"0.5rem", lg:"1rem", xl:"1.5rem", full:"9999px" },
+    }},
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .chips::-webkit-scrollbar { display:none; } .chips { scrollbar-width:none; }
+  .sheet-chips::-webkit-scrollbar { display:none; } .sheet-chips { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* Top filter chip bar */
+  .chip { padding:5px 14px; border-radius:9999px; font-size:0.75rem; font-weight:700;
+    border:1.5px solid #1E2D45; background:transparent; color:#64748b;
+    cursor:pointer; white-space:nowrap; transition:all 0.15s; font-family:'Manrope',sans-serif; }
+  .chip.active { background:rgba(37,99,235,0.15); border-color:#2563EB; color:#60a5fa; }
+
+  /* Filter sheet chips */
+  .fchip { display:flex; align-items:center; justify-content:center; height:32px;
+    padding:0 14px; border-radius:9999px; font-size:13px; font-weight:600;
+    background:rgba(37,99,235,0.1); color:#94a3b8; cursor:pointer; white-space:nowrap;
+    transition:all 0.15s; font-family:'Manrope',sans-serif; border:1.5px solid transparent; }
+  .fchip.active { background:rgba(37,99,235,0.2); border-color:#2563EB; color:#60a5fa; font-weight:700; }
+
+  /* Cards */
+  .card { background:#0D1929; border:1px solid #1E2D45; border-radius:1rem; overflow:hidden; cursor:pointer; transition:border-color 0.15s; }
+  .card:hover { border-color:rgba(37,99,235,0.4); }
+  .cat-badge { font-size:8px; font-weight:800; padding:2px 6px; border-radius:4px;
+    text-transform:uppercase; letter-spacing:0.06em; color:white; }
+
+  /* List view: hero card collapses to compact */
+  #feed.list-mode .hero-full { display:none !important; }
+  #feed.list-mode .hero-list { display:flex !important; }
+  .hero-list { display:none; }
+
+  /* Bottom sheets */
+  .sheet-wrap { position:fixed; inset:0; z-index:60; display:none; flex-direction:column; justify-content:flex-end; background:rgba(0,0,0,0.7); backdrop-filter:blur(3px); }
+  .sheet-wrap.open { display:flex; }
+  .sheet { background:#0D1929; border-top:1px solid #1E2D45; border-radius:1.5rem 1.5rem 0 0; padding:20px 20px 36px; }
+  .sheet-handle { width:40px; height:4px; background:#1E2D45; border-radius:9999px; margin:0 auto 20px; }
+
+  /* Input */
+  .pub-input {
+    background:#07111f !important; border:1px solid #1E2D45 !important; color:#f1f5f9 !important;
+    border-radius:0.75rem !important; padding:0.625rem 0.875rem !important;
+    font-size:0.875rem !important; font-family:'Manrope',sans-serif !important; outline:none !important; width:100%;
+  }
+  .pub-input:focus { border-color:#2563EB !important; box-shadow:0 0 0 3px rgba(37,99,235,0.1) !important; }
+  .pub-input::placeholder { color:#475569 !important; }
+
+  @keyframes spin { to{ transform:rotate(360deg); } }
+  .spin { animation:spin 1s linear infinite; }
+  @keyframes slide-up { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  .sheet { animation:slide-up 0.28s cubic-bezier(0.32,0.72,0,1) both; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 pt-[50px] pb-3" style="background:#0A0F1E;border-bottom:1px solid #1E2D45">
+  <div>
+    <p class="text-[9px] font-bold tracking-[0.2em] text-slate-600 uppercase">Bravo News Channel</p>
+    <h1 class="text-[17px] font-extrabold tracking-tight text-slate-100 flex items-center gap-2">
+      Regional News Feed
+      <span class="flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3)">
+        <span class="size-1.5 rounded-full inline-block animate-pulse" style="background:#22c55e"></span>LIVE
+      </span>
+    </h1>
+  </div>
+  <div class="flex items-center gap-0.5">
+    <!-- List/Grid toggle -->
+    <button id="view-toggle" onclick="toggleView()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" title="Toggle view">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px" id="view-icon">view_list</span>
+    </button>
+    <!-- Filter -->
+    <button onclick="openFilter()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" title="Filter">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">tune</span>
+    </button>
+    <!-- RSS -->
+    <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">rss_feed</span>
+    </button>
+  </div>
+</header>
+
+<!-- Breaking ticker -->
+<div class="shrink-0 px-3 py-2">
+  <div class="flex items-center gap-2.5 rounded-xl p-2.5" style="background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-left:3px solid #dc2626">
+    <span class="text-[10px] font-black px-1.5 py-0.5 rounded shrink-0 uppercase tracking-wide" style="background:#dc2626;color:white">Breaking</span>
+    <p id="ticker-text" class="text-xs font-semibold text-slate-200 flex-1 min-w-0 truncate">UAE Central Bank raises key rate 250bps — st...</p>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[10px] text-slate-500">2m</span>
+      <button onclick="openArticle()" class="text-blue-400 text-xs font-bold">Read →</button>
+      <button id="ticker-close" class="text-slate-600 hover:text-slate-400"><span class="material-symbols-outlined" style="font-size:16px">close</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Filter chips -->
+<div class="chips shrink-0 flex gap-2 px-3 pb-2 overflow-x-auto">
+  <button class="chip active" onclick="filterFeed(this)">ALL</button>
+  <button class="chip" onclick="filterFeed(this)">UAE</button>
+  <button class="chip" onclick="filterFeed(this)">KSA</button>
+  <button class="chip" onclick="filterFeed(this)">UK</button>
+  <button class="chip" onclick="filterFeed(this)">GLOBAL</button>
+  <button class="chip" onclick="filterFeed(this)">TECH</button>
+</div>
+
+<!-- Feed -->
+<main id="feed" class="flex-1 overflow-y-auto px-3 pb-24 space-y-3">
+
+  <!-- Hero card — FEATURED -->
+  <div class="card hero-full" onclick="openArticle()">
+    <div class="relative w-full" style="aspect-ratio:16/9;background:#0D2240">
+      <div class="absolute inset-0" style="background:linear-gradient(135deg,#0D2240 0%,#162840 100%)"></div>
+      <div class="absolute inset-0 flex items-center justify-center opacity-10">
+        <span class="material-symbols-outlined filled text-blue-400" style="font-size:90px">location_city</span>
+      </div>
+      <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(13,25,41,0.95) 0%,transparent 50%)"></div>
+      <div class="absolute top-3 left-3 flex items-center gap-1.5">
+        <span class="cat-badge" style="background:rgba(37,99,235,0.85);backdrop-filter:blur(4px)">REAL ESTATE</span>
+        <span class="cat-badge" style="background:rgba(34,197,94,0.85);backdrop-filter:blur(4px)">FEATURED</span>
+      </div>
+    </div>
+    <div class="p-3.5 flex flex-col gap-1.5">
+      <h2 class="text-base font-extrabold leading-snug text-slate-100 line-clamp-2">DIFC Records Highest Q1 Transaction Volume in 5 Years</h2>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center text-[10px] text-slate-500 gap-1.5">
+          <span class="font-semibold text-slate-400">Bravo News</span><span>·</span><span>2 hrs ago</span><span>·</span><span>4 min read</span>
+        </div>
+        <div class="flex gap-2 text-slate-600" onclick="event.stopPropagation()">
+          <span class="material-symbols-outlined hover:text-amber-400 transition-colors" style="font-size:16px">bookmark</span>
+          <span class="material-symbols-outlined hover:text-blue-400 transition-colors" style="font-size:16px">share</span>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">Office and residential demand surges as Dubai cements MENA financial hub status.</p>
+      <button onclick="event.stopPropagation();openArticle()" class="self-start text-[10px] font-bold px-3 py-1.5 rounded-lg mt-0.5" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.3)">READ →</button>
+    </div>
+  </div>
+  <!-- List version of hero -->
+  <div class="card hero-list gap-3 p-2.5 h-24" onclick="openArticle()">
+    <div class="relative w-20 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:#0D2240">
+      <span class="material-symbols-outlined filled text-blue-900" style="font-size:36px">location_city</span>
+      <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(37,99,235,0.9)">UAE</div>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 py-0.5 relative">
+      <p class="text-[10px] font-bold uppercase tracking-wide mb-0.5" style="color:#60a5fa">Real Estate · UAE</p>
+      <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">DIFC Records Highest Q1 Transaction Volume in 5 Years</h3>
+      <div class="flex items-center text-[10px] text-slate-500 gap-1 mt-auto">
+        <span>Bravo News</span><span>·</span><span>2 hrs ago</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEOM card -->
+  <div class="card flex gap-3 p-2.5 h-24" onclick="openArticle()">
+    <div class="relative w-20 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:#081525">
+      <span class="material-symbols-outlined filled text-slate-700" style="font-size:36px">construction</span>
+      <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(245,158,11,0.9)">KSA</div>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 py-0.5 relative">
+      <p class="text-[10px] font-bold uppercase tracking-wide mb-0.5" style="color:#fbbf24">KSA · 5 hrs ago</p>
+      <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">NEOM THE LINE Phase 2 Structural Progress Confirmed</h3>
+      <div class="flex items-center text-[10px] text-slate-500 gap-1 mt-auto">
+        <span>Bravo News</span><span>·</span><span>5 hrs ago</span>
+      </div>
+      <div class="absolute bottom-0 right-0 flex gap-2 text-slate-600" onclick="event.stopPropagation()">
+        <span class="material-symbols-outlined" style="font-size:15px">bookmark</span>
+        <span class="material-symbols-outlined" style="font-size:15px">share</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GCC Sovereign card -->
+  <div class="card flex gap-3 p-2.5 h-24" onclick="openArticle()">
+    <div class="relative w-20 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:#081525">
+      <span class="material-symbols-outlined filled text-slate-700" style="font-size:36px">account_balance</span>
+      <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(99,102,241,0.9)">GLOBAL</div>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 py-0.5 relative">
+      <p class="text-[10px] font-bold uppercase tracking-wide mb-0.5" style="color:#818cf8">Global · 6 hrs ago</p>
+      <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">GCC Sovereign Funds Deploy $1BB Into AI Infrastructure</h3>
+      <div class="flex items-center text-[10px] text-slate-500 gap-1 mt-auto">
+        <span>Bravo News</span><span>·</span><span>6 hrs ago</span>
+      </div>
+      <div class="absolute bottom-0 right-0 flex gap-2 text-slate-600" onclick="event.stopPropagation()">
+        <span class="material-symbols-outlined" style="font-size:15px">bookmark</span>
+        <span class="material-symbols-outlined" style="font-size:15px">share</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cyber card -->
+  <div class="card flex gap-3 p-2.5 h-24" onclick="openArticle()">
+    <div class="relative w-20 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:#081525">
+      <span class="material-symbols-outlined filled text-slate-700" style="font-size:36px">lock</span>
+      <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(34,197,94,0.9)">UAE</div>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 py-0.5 relative">
+      <p class="text-[10px] font-bold uppercase tracking-wide mb-0.5" style="color:#4ade80">UAE · 8 hrs ago</p>
+      <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">UAE Advances National Cybersecurity Framework V2.0</h3>
+      <div class="flex items-center text-[10px] text-slate-500 gap-1 mt-auto">
+        <span>Bravo News</span><span>·</span><span>8 hrs ago</span>
+      </div>
+      <div class="absolute bottom-0 right-0 flex gap-2 text-slate-600" onclick="event.stopPropagation()">
+        <span class="material-symbols-outlined" style="font-size:15px">bookmark</span>
+        <span class="material-symbols-outlined" style="font-size:15px">share</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sponsored card -->
+  <div class="card p-2.5 cursor-default" onclick="event.stopPropagation()">
+    <p class="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-2">Sponsored</p>
+    <div class="flex gap-3 h-20">
+      <div class="relative w-20 shrink-0 rounded-xl overflow-hidden" style="background:#081525">
+        <div class="w-full h-full bg-cover bg-center" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuCucsDK7cZjKBt-msEFN16aplf0ZXx13XehY9Mf7egkJSI0JNiCUJfqX4sF0t8fDIUl5iLtWC2sZXfRXKEtNYxEMZIxaQ5B2SLGi-iWD3EbMA66JlvQp1-1-pdeSElJQ9uTYu6rfFidkoy5aMjrXPJkIrSQ2nL8PRcTAIvIyBE41et_D7-EFCEEaAJzvzuR4ELbeW0nnPyM6cNkQ9IzwLQf4iDLTCV_roQ3OKc34ILzi1DjQN_R9dczFWjmp9BmS0lwK8X_gRUsZFEV')"></div>
+        <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(71,85,105,0.9)">AD</div>
+      </div>
+      <div class="flex flex-col flex-1 py-0.5">
+        <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">Elevate your intelligence gathering with the Pro Subscription</h3>
+        <div class="flex items-center text-[10px] text-slate-500 mt-auto">
+          <span>Intelligence Pro</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regional card -->
+  <div class="card flex gap-3 p-2.5 h-24" onclick="openArticle()">
+    <div class="relative w-20 shrink-0 rounded-xl overflow-hidden" style="background:#081525">
+      <div class="w-full h-full bg-cover bg-center" style="background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuAkoM23HVHAeY_gXW3PU5UxAXuLZJ_5T_RO7zZoMJuiqq4ObhOp0aC90o3whbvfNUYZRSw9XBZGX7GWgXqeBQu1PaufBatemi03rjqADI8c9hNyQ7E1VEbzqs0Lk2pRWVjPGqHL2lpRd_NcWNBUCbf0HpAfe1FXZtcMxR2RO-XHovyoM4Gt-dHPdR82f_cMeQn2VVVp4yeNS5QY3TUnIzMMXgyv10fOcDYNvjzc-0-KNSFtzDweH8vdwaYK0CmVEL8zO2sC6kHsV_1a')"></div>
+      <div class="absolute bottom-1 left-1 cat-badge" style="background:rgba(37,99,235,0.9)">Regional</div>
+    </div>
+    <div class="flex flex-col flex-1 min-w-0 py-0.5 relative">
+      <p class="text-[10px] font-bold uppercase tracking-wide mb-0.5" style="color:#60a5fa">Regional</p>
+      <h3 class="text-sm font-bold line-clamp-2 leading-tight text-slate-100">Local elections showing surprise shifts in major urban centers</h3>
+      <div class="flex items-center text-[10px] text-slate-500 gap-1 mt-auto">
+        <span>Pulse News</span><span>·</span><span>2h ago</span>
+      </div>
+      <div class="absolute bottom-0 right-0 flex gap-2 text-slate-600" onclick="event.stopPropagation()">
+        <span class="material-symbols-outlined" style="font-size:15px">bookmark</span>
+        <span class="material-symbols-outlined" style="font-size:15px">share</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div class="flex justify-center py-6">
+    <span class="material-symbols-outlined spin text-blue-800" style="font-size:22px">autorenew</span>
+  </div>
+
+</main>
+
+<!-- Publish FAB -->
+<div class="fixed right-4 z-40" style="bottom:80px">
+  <button onclick="openPublish()" class="flex items-center gap-2 px-4 h-11 rounded-full font-bold text-xs text-white shadow-xl transition-transform active:scale-95"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.15),0 4px 16px rgba(37,99,235,0.4)">
+    <span class="material-symbols-outlined" style="font-size:18px">edit_note</span>
+    Publish
+  </button>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="shrink-0 flex items-center justify-around px-2 pb-6 pt-2 border-t" style="background:#0A0F1E;border-color:#1E2D45;">
+  <a class="flex flex-col items-center gap-1 flex-1 text-slate-500 hover:text-blue-400 transition-colors" href="#" onclick="goChats(event)">
+    <span class="material-symbols-outlined">chat_bubble</span>
+    <span class="text-[10px] font-bold uppercase tracking-wider">Chats</span>
+  </a>
+  <a class="flex flex-col items-center gap-1 flex-1 text-slate-500 hover:text-blue-400 transition-colors" href="#" onclick="openVault(event)">
+    <span class="material-symbols-outlined">verified_user</span>
+    <span class="text-[10px] font-bold uppercase tracking-wider">Vault</span>
+  </a>
+  <a class="flex flex-col items-center gap-1 flex-1 text-slate-500 hover:text-blue-400 transition-colors" href="#">
+    <span class="material-symbols-outlined">call</span>
+    <span class="text-[10px] font-bold uppercase tracking-wider">Calls</span>
+  </a>
+  <a class="flex flex-col items-center gap-1 flex-1 text-blue-400" href="#">
+    <span class="material-symbols-outlined filled">article</span>
+    <span class="text-[10px] font-bold uppercase tracking-wider">Feed</span>
+  </a>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     SUBSCRIPTION MANAGER SHEET (tune icon)
+══════════════════════════════════════════ -->
+<div id="filter-sheet-wrap" class="sheet-wrap" onclick="closeFilter(event)">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:88dvh;overflow-y:auto;scrollbar-width:none">
+
+    <div class="sheet-handle"></div>
+
+    <!-- Title -->
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <h3 class="text-base font-extrabold text-slate-100">Feed Subscriptions</h3>
+        <p class="text-[11px] text-slate-500 mt-0.5">Only subscribed categories appear in your feed</p>
+      </div>
+      <button onclick="closeFilter()" class="size-8 flex items-center justify-center rounded-full hover:bg-white/10">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:18px">close</span>
+      </button>
+    </div>
+
+    <!-- Subscription rows -->
+    <div class="mt-5 space-y-2" id="sub-list">
+
+      <!-- Security Alerts -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="security">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(220,38,38,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#f87171">security</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Security Alerts</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Threats, breaches, live incidents</p>
+          <!-- chip preview -->
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(220,38,38,0.12);color:#f87171;border:1px solid rgba(220,38,38,0.3)">Security Alerts</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="true" style="width:44px;height:24px;background:#2563EB;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:calc(100% - 21px);width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- Geopolitics -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="geo">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(245,158,11,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#fbbf24">public</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Geopolitics</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Trade, diplomacy, power shifts</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3)">Geopolitics</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="true" style="width:44px;height:24px;background:#2563EB;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:calc(100% - 21px);width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- Regional -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="regional">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#60a5fa">map</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Regional</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Local events, zone-level updates</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(37,99,235,0.12);color:#60a5fa;border:1px solid rgba(37,99,235,0.3)">Regional</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="false" style="width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- Business -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="business">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(100,116,139,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#94a3b8">business_center</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Business</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Markets, finance, enterprise</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(100,116,139,0.1);color:#94a3b8;border:1px solid rgba(100,116,139,0.25)">Business</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="false" style="width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- Travel Advisory -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="travel">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(201,168,76,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#d4af37">flight</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Travel Advisory</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Restrictions, routes, risk zones</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(201,168,76,0.12);color:#d4af37;border:1px solid rgba(201,168,76,0.3)">Travel Advisory</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="true" style="width:44px;height:24px;background:#2563EB;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:calc(100% - 21px);width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- Infrastructure -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="infra">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(16,185,129,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#34d399">construction</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">Infrastructure</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Critical systems, grid, logistics</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.3)">Infrastructure</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="false" style="width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+      <!-- General -->
+      <div class="sub-row flex items-center gap-3 p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45" data-cat="general">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.12)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#818cf8">feed</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100">General</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">Miscellaneous intel updates</p>
+          <span class="inline-flex items-center h-[22px] px-2.5 rounded-full text-[10px] font-bold mt-1.5" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.25)">General</span>
+        </div>
+        <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="false" style="width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+          <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Active count summary -->
+    <div class="flex items-center gap-2 mt-4 p-3 rounded-xl" style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15)">
+      <span class="material-symbols-outlined text-blue-400" style="font-size:16px">info</span>
+      <p class="text-[11px] text-slate-400"><span id="sub-count" class="font-bold text-blue-400">3</span> categories subscribed · feed updates immediately</p>
+    </div>
+
+    <!-- Notification preference -->
+    <div class="mt-3 flex items-center justify-between p-3 rounded-xl" style="background:#07111f;border:1px solid #1E2D45">
+      <div>
+        <p class="text-sm font-bold text-slate-200">Push Notifications</p>
+        <p class="text-[10px] text-slate-500 mt-0.5">Alert on breaking news in subscribed feeds</p>
+      </div>
+      <div class="sub-toggle shrink-0" onclick="toggleSub(this)" data-on="true" style="width:44px;height:24px;background:#2563EB;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s">
+        <div style="position:absolute;top:3px;left:calc(100% - 21px);width:18px;height:18px;background:white;border-radius:50%;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+      </div>
+    </div>
+
+    <button onclick="applyFilter()" class="w-full py-3 rounded-xl font-bold text-sm text-white mt-5"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 12px rgba(37,99,235,0.3)">
+      Save Subscriptions
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PUBLISH BOTTOM SHEET
+══════════════════════════════════════════ -->
+<div id="publish-sheet-wrap" class="sheet-wrap" onclick="closePublish(event)">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:85dvh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-base font-extrabold text-slate-100">Publish to Feed</h3>
+      <button onclick="closePublish()" class="size-8 flex items-center justify-center rounded-full hover:bg-white/10">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:18px">close</span>
+      </button>
+    </div>
+
+    <!-- Type toggle -->
+    <div class="flex gap-2 mb-5 p-1 rounded-xl" style="background:#07111f;border:1px solid #1E2D45">
+      <button id="type-news" onclick="switchType('news')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-white" style="background:#2563EB">
+        News Article
+      </button>
+      <button id="type-ad" onclick="switchType('ad')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500">
+        Sponsored Ad
+      </button>
+    </div>
+
+    <!-- News fields -->
+    <div id="news-fields" class="space-y-3 mb-5">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Headline</label>
+        <input class="pub-input" type="text" placeholder="Enter article headline…"/>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Category</label>
+        <select class="pub-input" style="background:#07111f!important;border:1px solid #1E2D45!important;color:#f1f5f9!important;border-radius:0.75rem!important;padding:0.625rem 0.875rem!important;font-size:0.875rem!important;font-family:'Manrope',sans-serif!important;outline:none!important;width:100%">
+          <option value="" style="background:#07111f">Select category…</option>
+          <option style="background:#07111f">Security Alerts</option>
+          <option style="background:#07111f">Geopolitics</option>
+          <option style="background:#07111f">Regional</option>
+          <option style="background:#07111f">Business</option>
+          <option style="background:#07111f">Travel Advisory</option>
+          <option style="background:#07111f">Infrastructure</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Summary</label>
+        <textarea class="pub-input" rows="3" placeholder="Brief article summary…" style="resize:none"></textarea>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Source / Author</label>
+        <input class="pub-input" type="text" placeholder="e.g. Global Intel, Tech Watch…"/>
+      </div>
+    </div>
+
+    <!-- Ad fields (hidden by default) -->
+    <div id="ad-fields" class="space-y-3 mb-5 hidden">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Ad Headline</label>
+        <input class="pub-input" type="text" placeholder="Enter sponsored headline…"/>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Ad Body</label>
+        <textarea class="pub-input" rows="2" placeholder="Brief ad description…" style="resize:none"></textarea>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">Advertiser Name</label>
+        <input class="pub-input" type="text" placeholder="e.g. Intelligence Pro"/>
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1.5">CTA Button Text</label>
+        <input class="pub-input" type="text" placeholder="e.g. Learn More, Sign Up…"/>
+      </div>
+      <div class="p-3 rounded-xl text-xs text-amber-300/80 leading-relaxed" style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2)">
+        Sponsored posts are reviewed within 24h before going live. Pricing based on reach & duration.
+      </div>
+    </div>
+
+    <button onclick="submitPublish()" class="w-full py-3 rounded-xl font-bold text-sm text-white"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 12px rgba(37,99,235,0.3)">
+      Submit for Review
+    </button>
+    <button onclick="closePublish()" class="w-full text-center text-slate-600 text-xs font-semibold py-3">Cancel</button>
+  </div>
+</div>
+
+<script>
+  /* ── View toggle ── */
+  let listMode = false;
+  function toggleView() {
+    listMode = !listMode;
+    document.getElementById('feed').classList.toggle('list-mode', listMode);
+    document.getElementById('view-icon').textContent = listMode ? 'grid_view' : 'view_list';
+  }
+
+  /* ── Top chip filter ── */
+  function filterFeed(btn) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  /* ── Article open ── */
+  function openArticle() {
+    if (window.parent && window.parent.loadScreen) {
+      const nav = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick')?.includes('news-article.html'));
+      window.parent.loadScreen('screens/news-article.html', nav || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  /* ── Filter / Subscription sheet ── */
+  function openFilter() {
+    document.getElementById('filter-sheet-wrap').classList.add('open');
+    updateSubCount();
+  }
+  function closeFilter(e) {
+    if (!e || e.target === document.getElementById('filter-sheet-wrap'))
+      document.getElementById('filter-sheet-wrap').classList.remove('open');
+  }
+
+  function toggleSub(toggle) {
+    const on = toggle.dataset.on === 'true';
+    toggle.dataset.on = on ? 'false' : 'true';
+    const thumb = toggle.querySelector('div');
+    if (!on) {
+      toggle.style.background = '#2563EB';
+      thumb.style.left = 'calc(100% - 21px)';
+    } else {
+      toggle.style.background = '#1E2D45';
+      thumb.style.left = '3px';
+    }
+    updateSubCount();
+  }
+
+  function updateSubCount() {
+    const count = document.querySelectorAll('#sub-list .sub-toggle[data-on="true"]').length;
+    const el = document.getElementById('sub-count');
+    if (el) el.textContent = count;
+  }
+
+  function applyFilter() {
+    // Build subscribed category labels from active toggles
+    const subscribed = [];
+    document.querySelectorAll('#sub-list .sub-row').forEach(row => {
+      if (row.querySelector('.sub-toggle[data-on="true"]')) {
+        subscribed.push(row.querySelector('p.text-sm').textContent.trim());
+      }
+    });
+    // Sync top chip bar
+    document.querySelectorAll('.chip').forEach(c => {
+      const label = c.textContent.trim();
+      c.classList.toggle('active', label === 'All' ? subscribed.length === 0 : subscribed.some(s => s.startsWith(label) || label.startsWith(s.split(' ')[0])));
+    });
+    if (subscribed.length === 0) document.querySelector('.chip').classList.add('active');
+    closeFilter();
+    // Toast
+    const t = document.createElement('div');
+    t.className = 'fixed top-20 left-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold text-white';
+    t.style.cssText = 'transform:translateX(-50%);background:rgba(37,99,235,0.95);backdrop-filter:blur(4px);white-space:nowrap';
+    t.textContent = `✓ Subscribed to ${subscribed.length || 'all'} categories`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  /* ── Publish sheet ── */
+  function openPublish() {
+    document.getElementById('publish-sheet-wrap').classList.add('open');
+  }
+  function closePublish(e) {
+    if (!e || e.target === document.getElementById('publish-sheet-wrap'))
+      document.getElementById('publish-sheet-wrap').classList.remove('open');
+  }
+  function switchType(type) {
+    const isNews = type === 'news';
+    document.getElementById('news-fields').classList.toggle('hidden', !isNews);
+    document.getElementById('ad-fields').classList.toggle('hidden', isNews);
+    document.getElementById('type-news').style.background = isNews ? '#2563EB' : 'transparent';
+    document.getElementById('type-news').style.color = isNews ? 'white' : '#64748b';
+    document.getElementById('type-ad').style.background = !isNews ? '#2563EB' : 'transparent';
+    document.getElementById('type-ad').style.color = !isNews ? 'white' : '#64748b';
+  }
+  function submitPublish() {
+    closePublish();
+    // Toast feedback
+    const t = document.createElement('div');
+    t.className = 'fixed top-20 left-1/2 z-50 px-4 py-2.5 rounded-xl text-xs font-bold text-white';
+    t.style.cssText = 'transform:translateX(-50%);background:rgba(34,197,94,0.9);backdrop-filter:blur(4px)';
+    t.textContent = '✓ Submitted for review';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  /* ── Breaking ticker rotation ── */
+  const tickerItems=[
+    'UAE Central Bank raises key rate 250bps — stability measures in effect',
+    'NEOM Phase 2 construction timeline accelerated by 6 months',
+    'GCC Sovereign Funds deploy $1BB into AI Infrastructure Q1'
+  ];
+  let tickerIdx=0;
+  setInterval(()=>{
+    tickerIdx=(tickerIdx+1)%tickerItems.length;
+    const el=document.getElementById('ticker-text');
+    if(el){el.style.opacity='0';setTimeout(()=>{el.textContent=tickerItems[tickerIdx];el.style.opacity='1';},250);}
+  },4000);
+  document.getElementById('ticker-text').style.transition='opacity 0.25s';
+  document.getElementById('ticker-close')?.addEventListener('click',()=>{
+    const wrap=document.getElementById('ticker-close').closest('.shrink-0');
+    if(wrap) wrap.parentElement.parentElement.remove();
+  });
+
+  /* ── Nav ── */
+  function goChats(e) {
+    e.preventDefault();
+    if (window.parent && window.parent.loadScreen) {
+      const nav = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick')?.includes('messenger-home.html'));
+      window.parent.loadScreen('screens/messenger-home.html', nav || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+  function openVault(e) {
+    e.preventDefault();
+    if (window.parent && window.parent.loadScreen) {
+      const nav = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick')?.includes('vault-lock.html'));
+      window.parent.loadScreen('screens/vault-lock.html', nav || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+</body></html>

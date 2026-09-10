@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "ops":"#0EA5E9","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .fu1{animation:fade-up 0.35s ease 0.05s both;}
+  .fu2{animation:fade-up 0.35s ease 0.12s both;}
+  .fu3{animation:fade-up 0.35s ease 0.19s both;}
+  .fu4{animation:fade-up 0.35s ease 0.26s both;}
+  .fu5{animation:fade-up 0.35s ease 0.33s both;}
+
+  /* Filter tabs */
+  .ftab { padding:6px 14px; border-radius:9999px; border:1.5px solid #1E2D45; background:transparent; color:#64748b; font-size:0.75rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.15s; font-family:'Manrope',sans-serif; }
+  .ftab.active { background:rgba(14,165,233,0.15); border-color:#0EA5E9; color:#38bdf8; }
+
+  /* Mission status badges */
+  .badge-active   { background:rgba(34,197,94,0.12);  color:#4ade80; border:1px solid rgba(34,197,94,0.3); }
+  .badge-pending  { background:rgba(245,158,11,0.12); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); }
+  .badge-staged   { background:rgba(14,165,233,0.12); color:#38bdf8; border:1px solid rgba(14,165,233,0.3); }
+  .badge-done     { background:rgba(100,116,139,0.12);color:#94a3b8; border:1px solid rgba(100,116,139,0.2); }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-5 pt-[50px] pb-4 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <div class="relative">
+      <div class="size-11 rounded-xl flex items-center justify-center font-bold text-sm" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SC</div>
+      <span class="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-400 border-2 border-[#0A0F1E]"></span>
+    </div>
+    <div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#0EA5E9">OPS COMMAND</span>
+        <span class="size-1 rounded-full bg-slate-600 inline-block"></span>
+        <span class="text-[9px] text-slate-500 font-semibold uppercase">Dubai</span>
+      </div>
+      <h1 class="text-base font-extrabold text-slate-100 leading-tight">Sarah Chen</h1>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="relative">
+      <button class="size-9 flex items-center justify-center rounded-full" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:20px">notifications</span>
+      </button>
+      <span class="absolute top-1 right-1 size-2 rounded-full bg-red-500 border border-[#0A0F1E]"></span>
+    </div>
+    <button class="size-9 flex items-center justify-center rounded-full" style="background:#0D1929;border:1px solid #1E2D45">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">tune</span>
+    </button>
+  </div>
+</header>
+
+<main class="flex-1 overflow-y-auto px-5 pb-28 space-y-5">
+
+  <!-- Stats row -->
+  <div class="fu1 grid grid-cols-4 gap-2">
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-lg font-extrabold text-emerald-400">4</p>
+      <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mt-0.5 leading-tight">Active</p>
+    </div>
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid rgba(245,158,11,0.35)">
+      <p class="text-lg font-extrabold text-amber-400">2</p>
+      <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mt-0.5 leading-tight">Pending</p>
+    </div>
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-lg font-extrabold" style="color:#38bdf8">11</p>
+      <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mt-0.5 leading-tight">Agents</p>
+    </div>
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid rgba(239,68,68,0.3)">
+      <p class="text-lg font-extrabold text-red-400">1</p>
+      <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold mt-0.5 leading-tight">Alert</p>
+    </div>
+  </div>
+
+  <!-- PENDING APPROVALS -->
+  <div class="fu2">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="size-2 rounded-full bg-amber-400 pulse-dot inline-block"></span>
+        <p class="text-[11px] font-bold uppercase tracking-widest text-amber-400">Pending Approval</p>
+      </div>
+      <span class="text-[10px] text-slate-500 font-semibold">2 requests</span>
+    </div>
+
+    <!-- Pending card 1 -->
+    <div class="rounded-2xl overflow-hidden mb-3" style="background:#0D1929;border:1px solid rgba(245,158,11,0.3)">
+      <div class="h-1" style="background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div>
+      <div class="p-3.5">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full badge-pending">Pending</span>
+              <span class="text-[10px] text-slate-500">BS-8830</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-100">VIP Airport Transfer</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Abdullah Al-Rashid · DXB → DIFC</p>
+          </div>
+          <div class="text-right shrink-0 ml-3">
+            <p class="text-base font-extrabold" style="color:#D4AF37">1,175 cr</p>
+            <p class="text-[9px] text-slate-600">18 Mar · 06:30</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+          <span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined" style="font-size:13px">shield_person</span>1 CPO req.</span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined" style="font-size:13px">directions_car</span>Armoured req.</span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[10px] text-amber-400 font-semibold"><span class="material-symbols-outlined" style="font-size:13px">warning</span>High priority</span>
+        </div>
+        <div class="flex items-center justify-between pt-2.5 mt-1" style="border-top:1px solid #1A2840">
+          <button onclick="rejectMission('BS-8830',this)" class="flex items-center gap-1 text-xs font-semibold transition-all active:opacity-60" style="color:#64748b">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#475569">close</span>Reject
+          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="goMissionDetail('BS-8830')" class="text-xs font-semibold transition-all" style="color:#38bdf8">
+              Full Detail →
+            </button>
+            <button onclick="approveMission('BS-8830',this)" class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all" style="background:linear-gradient(160deg,#22c55e,#16a34a,#15803d);box-shadow:inset 0 1px 0 rgba(255,255,255,0.15),0 3px 10px rgba(22,163,74,0.28);color:white;letter-spacing:0.03em">
+              <span class="material-symbols-outlined" style="font-size:14px">check</span>Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending card 2 -->
+    <div class="rounded-2xl overflow-hidden" style="background:#0D1929;border:1px solid rgba(245,158,11,0.3)">
+      <div class="h-1" style="background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div>
+      <div class="p-3.5">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full badge-pending">Pending</span>
+              <span class="text-[10px] text-slate-500">BS-8831</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-100">Executive Close Protection</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Ahmad Khalid · Downtown Dubai · 3 days</p>
+          </div>
+          <div class="text-right shrink-0 ml-3">
+            <p class="text-base font-extrabold" style="color:#D4AF37">4,500 cr</p>
+            <p class="text-[9px] text-slate-600">22–24 Mar</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 mb-3 flex-wrap">
+          <span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined" style="font-size:13px">group</span>2 CPO req.</span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined" style="font-size:13px">security</span>Armed</span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[10px]" style="color:#D4AF37"><span class="material-symbols-outlined filled" style="font-size:13px">verified</span>VIP client</span>
+        </div>
+        <div class="flex items-center justify-between pt-2.5 mt-1" style="border-top:1px solid #1A2840">
+          <button onclick="rejectMission('BS-8831',this)" class="flex items-center gap-1 text-xs font-semibold transition-all active:opacity-60" style="color:#64748b">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#475569">close</span>Reject
+          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="goMissionDetail('BS-8831')" class="text-xs font-semibold transition-all" style="color:#38bdf8">
+              Full Detail →
+            </button>
+            <button onclick="approveMission('BS-8831',this)" class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all" style="background:linear-gradient(160deg,#22c55e,#16a34a,#15803d);box-shadow:inset 0 1px 0 rgba(255,255,255,0.15),0 3px 10px rgba(22,163,74,0.28);color:white;letter-spacing:0.03em">
+              <span class="material-symbols-outlined" style="font-size:14px">check</span>Approve
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="fu3 overflow-x-auto flex gap-2" style="scrollbar-width:none">
+    <button class="ftab active" onclick="filterMissions('all',this)">All Missions</button>
+    <button class="ftab" onclick="filterMissions('active',this)">Active</button>
+    <button class="ftab" onclick="filterMissions('staged',this)">Staged</button>
+    <button class="ftab" onclick="filterMissions('scheduled',this)">Scheduled</button>
+    <button class="ftab" onclick="filterMissions('done',this)">Completed</button>
+  </div>
+
+  <!-- ACTIVE MISSIONS -->
+  <div class="fu4 space-y-3">
+    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Missions</p>
+
+    <!-- Mission 1: Active -->
+    <div class="rounded-xl overflow-hidden mission-card" data-status="active" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="h-1" style="background:linear-gradient(90deg,#22c55e,#4ade80)"></div>
+      <div class="p-3.5 flex items-start gap-3">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.12)">
+          <span class="material-symbols-outlined filled text-emerald-400" style="font-size:20px">my_location</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-sm font-bold text-slate-100">VIP Airport Transfer</h4>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full badge-active">ACTIVE</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">BS-8829 · Abdullah Al-Rashid · DXB→DIFC</p>
+          <!-- Progress -->
+          <div class="h-1 rounded-full mb-1" style="background:#1E2D45">
+            <div class="h-1 rounded-full" style="background:linear-gradient(90deg,#22c55e,#4ade80);width:68%"></div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-slate-500">CPO: Marcus J. · ETA 14 min</span>
+            <button onclick="goMissionDetail('BS-8829')" class="text-[10px] font-bold" style="color:#0EA5E9">Manage →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission 2: Staged -->
+    <div class="rounded-xl overflow-hidden mission-card" data-status="staged" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="h-1" style="background:linear-gradient(90deg,#0EA5E9,#38bdf8)"></div>
+      <div class="p-3.5 flex items-start gap-3">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(14,165,233,0.12)">
+          <span class="material-symbols-outlined filled" style="font-size:20px;color:#38bdf8">groups</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-sm font-bold text-slate-100">Corporate Gala Security</h4>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full badge-staged">STAGED</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">BS-8832 · Burj Al Arab · 20 Mar, 7PM</p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-slate-500" style="font-size:13px">group</span>
+              <span class="text-[10px] text-slate-400">4 agents briefed · CPO: Aisha R.</span>
+            </div>
+            <button onclick="goMissionDetail('BS-8832')" class="text-[10px] font-bold" style="color:#0EA5E9">Manage →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission 3: Scheduled -->
+    <div class="rounded-xl overflow-hidden mission-card" data-status="scheduled" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="h-1" style="background:linear-gradient(90deg,#7C3AED,#a78bfa)"></div>
+      <div class="p-3.5 flex items-start gap-3">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.12)">
+          <span class="material-symbols-outlined filled text-purple-400" style="font-size:20px">shield_person</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-sm font-bold text-slate-100">Executive Close Protection</h4>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(124,58,237,0.12);color:#a78bfa;border:1px solid rgba(124,58,237,0.3)">SCHED.</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">BS-8833 · Ahmad Khalid · 22–24 Mar</p>
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] text-slate-500">CPO leader: not assigned yet</span>
+            <button onclick="goMissionDetail('BS-8833')" class="text-[10px] font-bold" style="color:#0EA5E9">Manage →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission 4: Completed -->
+    <div class="rounded-xl overflow-hidden mission-card" data-status="done" style="background:#0D1929;border:1px solid #1E2D45;opacity:0.65">
+      <div class="h-1" style="background:#1E2D45"></div>
+      <div class="p-3.5 flex items-start gap-3">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(100,116,139,0.12)">
+          <span class="material-symbols-outlined filled text-slate-500" style="font-size:20px">check_circle</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-sm font-bold text-slate-400">Surveillance Op — Business Bay</h4>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full badge-done">DONE</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-2">BS-8820 · 24 Mar · Intel assignment</p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined filled text-amber-400" style="font-size:13px">star</span>
+              <span class="text-[10px] text-slate-500">4.9★ · 2,200 cr paid</span>
+            </div>
+            <button class="text-[10px] font-bold text-slate-600">Archive →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 w-full border-t px-6 pb-5 pt-2 flex justify-around items-center z-50" style="background:#0A0F1E;border-color:#1E2D45">
+  <button class="flex flex-col items-center gap-1" style="color:#0EA5E9">
+    <span class="material-symbols-outlined filled" style="font-size:22px;color:#0EA5E9">grid_view</span>
+    <span class="text-[10px] font-bold" style="color:#0EA5E9">Command</span>
+  </button>
+  <button onclick="goMissionDetail('BS-8829')" class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">assignment</span>
+    <span class="text-[10px] font-bold">Missions</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">group</span>
+    <span class="text-[10px] font-bold">Team</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">settings</span>
+    <span class="text-[10px] font-bold">Settings</span>
+  </button>
+</nav>
+
+<script>
+  function filterMissions(status, btn) {
+    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.mission-card').forEach(c => {
+      c.style.display = (status==='all' || c.dataset.status===status) ? '' : 'none';
+    });
+  }
+
+  function approveMission(id, btn) {
+    const card = btn.closest('.rounded-2xl');
+    btn.innerHTML = '<span class="material-symbols-outlined filled" style="font-size:15px">check_circle</span>Approved';
+    btn.style.background = 'rgba(34,197,94,0.25)';
+    btn.style.color = '#4ade80';
+    btn.style.borderColor = 'rgba(34,197,94,0.5)';
+    btn.style.pointerEvents = 'none';
+    // Dim card after 600ms
+    setTimeout(() => { card.style.opacity = '0.5'; card.style.pointerEvents = 'none'; }, 800);
+  }
+
+  function rejectMission(id, btn) {
+    const card = btn.closest('.rounded-2xl');
+    btn.innerHTML = '<span class="material-symbols-outlined filled" style="font-size:15px">cancel</span>Rejected';
+    btn.style.background = 'rgba(239,68,68,0.2)';
+    btn.style.pointerEvents = 'none';
+    setTimeout(() => { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }, 800);
+  }
+
+  function goMissionDetail(id) {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="ops-mission-detail"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/ops-mission-detail.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

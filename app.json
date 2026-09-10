@@ -1,0 +1,131 @@
+{
+  "expo": {
+    "name": "Bravo Secure",
+    "slug": "bravo-secure",
+    "version": "1.0.276",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#07090D"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bravosecure.mobile",
+      "buildNumber": "163",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Bravo Secure uses your location for live tracking and geo-risk analysis.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Bravo Secure uses your location in the background for active mission tracking.",
+        "NSContactsUsageDescription": "Bravo Secure accesses your contacts to help you start secure conversations.",
+        "NSMicrophoneUsageDescription": "Bravo Secure uses the microphone for secure voice and video calls.",
+        "NSCameraUsageDescription": "Bravo Secure uses the camera for secure video calls.",
+        "UIBackgroundModes": ["voip", "audio", "remote-notification"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f1f3d"
+      },
+      "package": "com.bravosecure.app",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.VIBRATE",
+        "android.permission.WAKE_LOCK",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.USE_FULL_SCREEN_INTENT",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_PHONE_CALL"
+      ]
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/crashlytics",
+        {
+          "android": {
+            "collection_enabled": true
+          },
+          "ios": {
+            "collection_enabled": true
+          }
+        }
+      ],
+      "expo-font",
+      "expo-asset",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": "Bravo Secure uses the camera for secure video calls.",
+          "microphonePermission": "Bravo Secure uses the microphone for secure voice and video calls."
+        }
+      ],
+      "@config-plugins/react-native-callkeep",
+      "./plugins/withVoipCallKit",
+      "./plugins/withIosBuildFixes",
+      "./plugins/withBravoFrameCryptor",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.5",
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true
+          },
+          "android": {
+            "usesCleartextTraffic": false
+          }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Bravo Secure to use Face ID to unlock the app."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Bravo Secure uses the camera for secure video calls.",
+          "microphonePermission": "Bravo Secure uses the microphone for secure voice and video calls."
+        }
+      ],
+      "expo-audio",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Bravo Secure accesses your photos so you can set a profile picture.",
+          "cameraPermission": "Bravo Secure uses the camera so you can take a profile picture."
+        }
+      ],
+      "expo-video"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ee90f72c-13eb-48c6-a560-9d1a194e19a6"
+      }
+    },
+    "owner": "omnidevx_studio"
+  }
+}

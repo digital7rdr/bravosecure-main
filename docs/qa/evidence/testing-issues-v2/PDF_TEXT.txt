@@ -1,0 +1,1275 @@
+===== PAGE 1 (imgs=0) =====
+DEVELOPER ACTION REPORT
+BRAVO SECURE
+Mobile Application Testing Issues - Round 2
+Grouped defect and change report covering Messenger, Department Chat, Secure Services, Agent and Service
+Provider workflows, and live mission operations.
+45
+ISSUES RECORDED
+4
+CRITICAL
+23
+HIGH PRIORITY
+18
+OTHER ITEMS
+Prepared for the BRAVO Secure development team
+19 July 2026 | Version 2.0 | Evidence based on supplied mobile and Bravo Control System screenshots
+BRAVO SECURE | DEVELOPER ACTION REPORT
+1 / 50
+
+===== PAGE 2 (imgs=0) =====
+EXECUTIVE SUMMARY
+Grouped issue register and recommended priority
+Resolve emergency, mission-communications, assignment and pilot blockers first. Then correct payment, navigation and role-entitlement failures before visual and wording refinements.
+4
+CRITICAL
+23
+HIGH
+15
+MEDIUM
+3
+LOW
+ISSUES BY MODULE
+Messenger & Communications
+Grouped developer correction section
+11
+Messenger Account & Settings
+Grouped developer correction section
+6
+Department Chat & Vault
+Grouped developer correction section
+4
+Secure Services Client Flow
+Grouped developer correction section
+12
+Agent & Service Provider
+Grouped developer correction section
+7
+Mission Acceptance & Live Operations
+Grouped developer correction section
+5
+IMMEDIATE RETEST GATE
+Mission group messaging, SOS visibility, agent acceptance sequencing and South Africa pilot configuration must be corrected and demonstrated before operational pilot approval.
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+2 / 50
+
+===== PAGE 3 (imgs=0) =====
+EXECUTIVE SUMMARY
+Issue register - Issues 01-23
+NO.
+ISSUE
+MODULE
+TYPE
+PRIORITY
+01
+Individual Chat Displays Messenger Runtime Configuration Error
+Messenger & Communications
+Bug
+High
+02
+Group Membership Is Incorrectly Restricted Across Groups and Profiles
+Messenger & Communications
+Operational Logic
+High
+03
+Conversation List Tick Icon Misrepresents Message Status
+Messenger & Communications
+UX
+Medium
+04
+Group Voice Note Sending Fails Due to Presence Rate Limiting
+Messenger & Communications
+Bug
+High
+05
+Bravo System Chat Is Auto-Created but Cannot Send or Receive Messages
+Messenger & Communications
+Bug
+High
+06
+Messenger Search Does Not Produce a Functional Result
+Messenger & Communications
+Bug
+Medium
+07
+Emoji Picker Is Non-Functional and Message Reactions Are Missing
+Messenger & Communications
+Missing Feature
+Medium
+08
+Sent Messages Cannot Be Edited
+Messenger & Communications
+Missing Feature
+Medium
+09
+Long Message Text Escapes the Composer Container
+Messenger & Communications
+UX
+Medium
+10
+@Mention Inserts an Internal User Identifier into the Composer
+Messenger & Communications
+Security
+High
+11
+Mission Group Messaging Fails Between Mobile App and Bravo Control System
+Messenger & Communications
+Operational Logic
+Critical
+12
+Raw Avatar URL or Internal Code Is Exposed in Profile Settings
+Messenger Account & Settings
+Security
+Medium
+13
+Security Settings Menu Item Does Not Open
+Messenger Account & Settings
+Bug
+High
+14
+Help and Support Menu Item Does Not Open
+Messenger Account & Settings
+Bug
+High
+15
+Profile Image Completion Action Is Incorrectly Labelled 'CROP'
+Messenger Account & Settings
+Wording
+Low
+16
+Unexplained 'T2' Badge Is Shown in the Agent Profile Menu
+Messenger Account & Settings
+Wording
+Low
+17
+Messenger Pro Upgrade CTA Loops Back to the Same Screen
+Messenger Account & Settings
+Bug
+High
+18
+Departmental Chat Entry Card Does Not Open
+Department Chat & Vault
+Bug
+High
+19
+Attendance and Incidents Entry Does Not Open Across Dashboards
+Department Chat & Vault
+Bug
+High
+20
+New Department Chat Account Is Asked for an Uncreated Vault PIN
+Department Chat & Vault
+Security
+High
+21
+Multi-Image Vault Upload Saves Only One Selected File
+Department Chat & Vault
+Bug
+High
+22
+Secure Services Onboarding Displays Messenger Plans and Features
+Secure Services Client Flow
+Operational Logic
+High
+23
+Secure Services Product Naming and Pro Navigation Are Inconsistent
+Secure Services Client Flow
+Operational Logic
+High
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+3 / 50
+
+===== PAGE 4 (imgs=0) =====
+EXECUTIVE SUMMARY
+Issue register - Issues 24-45
+NO.
+ISSUE
+MODULE
+TYPE
+PRIORITY
+24
+My Bookings Menu Item Does Not Open Booking History
+Secure Services Client Flow
+Bug
+High
+25
+Insufficient Credits Flow Stops With 'Booking Failed' Instead of Top-Up
+Secure Services Client Flow
+UX
+High
+26
+Payment Confirmation Sheet Has Severe Text and Control Overlap
+Secure Services Client Flow
+Visual
+High
+27
+Confirm Location CTA Covers the Service-Coverage Status
+Secure Services Client Flow
+Visual
+Medium
+28
+Provider or Referral Code Is Missing from the Booking Flow
+Secure Services Client Flow
+Missing Feature
+Medium
+29
+Executive Protection Hourly Booking Service Is Unavailable
+Secure Services Client Flow
+Missing Feature
+High
+30
+Client Is Not Shown the Assigned Vehicle and Registration Number
+Secure Services Client Flow
+Missing Feature
+High
+31
+Post-Mission Rating Does Not Allow Written Remarks
+Secure Services Client Flow
+Missing Feature
+Medium
+32
+Bravo Control System Review Screen Displays a Blank Icon Asset
+Secure Services Client Flow
+Visual
+Low
+33
+Legacy 'Ops Room' Terminology Remains on Client-Facing Screens
+Secure Services Client Flow
+Wording
+Medium
+34
+Agent Onboarding Route Is Missing from Role Selection
+Agent & Service Provider
+Missing Feature
+High
+35
+Service Provider Profile Type Is Incorrectly Labelled 'Enterprise'
+Agent & Service Provider
+Wording
+Medium
+36
+Service Provider Registration Repeats Medical Qualification Selection
+Agent & Service Provider
+UX
+Medium
+37
+South Africa Is Missing from Provider Coverage Regions
+Agent & Service Provider
+Operational Logic
+Critical
+38
+Agent and Service Provider Earnings Screens Incorrectly Offer Credit Top-Up
+Agent & Service Provider
+Operational Logic
+High
+39
+Service Provider Cannot View Sufficient Agent Roster Information
+Agent & Service Provider
+Missing Feature
+Medium
+40
+New Job Notification Opens an Unexpected Error Screen
+Agent & Service Provider
+Bug
+High
+41
+Agent Acceptance Is Missing Before Client Confirmation and Dispatch
+Mission Acceptance & Live Operations
+Operational Logic
+Critical
+42
+Live Ops Follow Control Covers Mission Progress Text
+Mission Acceptance & Live Operations
+Visual
+Medium
+43
+Live Mission Header Shows Duplicate Back and Next Controls
+Mission Acceptance & Live Operations
+UX
+Medium
+44
+SOS Activation Is Not Reflected in the Bravo Control System
+Mission Acceptance & Live Operations
+Security
+Critical
+45
+Android System Navigation Bar Overlaps App Controls Across Modules
+Mission Acceptance & Live Operations
+Visual
+High
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+4 / 50
+
+===== PAGE 5 (imgs=0) =====
+LOCKED PRODUCT AND TERMINOLOGY MAP
+Approved client-facing product structure
+Use these names consistently in onboarding, menus, subscriptions, notifications and support content.
+SECURE SERVICES
+Bravo Secure Lite
+Bravo Secure Pro
+MESSENGER
+Bravo Messenger Lite
+Bravo Messenger Pro
+SEPARATE PRODUCTS
+Department Channels
+Virtual Bodyguard (VBS)
+CLIENT-FACING OPERATIONS TERM
+Bravo Control System
+Do not use "Control Room", "Ops Room" or "Ops Room Review" in client-facing language.
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+5 / 50
+
+===== PAGE 6 (imgs=1) =====
+ISSUE 01
+Individual Chat Displays Messenger Runtime Configuration Error
+HIGH
+MESSENGER & COMMUNICATIONS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Opening an individual conversation displays a production error stating that configureMessengerRuntime(cfg) must be called first. A raw
+implementation message is shown inside the client interface.
+REQUIRED CORRECTION
+Initialise the Messenger runtime and required configuration before any chat screen mounts. Block chat rendering until initialisation
+succeeds, log the technical error internally, and show a controlled retry state rather than the raw exception.
+ACCEPTANCE CHECK
+Open individual chats after a cold start and after sign-in.
+Confirm no runtime or configuration string is visible to the user.
+Confirm sending, receiving, presence and calls remain available after initialisation.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+6 / 50
+
+===== PAGE 7 (imgs=1) =====
+ISSUE 02
+Group Membership Is Incorrectly Restricted Across Groups and Profiles
+HIGH
+MESSENGER & COMMUNICATIONS
+OPERATIONAL LOGIC
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Adding a user to a group fails because the user is reported as already belonging to another group. The referenced group is linked to a
+different profile, which indicates that membership validation is being performed against the wrong group or account scope.
+REQUIRED CORRECTION
+Allow one user to belong to multiple authorised groups. Validate duplicates only against the selected group ID and current
+organisation/profile scope. Do not use global membership or another profile's group membership as a blocking condition.
+ACCEPTANCE CHECK
+Add the same user to two different permitted groups.
+Confirm membership in another profile does not block the invitation.
+Confirm duplicate invitations to the same group return a clear user-friendly message.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+7 / 50
+
+===== PAGE 8 (imgs=1) =====
+ISSUE 03
+Conversation List Tick Icon Misrepresents Message Status
+MEDIUM
+MESSENGER & COMMUNICATIONS
+UX
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Blue double-tick icons appear on the Messenger dashboard in a position that can be interpreted as a verification badge or universal
+read status. The indicator is not clearly tied to the latest outgoing message.
+REQUIRED CORRECTION
+Apply message receipt indicators only to the latest outgoing message preview and use the agreed states consistently: sent, delivered
+and read. Do not display read ticks on inbound messages, empty conversations or rows where the state cannot be verified.
+ACCEPTANCE CHECK
+Test rows containing inbound, outbound, unread and empty conversations.
+Confirm each receipt icon matches the actual backend delivery state.
+Confirm the icon cannot be confused with account verification.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+8 / 50
+
+===== PAGE 9 (imgs=1) =====
+ISSUE 04
+Group Voice Note Sending Fails Due to Presence Rate Limiting
+HIGH
+MESSENGER & COMMUNICATIONS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+A voice note cannot be sent in a group conversation. The screen shows event_presence rate-limited with a retry delay, indicating that a
+presence update is blocking or interrupting media sending.
+REQUIRED CORRECTION
+Decouple presence events from voice-note upload and message dispatch. Apply rate-limit backoff to presence updates without failing
+the media transaction. Queue the voice note locally and retry safely if the network request is interrupted.
+ACCEPTANCE CHECK
+Record and send voice notes in a group during frequent presence changes.
+Confirm the message sends even when presence requests are rate-limited.
+Confirm failed uploads show a user-friendly retry action without losing the recording.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+9 / 50
+
+===== PAGE 10 (imgs=1) =====
+ISSUE 05
+Bravo System Chat Is Auto-Created but Cannot Send or Receive
+Messages
+HIGH
+MESSENGER & COMMUNICATIONS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The Bravo System conversation is created automatically, but messages fail with no_keys_found and Tap to Retry. The chat also shows
+the system as offline without explaining its purpose or availability.
+REQUIRED CORRECTION
+Define the Bravo System chat purpose and provision the required encrypted room keys before exposing the conversation. If the
+service is not active, hide the chat or present a read-only service notice instead of an interactive composer.
+ACCEPTANCE CHECK
+Open the system chat on a new and existing account.
+Confirm encryption keys are provisioned before a message can be entered.
+Confirm the chat is either fully functional or clearly presented as unavailable/read-only.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+10 / 50
+
+===== PAGE 11 (imgs=1) =====
+ISSUE 06
+Messenger Search Does Not Produce a Functional Result
+MEDIUM
+MESSENGER & COMMUNICATIONS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Entering a contact name in Messenger does not complete the expected search flow. The user cannot reliably use the result to locate
+and open the required conversation or message.
+REQUIRED CORRECTION
+Implement real-time search across permitted contacts, conversation names and message content where approved. Results must be
+selectable and must open the correct conversation at the expected location.
+ACCEPTANCE CHECK
+Search by full name, partial name and message keyword.
+Tap a result and confirm the correct chat opens.
+Confirm no unauthorised contacts or message content appear in results.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+11 / 50
+
+===== PAGE 12 (imgs=1) =====
+ISSUE 07
+Emoji Picker Is Non-Functional and Message Reactions Are Missing
+MEDIUM
+MESSENGER & COMMUNICATIONS
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The emoji control in the message composer does not work. Users also cannot react to an existing message with a quick icon such as a
+thumbs-up.
+REQUIRED CORRECTION
+Connect the emoji button to the device or in-app emoji picker. Add press-and-hold message reactions with a controlled reaction set,
+encrypted event handling and visible reaction counts.
+ACCEPTANCE CHECK
+Insert emojis into new messages from the composer button.
+Add, change and remove a reaction on sent and received messages.
+Confirm reactions synchronise across devices and remain linked to the correct message.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+12 / 50
+
+===== PAGE 13 (imgs=1) =====
+ISSUE 08
+Sent Messages Cannot Be Edited
+MEDIUM
+MESSENGER & COMMUNICATIONS
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+After a message is sent, no edit action is available. This prevents users from correcting typing errors in individual or department
+conversations.
+REQUIRED CORRECTION
+Add an Edit action to the message context menu for the sender, subject to an approved edit window and role policy. Preserve an
+audit-safe edited state and display an 'Edited' marker without exposing historical text to unauthorised users.
+ACCEPTANCE CHECK
+Edit a recently sent message in individual and group chats.
+Confirm only the sender or authorised administrator can edit it.
+Confirm the updated message synchronises and displays an Edited marker.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+13 / 50
+
+===== PAGE 14 (imgs=1) =====
+ISSUE 09
+Long Message Text Escapes the Composer Container
+MEDIUM
+MESSENGER & COMMUNICATIONS
+UX
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+When composing a longer reply, text extends across the composer boundaries and is not consistently contained within the input box.
+Controls and text compete for the same space.
+REQUIRED CORRECTION
+Make the composer expand vertically to a controlled maximum height, then scroll internally. Maintain padding around the attachment,
+emoji, timer and send controls, including when a reply preview is active.
+ACCEPTANCE CHECK
+Enter at least six lines while replying to a message.
+Confirm all text remains inside the composer with correct padding.
+Confirm composer controls remain visible and do not overlap text.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+14 / 50
+
+===== PAGE 15 (imgs=1) =====
+ISSUE 10
+@Mention Inserts an Internal User Identifier into the Composer
+HIGH
+MESSENGER & COMMUNICATIONS
+SECURITY
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting a person with the @mention function inserts the display name followed by a UUID-style internal identifier. The identifier is
+visible in the message composer and can be sent to channel members.
+REQUIRED CORRECTION
+Render mentions as display-name tokens while storing the user ID only in encrypted message metadata. Never expose database IDs,
+Matrix IDs or UUID values in user-facing text.
+ACCEPTANCE CHECK
+Mention users with short and long display names.
+Confirm only the person's approved display name appears in the composer and message.
+Confirm the hidden identifier still resolves notifications to the correct user.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+15 / 50
+
+===== PAGE 16 (imgs=2) =====
+ISSUE 11
+Mission Group Messaging Fails Between Mobile App and Bravo Control
+System
+CRITICAL
+MESSENGER & COMMUNICATIONS
+OPERATIONAL LOGIC
+A
+B
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+After a mission is accepted, the mobile mission chat has no usable conversation and the Bravo Control System console reports
+conversation_not_found_or_forbidden. Operational communication is therefore unavailable during an active mission.
+REQUIRED CORRECTION
+Create the encrypted mission room before mission dispatch, add the client, assigned agents and authorised operators, provision keys,
+and verify permissions before showing the mission as active. Mission activation must fail safely if the communication room cannot be
+created.
+ACCEPTANCE CHECK
+Create and accept a mission with client, agent and operator accounts.
+Send messages in both directions between mobile and the Bravo Control System.
+Confirm room creation, membership, encryption and audit events succeed before dispatch.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+16 / 50
+
+===== PAGE 17 (imgs=1) =====
+ISSUE 12
+Raw Avatar URL or Internal Code Is Exposed in Profile Settings
+MEDIUM
+MESSENGER ACCOUNT & SETTINGS
+SECURITY
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The profile settings screen exposes an Avatar URL field containing a long internal-looking value. The user is not told what it is for and
+should not need to edit storage references manually.
+REQUIRED CORRECTION
+Remove the raw Avatar URL field from the client interface. Provide Change Photo and Remove Photo actions, then manage the stored
+asset reference internally. The developer must document the current field's purpose for handover.
+ACCEPTANCE CHECK
+Change and remove a profile image without viewing a URL or storage key.
+Confirm invalid internal references cannot be entered by the user.
+Confirm the saved avatar loads correctly after sign-out and sign-in.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+17 / 50
+
+===== PAGE 18 (imgs=1) =====
+ISSUE 13
+Security Settings Menu Item Does Not Open
+HIGH
+MESSENGER ACCOUNT & SETTINGS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting Security Settings from the agent side menu produces no navigation or response.
+REQUIRED CORRECTION
+Connect the menu item to the authorised security settings screen and enforce role-based access. At minimum, expose approved
+controls for authentication, active sessions, trusted devices and account recovery.
+ACCEPTANCE CHECK
+Open Security Settings from each supported user role.
+Confirm the destination loads and back navigation returns correctly.
+Confirm unauthorised settings are hidden or disabled by role.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+18 / 50
+
+===== PAGE 19 (imgs=1) =====
+ISSUE 14
+Help and Support Menu Item Does Not Open
+HIGH
+MESSENGER ACCOUNT & SETTINGS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting Help and Support from the side menu produces no action, leaving the user without an in-app support route.
+REQUIRED CORRECTION
+Connect the menu item to the approved support hub. Include FAQs, contact Bravo support, report a technical issue and emergency
+guidance that does not replace the dedicated emergency process.
+ACCEPTANCE CHECK
+Open Help and Support from client, agent and provider roles.
+Submit a support request and confirm a reference number is generated.
+Confirm emergency wording directs users to the correct emergency function.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+19 / 50
+
+===== PAGE 20 (imgs=1) =====
+ISSUE 15
+Profile Image Completion Action Is Incorrectly Labelled 'CROP'
+LOW
+MESSENGER ACCOUNT & SETTINGS
+WORDING
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+After the user has positioned and cropped a profile image, the top-right completion action still reads CROP. The label suggests another
+edit rather than saving the completed selection.
+REQUIRED CORRECTION
+Change the final action label to DONE or SAVE after the crop frame is ready. Retain CROP only for an action that starts or applies an
+actual crop operation.
+ACCEPTANCE CHECK
+Select, position and crop a profile image.
+Confirm the final action reads DONE or SAVE.
+Confirm tapping it saves the image and returns to the profile screen.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+20 / 50
+
+===== PAGE 21 (imgs=1) =====
+ISSUE 16
+Unexplained 'T2' Badge Is Shown in the Agent Profile Menu
+LOW
+MESSENGER ACCOUNT & SETTINGS
+WORDING
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+A T2 badge appears beside the agent profile without explanation. Users cannot determine whether it represents a tier, clearance, team
+or internal test value.
+REQUIRED CORRECTION
+The developer must confirm the data source and intended meaning. Remove the badge if it is a test value. If it is operationally required,
+replace it with an approved descriptive label and an information tooltip.
+ACCEPTANCE CHECK
+Confirm the product owner-approved meaning of the badge.
+Verify test or placeholder values are removed from production.
+Confirm any retained tier label is understandable and role-appropriate.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+21 / 50
+
+===== PAGE 22 (imgs=1) =====
+ISSUE 17
+Messenger Pro Upgrade CTA Loops Back to the Same Screen
+HIGH
+MESSENGER ACCOUNT & SETTINGS
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting Top up and Subscribe on the Pro upgrade screen returns the user to the same screen instead of opening the required top-up
+or payment flow.
+REQUIRED CORRECTION
+Route the CTA to the payment/top-up flow while preserving the Messenger Pro upgrade context and required balance. After
+successful payment, activate the subscription and return the user to a clear confirmation screen.
+ACCEPTANCE CHECK
+Start the upgrade with a zero and partial credit balance.
+Confirm the CTA opens the correct payment flow without looping.
+Complete payment and confirm Bravo Messenger Pro activates once only.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+22 / 50
+
+===== PAGE 23 (imgs=1) =====
+ISSUE 18
+Departmental Chat Entry Card Does Not Open
+HIGH
+DEPARTMENT CHAT & VAULT
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The Departmental Chat card on the Groups screen does not respond when selected.
+REQUIRED CORRECTION
+Connect the card to the Department Chat dashboard for authorised enterprise users. If the account is not entitled, show a controlled
+access or onboarding message rather than leaving the control inactive.
+ACCEPTANCE CHECK
+Open the card with authorised admin and member accounts.
+Confirm the correct Department Chat dashboard loads.
+Confirm non-entitled accounts receive a clear access message.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+23 / 50
+
+===== PAGE 24 (imgs=2) =====
+ISSUE 19
+Attendance and Incidents Entry Does Not Open Across Dashboards
+HIGH
+DEPARTMENT CHAT & VAULT
+BUG
+A
+B
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The Attendance and Incidents card does not open from Department Channels. The same failure is reproduced on more than one
+dashboard and role.
+REQUIRED CORRECTION
+Repair the shared route and entitlement check used by the Attendance and Incidents entry. Direct users to the correct attendance
+dashboard or incident queue based on role, without duplicating broken navigation in separate layouts.
+ACCEPTANCE CHECK
+Open the card as an administrator, manager and normal member.
+Confirm each role reaches the permitted attendance or incident view.
+Confirm the route works from every dashboard where the card is shown.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+24 / 50
+
+===== PAGE 25 (imgs=1) =====
+ISSUE 20
+New Department Chat Account Is Asked for an Uncreated Vault PIN
+HIGH
+DEPARTMENT CHAT & VAULT
+SECURITY
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Immediately after registering a new Department Chat account, the Secure Vault requests a six-digit PIN even though the user has
+never created one.
+REQUIRED CORRECTION
+On first access, run a secure vault setup flow using the approved MFA method, then require the user to create and confirm a PIN if PIN
+access is enabled. Do not assign or imply a default PIN.
+ACCEPTANCE CHECK
+Create a new Department Chat account and open the vault.
+Confirm first access starts setup rather than PIN entry.
+Confirm recovery, biometric and lockout behaviour work after PIN creation.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+25 / 50
+
+===== PAGE 26 (imgs=1) =====
+ISSUE 21
+Multi-Image Vault Upload Saves Only One Selected File
+HIGH
+DEPARTMENT CHAT & VAULT
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting three images for upload results in only one image appearing in the Personal Vault.
+REQUIRED CORRECTION
+Process every selected file as a separate encrypted upload, preserve per-file status, and report partial failures individually. Do not
+silently discard additional selections.
+ACCEPTANCE CHECK
+Select and upload three, ten and mixed file types where permitted.
+Confirm every selected file appears once with the correct category.
+Interrupt one upload and confirm the remaining files complete with a clear retry option.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+26 / 50
+
+===== PAGE 27 (imgs=2) =====
+ISSUE 22
+Secure Services Onboarding Displays Messenger Plans and Features
+HIGH
+SECURE SERVICES CLIENT FLOW
+OPERATIONAL LOGIC
+A
+B
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+When onboarding through Secure Services, the user is shown Messenger Lite, Messenger Pro and Enterprise communication features.
+The plan selection is unrelated to the selected product path.
+REQUIRED CORRECTION
+Separate onboarding entitlements by product path. Secure Services onboarding must present Bravo Secure Lite and Bravo Secure Pro
+only. Messenger plans, Department Channels and Virtual Bodyguard must remain separate product routes.
+ACCEPTANCE CHECK
+Start onboarding from each product entry point.
+Confirm only the selected product's plans and features are shown.
+Confirm plan selection creates the correct entitlements and landing dashboard.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+27 / 50
+
+===== PAGE 28 (imgs=1) =====
+ISSUE 23
+Secure Services Product Naming and Pro Navigation Are Inconsistent
+HIGH
+SECURE SERVICES CLIENT FLOW
+OPERATIONAL LOGIC
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The menu uses Bravo Pro, the item is not active, and the label does not identify which BRAVO product family it belongs to. This creates
+confusion between Secure Services, Messenger and Department products.
+REQUIRED CORRECTION
+Activate the menu destination and apply the locked naming structure: Bravo Secure Lite and Bravo Secure Pro under Secure Services;
+Bravo Messenger Lite and Bravo Messenger Pro under Messenger; Department Channels and Virtual Bodyguard as separate products.
+ACCEPTANCE CHECK
+Select Bravo Secure Pro and confirm the correct screen opens.
+Audit menus, onboarding and upgrade screens for the locked product names.
+Confirm no generic Bravo Pro label remains.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+28 / 50
+
+===== PAGE 29 (imgs=1) =====
+ISSUE 24
+My Bookings Menu Item Does Not Open Booking History
+HIGH
+SECURE SERVICES CLIENT FLOW
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Selecting My Bookings from the client side menu does not navigate to the booking list.
+REQUIRED CORRECTION
+Connect the item to the authenticated client's bookings screen, including upcoming, under-review, active, completed, cancelled and
+declined requests.
+ACCEPTANCE CHECK
+Open My Bookings with and without existing bookings.
+Confirm each status group displays the correct records.
+Open a booking and confirm its details and current status are accurate.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+29 / 50
+
+===== PAGE 30 (imgs=1) =====
+ISSUE 25
+Insufficient Credits Flow Stops With 'Booking Failed' Instead of Top-Up
+HIGH
+SECURE SERVICES CLIENT FLOW
+UX
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+When the balance is insufficient, the booking flow displays Booking failed and the technical text insufficient_credits. The user is not
+taken to the top-up process.
+REQUIRED CORRECTION
+Preserve the draft booking and display a clear balance shortfall with an Add Bravo Credits action. Route directly to top-up, then return
+to the booking review after successful payment. Do not mark the booking failed unless the transaction or submission genuinely fails.
+ACCEPTANCE CHECK
+Attempt bookings with zero and partial balances.
+Confirm the exact shortfall and top-up action are shown.
+Complete top-up and confirm the original booking resumes without re-entry.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+30 / 50
+
+===== PAGE 31 (imgs=1) =====
+ISSUE 26
+Payment Confirmation Sheet Has Severe Text and Control Overlap
+HIGH
+SECURE SERVICES CLIENT FLOW
+VISUAL
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The top-up confirmation sheet renders multiple labels, amounts, buttons and underlying screen content on top of one another.
+Payment information is difficult to read and the action area competes with the Android navigation controls.
+REQUIRED CORRECTION
+Rebuild the confirmation sheet with responsive height, internal scrolling, safe-area padding and a fixed action footer. The background
+must be blocked from interaction and the total, new balance, payment method and charge amount must each appear once.
+ACCEPTANCE CHECK
+Open the sheet on small and large Android screens.
+Confirm no text, totals, CTAs or system controls overlap.
+Complete, cancel and return from payment without duplicate sheets or charges.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+31 / 50
+
+===== PAGE 32 (imgs=1) =====
+ISSUE 27
+Confirm Location CTA Covers the Service-Coverage Status
+MEDIUM
+SECURE SERVICES CLIENT FLOW
+VISUAL
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+On the drop-off map, the fixed Confirm Location bar overlaps the message that confirms whether the selected location is within the
+service area.
+REQUIRED CORRECTION
+Place the coverage-status component above the fixed CTA with sufficient bottom padding. The status must remain fully visible for
+in-coverage, out-of-coverage and coming-soon states.
+ACCEPTANCE CHECK
+Select locations inside, outside and near a coverage boundary.
+Confirm the full status message is visible before confirmation.
+Confirm the CTA remains reachable without covering map or status content.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+32 / 50
+
+===== PAGE 33 (imgs=1) =====
+ISSUE 28
+Provider or Referral Code Is Missing from the Booking Flow
+MEDIUM
+SECURE SERVICES CLIENT FLOW
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The secure booking flow has no field for a preferred provider code, partner code or referral code. The Bravo Control System therefore
+cannot identify provider preference or attribute a referral to an approved partner such as a travel agency.
+REQUIRED CORRECTION
+Add an optional Provider / Referral Code field before final submission. Validate the code, record its owner and purpose, expose it in the
+Bravo Control System, and apply assignment or incentive rules only after operational approval.
+ACCEPTANCE CHECK
+Submit valid, invalid, expired and blank codes.
+Confirm valid codes appear on the booking and reporting records.
+Confirm a code never bypasses availability, licensing or operator approval.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+33 / 50
+
+===== PAGE 34 (imgs=1) =====
+ISSUE 29
+Executive Protection Hourly Booking Service Is Unavailable
+HIGH
+SECURE SERVICES CLIENT FLOW
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Executive Protection is marked Coming Soon and cannot be booked. This prevents clients from requesting a time-based service that is
+not a point-to-point transfer.
+REQUIRED CORRECTION
+Enable an hourly Executive Protection request with date, start time, duration, meeting location, passenger/principal details, team
+requirements, add-ons and free-text instructions such as event support or meeting attendance. Submit it to the Bravo Control System
+for review and allocation.
+ACCEPTANCE CHECK
+Create hourly requests for an event, meeting and multi-location schedule.
+Confirm duration and add-ons calculate correctly without requiring a transfer route.
+Confirm the Bravo Control System receives all remarks and can accept, decline or amend the request.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+34 / 50
+
+===== PAGE 35 (imgs=1) =====
+ISSUE 30
+Client Is Not Shown the Assigned Vehicle and Registration Number
+HIGH
+SECURE SERVICES CLIENT FLOW
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+After dispatch, the client can verify the assigned agent but is not shown the vehicle make, model, colour or registration/number plate
+required to identify the arriving unit.
+REQUIRED CORRECTION
+Once final assignment is confirmed, display the vehicle make, model, colour, registration number and approved unit/call sign alongside
+agent verification. Update the client immediately if the vehicle changes.
+ACCEPTANCE CHECK
+Dispatch a booking with a complete vehicle assignment.
+Confirm the client sees the correct vehicle and registration details.
+Change the vehicle and confirm the old details are replaced with an audit event.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+35 / 50
+
+===== PAGE 36 (imgs=1) =====
+ISSUE 31
+Post-Mission Rating Does Not Allow Written Remarks
+MEDIUM
+SECURE SERVICES CLIENT FLOW
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The client can select stars and preset tags but cannot leave a written comment about the service.
+REQUIRED CORRECTION
+Add an optional Remarks field beneath the preset feedback tags. Apply an approved character limit, moderation rules and privacy
+notice, and link the comment to the booking, provider and relevant quality review.
+ACCEPTANCE CHECK
+Submit ratings with and without written remarks.
+Confirm remarks are visible only to authorised quality and operational roles.
+Confirm abusive content handling and maximum length validation work.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+36 / 50
+
+===== PAGE 37 (imgs=1) =====
+ISSUE 32
+Bravo Control System Review Screen Displays a Blank Icon Asset
+LOW
+SECURE SERVICES CLIENT FLOW
+VISUAL
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The review status header contains a blank square where an approved status or BRAVO icon should be displayed.
+REQUIRED CORRECTION
+Replace the missing asset with the approved review/status icon and provide a fallback asset if loading fails. Remove the empty
+container if no icon is required.
+ACCEPTANCE CHECK
+Open the review screen online and after a fresh install.
+Confirm the approved icon renders at the correct size and contrast.
+Confirm no blank placeholder appears if the asset cannot load.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+37 / 50
+
+===== PAGE 38 (imgs=2) =====
+ISSUE 33
+Legacy 'Ops Room' Terminology Remains on Client-Facing Screens
+MEDIUM
+SECURE SERVICES CLIENT FLOW
+WORDING
+A
+B
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Client-facing screens continue to use Ops Room, Ops Room Review, Awaiting Ops Approval and Ops Room Notified. These labels
+conflict with the approved BRAVO terminology.
+REQUIRED CORRECTION
+Replace all client-facing Control Room and Ops Room references with Bravo Control System. Approved examples include Awaiting
+Bravo Control System Approval, Bravo Control System Review and Bravo Control System Notified.
+ACCEPTANCE CHECK
+Run an application-wide search for Ops Room and Control Room.
+Verify booking, mission, SOS, notification and support screens.
+Confirm internal console labels are separately reviewed and client-facing wording is consistent.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+38 / 50
+
+===== PAGE 39 (imgs=1) =====
+ISSUE 34
+Agent Onboarding Route Is Missing from Role Selection
+HIGH
+AGENT & SERVICE PROVIDER
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The onboarding selection provides an Operator Partner route but no clear Agent route for an individual who has received an invitation
+code from a service provider.
+REQUIRED CORRECTION
+Add a distinct Agent option with an invitation-code entry flow. The code must identify the service provider, validate status and expiry,
+and link the agent to the correct roster after identity and compliance checks.
+ACCEPTANCE CHECK
+Onboard an agent using a valid provider invitation code.
+Test invalid, expired and already-used codes.
+Confirm the agent is linked to the correct provider and receives the agent dashboard.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+39 / 50
+
+===== PAGE 40 (imgs=1) =====
+ISSUE 35
+Service Provider Profile Type Is Incorrectly Labelled 'Enterprise'
+MEDIUM
+AGENT & SERVICE PROVIDER
+WORDING
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The Agent Portal labels a registered security company as Enterprise. This can be confused with an organisation onboarding for
+Department Chat.
+REQUIRED CORRECTION
+Rename the role to Service Provider throughout this flow, including the selection card and Continue CTA. Reserve Enterprise for
+approved corporate or Department Chat account contexts.
+ACCEPTANCE CHECK
+Audit the provider registration flow for the word Enterprise.
+Confirm all provider labels read Service Provider.
+Confirm Department Chat enterprise onboarding remains clearly separate.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+40 / 50
+
+===== PAGE 41 (imgs=1) =====
+ISSUE 36
+Service Provider Registration Repeats Medical Qualification Selection
+MEDIUM
+AGENT & SERVICE PROVIDER
+UX
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Operational capabilities include both First Aid / Trauma Care and Medical / FREC-3 as overlapping medical qualification questions
+without a clear hierarchy or evidence requirement.
+REQUIRED CORRECTION
+Ask for medical capability once using a structured qualification selector. Allow the provider to choose the exact recognised level and
+upload supporting certification, expiry date and issuing body.
+ACCEPTANCE CHECK
+Complete registration with no, one and multiple medical qualifications.
+Confirm duplicate medical questions are removed.
+Confirm qualification evidence and expiry data are captured once and stored correctly.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+41 / 50
+
+===== PAGE 42 (imgs=1) =====
+ISSUE 37
+South Africa Is Missing from Provider Coverage Regions
+CRITICAL
+AGENT & SERVICE PROVIDER
+OPERATIONAL LOGIC
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+South Africa is not available in the service-provider coverage list even though the pilot launch is planned for South Africa.
+REQUIRED CORRECTION
+Add South Africa as an active pilot country with the approved pilot provinces/cities and service availability. The configuration must be
+controlled from the backend and reflected consistently in provider onboarding, client maps and Bravo Control System allocation.
+ACCEPTANCE CHECK
+Select South Africa during provider onboarding.
+Confirm the approved pilot regions can be enabled and saved.
+Confirm clients and operators see matching pilot coverage and no unsupported regions are implied.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+42 / 50
+
+===== PAGE 43 (imgs=1) =====
+ISSUE 38
+Agent and Service Provider Earnings Screens Incorrectly Offer Credit
+Top-Up
+HIGH
+AGENT & SERVICE PROVIDER
+OPERATIONAL LOGIC
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The earnings wallet for an agent or service provider includes a Top Up Credits action even though these roles receive payouts and are
+not purchasing client services from this screen.
+REQUIRED CORRECTION
+Remove client top-up controls from agent and provider earnings. Present earned balance, pending settlement, payout method, payout
+history and reconciliation only. If a role can also act as a client, keep the client wallet separate and clearly labelled.
+ACCEPTANCE CHECK
+Open earnings as agent, provider and client roles.
+Confirm top-up appears only in the authorised client wallet.
+Confirm payout balances cannot be mixed with client Bravo Credits.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+43 / 50
+
+===== PAGE 44 (imgs=1) =====
+ISSUE 39
+Service Provider Cannot View Sufficient Agent Roster Information
+MEDIUM
+AGENT & SERVICE PROVIDER
+MISSING FEATURE
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The roster action sheet shows only the agent label and management actions. The provider cannot review the agent's contact details,
+join date, qualifications, licence status, rating or relevant work history.
+REQUIRED CORRECTION
+Add a role-protected agent profile view containing approved contact details, roster join date, verification status, qualifications and
+expiry dates, availability, rating and mission summary. Apply data-minimisation and permission controls.
+ACCEPTANCE CHECK
+Open an agent profile as provider administrator and normal manager.
+Confirm authorised details are complete and current.
+Confirm sensitive data is hidden from roles without permission and all access is audited.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+44 / 50
+
+===== PAGE 45 (imgs=1) =====
+ISSUE 40
+New Job Notification Opens an Unexpected Error Screen
+HIGH
+AGENT & SERVICE PROVIDER
+BUG
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+When a service provider opens a new-job notification, the app first displays Something went wrong before eventually showing the job.
+REQUIRED CORRECTION
+Correct the notification deep link and load the job payload before rendering the destination screen. Provide an authenticated loading
+state and only show an error when the job genuinely cannot be retrieved.
+ACCEPTANCE CHECK
+Open new-job notifications from foreground, background and terminated states.
+Confirm the correct job opens directly without an error flash.
+Confirm expired or withdrawn jobs show a specific controlled status.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+45 / 50
+
+===== PAGE 46 (imgs=1) =====
+ISSUE 41
+Agent Acceptance Is Missing Before Client Confirmation and Dispatch
+CRITICAL
+MISSION ACCEPTANCE & LIVE OPERATIONS
+OPERATIONAL LOGIC
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+A service provider can accept a job and the mission is immediately shown as crew dispatched, without the selected on-duty agent first
+accepting the assignment.
+REQUIRED CORRECTION
+Implement a mandatory agent acceptance stage. Provider acceptance should reserve the job, then the selected agent must accept
+within an SLA. Only after acceptance and required checks may the client status change to accepted or dispatched. Decline or timeout
+must trigger reassignment.
+ACCEPTANCE CHECK
+Assign a job to an on-duty agent who accepts, declines and times out.
+Confirm the client is not told the team is dispatched before agent acceptance.
+Confirm reassignment and audit timestamps are visible in the Bravo Control System.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+46 / 50
+
+===== PAGE 47 (imgs=1) =====
+ISSUE 42
+Live Ops Follow Control Covers Mission Progress Text
+MEDIUM
+MISSION ACCEPTANCE & LIVE OPERATIONS
+VISUAL
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The Follow button overlaps the Protection Active and Completed stages in the mobile live operations timeline.
+REQUIRED CORRECTION
+Move the control outside the progress labels or reserve a dedicated control area. Apply responsive constraints so the status timeline
+remains readable at all device widths and map zoom states.
+ACCEPTANCE CHECK
+Open the live mission view on small and large screens.
+Confirm every stage label remains fully visible.
+Toggle Follow and map modes without changing or covering the timeline.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+47 / 50
+
+===== PAGE 48 (imgs=1) =====
+ISSUE 43
+Live Mission Header Shows Duplicate Back and Next Controls
+MEDIUM
+MISSION ACCEPTANCE & LIVE OPERATIONS
+UX
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The top-left corner of the live mission screen shows both a forward-style arrow and a back arrow. The duplicate controls are unclear
+and visually conflict with the mission title.
+REQUIRED CORRECTION
+Retain one standard back control in the approved header position. Remove any orphaned carousel, drawer or test navigation button
+unless it has a defined function and label.
+ACCEPTANCE CHECK
+Open the live mission from each supported entry point.
+Confirm one back action is shown and returns to the correct screen.
+Confirm no duplicate navigation control appears after rotation or state refresh.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+48 / 50
+
+===== PAGE 49 (imgs=2) =====
+ISSUE 44
+SOS Activation Is Not Reflected in the Bravo Control System
+CRITICAL
+MISSION ACCEPTANCE & LIVE OPERATIONS
+SECURITY
+A
+B
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+The mobile app confirms SOS Active and states that the operations team was notified, but the Bravo Control System mission view still
+shows SOS 0 and no visible active alert.
+REQUIRED CORRECTION
+Transmit SOS as a priority event with user, mission, timestamp, live location and device status. The Bravo Control System must display
+an immediate persistent alert, audible notification, acknowledgement workflow, escalation status and audit record. The app must not
+claim notification until server acknowledgement is received.
+ACCEPTANCE CHECK
+Activate SOS during an active mission and outside a mission where supported.
+Confirm the Bravo Control System alert appears immediately with accurate identity and location.
+Acknowledge, escalate and close the alert while verifying full audit history and client status updates.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+49 / 50
+
+===== PAGE 50 (imgs=3) =====
+ISSUE 45
+Android System Navigation Bar Overlaps App Controls Across Modules
+HIGH
+MISSION ACCEPTANCE & LIVE OPERATIONS
+VISUAL
+A
+B
+C
+SCREENSHOT EVIDENCE
+OBSERVED FAULT
+Android system navigation buttons overlap BRAVO bottom navigation and fixed CTAs on Department Chat, Agent Portal and agent
+dashboard screens. Some controls are obscured or difficult to select.
+REQUIRED CORRECTION
+Apply Android safe-area/window insets to every fixed footer, bottom navigation bar and bottom sheet. Support gesture navigation and
+three-button navigation without hard-coded bottom positions.
+ACCEPTANCE CHECK
+Test representative Android devices with gesture and three-button navigation.
+Confirm all bottom CTAs and tabs remain fully visible and tappable.
+Confirm keyboard opening, rotation and bottom sheets preserve the safe-area spacing.
+STATUS: NEW
+BRAVO SECURE | MOBILE APPLICATION TEST REPORT
+50 / 50

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VBG — OSINT Threat Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; background: #0A0F1E; color: #F1F5F9; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .scroll-body { overflow-y: auto; height: calc(100% - 44px - 56px); }
+
+  /* Filter chip active/inactive */
+  .chip { padding:4px 10px; border-radius:9999px; font-size:9px; font-weight:700; letter-spacing:0.5px; cursor:pointer; border:1px solid; transition: all 0.15s; }
+  .chip-active { background:rgba(37,99,235,0.18); border-color:rgba(37,99,235,0.5); color:#60A5FA; }
+  .chip-inactive { background:rgba(255,255,255,0.04); border-color:#1E2D45; color:#475569; }
+
+  /* Severity badge */
+  .badge-critical { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.4); color:#F87171; font-size:8px; font-weight:700; letter-spacing:0.5px; padding:2px 6px; border-radius:4px; }
+  .badge-caution  { background:rgba(249,115,22,0.12); border:1px solid rgba(249,115,22,0.4); color:#FB923C; font-size:8px; font-weight:700; letter-spacing:0.5px; padding:2px 6px; border-radius:4px; }
+  .badge-info     { background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.35); color:#60A5FA; font-size:8px; font-weight:700; letter-spacing:0.5px; padding:2px 6px; border-radius:4px; }
+
+  /* Threat card left border glow */
+  .card-critical { border-left:3px solid #EF4444; }
+
+  @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+  .live-pulse { animation: pulse-live 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body style="height:100%; display:flex; flex-direction:column;">
+
+<!-- 4-Tab navigation -->
+<div style="background:#060C18; border-bottom:1px solid #1E2D45; display:flex; align-items:center; flex-shrink:0; padding-top:50px;">
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-home.html', null)" style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Dashboard</div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Intel Reports</div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:700; color:#2563EB; border-bottom:2px solid #2563EB;">OSINT</div>
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/live-tracking.html', null)" style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Tracking</div>
+</div>
+
+<!-- Scroll body -->
+<div class="scroll-body" style="padding:12px;">
+
+  <!-- Header -->
+  <div style="margin-bottom:10px;">
+    <div style="font-size:13px; font-weight:800; color:#F1F5F9; margin-bottom:2px;">OSINT THREAT FEED</div>
+    <div style="font-size:9px; color:#64748B; line-height:1.4;">Open-source intelligence feeds for situational awareness and threat updates.</div>
+  </div>
+
+  <!-- Badges row -->
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+    <div style="display:flex; align-items:center; gap:4px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.35); border-radius:9999px; padding:3px 9px;">
+      <span class="live-pulse" style="width:5px; height:5px; border-radius:50%; background:#EF4444; display:block;"></span>
+      <span style="font-size:9px; font-weight:700; color:#F87171; letter-spacing:0.5px;">5 ACTIVE ALERTS</span>
+    </div>
+    <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:9999px; padding:3px 9px;">
+      <span style="font-size:8px; font-weight:700; color:#FCA5A5; letter-spacing:0.5px; text-transform:uppercase;">GLOBAL THREAT LEVEL: ELEVATED</span>
+    </div>
+  </div>
+
+  <!-- Filter chips -->
+  <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+    <div class="chip chip-active">ALL</div>
+    <div class="chip chip-inactive">CRITICAL</div>
+    <div class="chip chip-inactive">CAUTION</div>
+    <div class="chip chip-inactive">INFORMATION</div>
+  </div>
+
+  <!-- Incident Cards -->
+
+  <!-- 1: Attempted Car Hijacking -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:11px; margin-bottom:8px;" class="card-critical">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span class="badge-critical">● CRITICAL</span>
+      <span style="font-size:8px; color:#475569;">5 minutes ago</span>
+    </div>
+    <div style="font-size:12px; font-weight:700; color:#F1F5F9; margin-bottom:4px;">Attempted Car Hijacking</div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.5; margin-bottom:6px;">An attempted hijacking involving two armed suspects on Parkway Drive in Benoni. Suspects fled the scene.</p>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span style="font-size:8px; color:#F87171;">📍 Benoni</span>
+      <span style="font-size:8px; color:#475569;">·</span>
+      <span style="font-size:8px; color:#475569; font-style:italic;">Reuters / 5 minutes ago</span>
+    </div>
+  </div>
+
+  <!-- 2: Armed Mugging at Gunpoint -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:11px; margin-bottom:8px;" class="card-critical">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span class="badge-critical">● CRITICAL</span>
+      <span style="font-size:8px; color:#475569;">12 minutes ago</span>
+    </div>
+    <div style="font-size:12px; font-weight:700; color:#F1F5F9; margin-bottom:4px;">Armed Mugging at Gunpoint</div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.5; margin-bottom:6px;">A person was mugged at gunpoint last night near Lakeside Mall in Benoni. Victim's cash and phone were stolen.</p>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span style="font-size:8px; color:#F87171;">📍 Benoni</span>
+      <span style="font-size:8px; color:#475569;">·</span>
+      <span style="font-size:8px; color:#475569; font-style:italic;">OPC News / 12 minutes ago</span>
+    </div>
+  </div>
+
+  <!-- 3: Mugging Incident -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:11px; margin-bottom:8px;" class="card-critical">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span class="badge-critical">● CRITICAL</span>
+      <span style="font-size:8px; color:#475569;">5 minutes ago</span>
+    </div>
+    <div style="font-size:12px; font-weight:700; color:#F1F5F9; margin-bottom:4px;">Mugging Incident</div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.5; margin-bottom:6px;">A man was mugged at gunpoint during an evening walk in Northmead, Benoni.</p>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span style="font-size:8px; color:#F87171;">📍 Northmead</span>
+      <span style="font-size:8px; color:#475569;">·</span>
+      <span style="font-size:8px; color:#475569; font-style:italic;">BBC News / 5 minutes ago</span>
+    </div>
+  </div>
+
+  <!-- 4: Fatal Stabbing Incident -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:11px; margin-bottom:8px;" class="card-critical">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span class="badge-critical">● CRITICAL</span>
+      <span style="font-size:8px; color:#475569;">3 days ago</span>
+    </div>
+    <div style="font-size:12px; font-weight:700; color:#F1F5F9; margin-bottom:4px;">Fatal Stabbing Incident</div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.5; margin-bottom:6px;">Reported fatal stabbing in the North Benoni area. Police cordon active.</p>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span style="font-size:8px; color:#F87171;">📍 Benoni</span>
+      <span style="font-size:8px; color:#475569;">·</span>
+      <span style="font-size:8px; color:#475569; font-style:italic;">Times Live / 3 days ago</span>
+    </div>
+  </div>
+
+  <!-- 5: Caution item -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-left:3px solid #F97316; border-radius:12px; padding:11px; margin-bottom:8px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      <span class="badge-caution">● CAUTION</span>
+      <span style="font-size:8px; color:#475569;">1 hour ago</span>
+    </div>
+    <div style="font-size:12px; font-weight:700; color:#F1F5F9; margin-bottom:4px;">Protest Activity Reported</div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.5; margin-bottom:6px;">Peaceful protest on Main Reef Road causing traffic disruptions. Monitor for escalation.</p>
+    <div style="display:flex; align-items:center; gap:4px;">
+      <span style="font-size:8px; color:#FB923C;">📍 Boksburg</span>
+      <span style="font-size:8px; color:#475569;">·</span>
+      <span style="font-size:8px; color:#475569; font-style:italic;">SABC / 1 hour ago</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav style="height:56px; background:#060C18; border-top:1px solid #1E2D45; display:flex; align-items:center; flex-shrink:0;">
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-home.html', null)" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">home</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">HOME</span>
+  </div>
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/ops-dashboard.html', null)" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; position:relative;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">shield</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">OPS ROOM</span>
+    <!-- Red dot for unacknowledged critical alerts -->
+    <span style="position:absolute; top:6px; right:22px; width:6px; height:6px; border-radius:50%; background:#EF4444; border:1px solid #060C18;"></span>
+  </div>
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-sra.html', null)" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">menu_book</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">PLAYBOOK</span>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">contacts</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">CONTACTS</span>
+  </div>
+</nav>
+
+</body></html>

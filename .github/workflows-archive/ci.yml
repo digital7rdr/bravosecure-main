@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Fast checks (run first, cheap to fail) ─────────────────────────
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npm run typecheck
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npm run lint -- --max-warnings=0
+
+  # ── Test matrix with coverage ──────────────────────────────────────
+  test:
+    name: Jest (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [app, messenger-crypto, booking]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - name: Run tests with coverage
+        run: |
+          npx jest --selectProjects ${{ matrix.project }} \
+            --ci --coverage \
+            --coverageDirectory=coverage/${{ matrix.project }} \
+            --coverageReporters=json-summary --coverageReporters=lcov --coverageReporters=text
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.project }}
+          path: coverage/${{ matrix.project }}
+          retention-days: 7
+
+  # ── Ops console (own package + lockfile) — OC-05: it deploys via
+  # deploy-staging.yml on any path change but had NO CI job at all. ──
+  ops-console-check:
+    name: Ops Console (lint + typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd apps/ops-console && npm ci --legacy-peer-deps
+      - run: cd apps/ops-console && npm run lint
+      - run: cd apps/ops-console && npm run typecheck
+
+  # ── Backend service tests (own package + lockfile, not in the root matrix) ──
+  auth-service-test:
+    name: Jest (auth-service)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd apps/auth-service && npm ci --legacy-peer-deps
+      - run: cd apps/auth-service && npm test
+
+  # ── Backend real-DB integration tests (Step 27) ────────────────────
+  # The harness (test/integration/harness.ts) boots an ephemeral postgis container via
+  # testcontainers and applies every migration. ubuntu-latest ships Docker, so describeIfDb
+  # does NOT skip — the accept→charge→assign→settle saga, the multi-pod watchdog-lock test,
+  # the reconciliation invariant, and the legacy-flow-OFF regression all actually run.
+  auth-service-integration:
+    name: Integration (auth-service, real pg)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd apps/auth-service && npm ci --legacy-peer-deps
+      - name: Run integration suite (testcontainers boots its own postgis)
+        run: cd apps/auth-service && npm run test:integration
+
+  # ── Dead-code detection ────────────────────────────────────────────
+  dead-code:
+    name: Dead Code (knip)
+    runs-on: ubuntu-latest
+    continue-on-error: true # warn, don't block (for now)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+      - run: npx knip --reporter compact || true
+
+  # ── Secret scanning ────────────────────────────────────────────────
+  # Uses the free upstream gitleaks CLI binary directly. The official
+  # gitleaks/gitleaks-action@v2 wrapper requires a paid license on
+  # organization repos ($100/yr) — the binary itself is MIT and free.
+  secrets:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz \
+            | tar -xz -C /tmp
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: Scan repo for secrets
+        run: |
+          gitleaks detect \
+            --source . \
+            --config=.gitleaks.toml \
+            --no-banner \
+            --redact \
+            --verbose \
+            --report-format=sarif \
+            --report-path=gitleaks-report.sarif \
+            --exit-code=1
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.sarif
+          retention-days: 30
+
+  # ── Dependency vulnerability + license review ──────────────────────
+  deps:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm audit --audit-level=high --omit=dev || true

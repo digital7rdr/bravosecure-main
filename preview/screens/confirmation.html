@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  @keyframes scale-in {
+    0%   { transform: scale(0);    opacity: 0; }
+    65%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes ripple-confirm {
+    0%   { transform: scale(1);   opacity: 0.45; }
+    100% { transform: scale(2.2); opacity: 0;    }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+
+  .anim-scale    { animation: scale-in      0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both; }
+  .anim-ripple   { animation: ripple-confirm 1s ease-out 0.2s forwards; }
+  .anim-ripple-2 { animation: ripple-confirm 1s ease-out 0.45s forwards; }
+  .anim-fade-1   { animation: fade-up 0.4s ease-out 0.5s  both; }
+  .anim-fade-2   { animation: fade-up 0.4s ease-out 0.65s both; }
+  .anim-fade-3   { animation: fade-up 0.4s ease-out 0.8s  both; }
+  .anim-slide-1  { animation: slide-up 0.4s ease-out 0.9s  both; }
+  .anim-slide-2  { animation: slide-up 0.4s ease-out 1.05s both; }
+  .anim-slide-3  { animation: slide-up 0.4s ease-out 1.2s  both; }
+  .anim-slide-4  { animation: slide-up 0.4s ease-out 1.35s both; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 pb-6">
+
+  <!-- Animated Checkmark -->
+  <div class="flex flex-col items-center pt-10 pb-5">
+    <div class="relative flex items-center justify-center mb-5">
+      <div class="anim-ripple absolute rounded-full" style="width:110px; height:110px; background:rgba(37,99,235,0.2);"></div>
+      <div class="anim-ripple-2 absolute rounded-full" style="width:110px; height:110px; background:rgba(37,99,235,0.12);"></div>
+      <div class="anim-scale relative z-10 size-20 rounded-full flex items-center justify-center"
+        style="background:#2563EB;">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M10 21 L17 28 L30 13" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Status label -->
+    <p class="anim-fade-1 text-xs font-bold tracking-widest mb-2" style="color:#34D399; letter-spacing:2px;">BOOKING CONFIRMED</p>
+    <p class="anim-fade-2 text-xl font-bold text-slate-100 text-center mb-1">1,880 CREDITS DEDUCTED</p>
+    <p class="anim-fade-3 text-sm text-slate-400 text-center">Booking #BL-A1B2-C3D4 · Bravo Credits used</p>
+  </div>
+
+  <!-- Credits Awarded Card -->
+  <div class="anim-slide-1 rounded-2xl p-4 border mb-3" style="background:#0D1929; border-color:#2563EB;">
+    <div class="flex justify-between items-center mb-2">
+      <p class="text-xs font-bold tracking-widest text-slate-500">CREDITS AWARDED</p>
+      <p class="text-xs text-slate-400">Exp: 04 OCT 2026</p>
+    </div>
+    <div class="flex items-baseline justify-between mb-1">
+      <p class="font-bold leading-none" style="font-size:28px; color:#2563EB;">+1,880</p>
+      <p class="text-xs text-slate-500">Auto set: +6 months</p>
+    </div>
+    <p class="text-xs text-slate-400 mt-1">1,880 credits spent → 1,880 credits earned back</p>
+  </div>
+
+  <!-- New Credits Balance -->
+  <div class="anim-slide-2 rounded-2xl p-4 border flex flex-col items-center mb-3" style="background:#0D1929; border-color:#1E2D45;">
+    <p class="text-xs font-bold tracking-widest text-slate-500 mb-1">NEW CREDITS BALANCE</p>
+    <p class="text-2xl font-bold text-slate-100">3,120 credits</p>
+  </div>
+
+  <!-- Booking Summary Card -->
+  <div class="anim-slide-3 rounded-2xl p-4 border mb-4" style="background:#0D1929; border-color:#1E2D45;">
+    <p class="text-xs font-bold tracking-widest text-slate-500 mb-3">BOOKING SUMMARY</p>
+
+    <!-- Reference -->
+    <div class="flex justify-between items-center py-2.5 border-b" style="border-color:#1E2D45;">
+      <p class="text-sm text-slate-400">Reference</p>
+      <p class="text-sm font-medium text-slate-100">#BL-A1B2-C3D4</p>
+    </div>
+
+    <!-- Status -->
+    <div class="flex justify-between items-center py-2.5 border-b" style="border-color:#1E2D45;">
+      <p class="text-sm text-slate-400">Status</p>
+      <span class="px-2.5 py-1 rounded-lg text-xs font-bold" style="background:#0A0F1E; border:1px solid #F59E0B; color:#F59E0B; letter-spacing:0.5px;">PENDING OPS REVIEW</span>
+    </div>
+
+    <!-- Start -->
+    <div class="flex justify-between items-center py-2.5 border-b" style="border-color:#1E2D45;">
+      <p class="text-sm text-slate-400">Start</p>
+      <p class="text-sm font-medium text-slate-100 text-right">06 Apr 2026, 09:00</p>
+    </div>
+
+    <!-- Payment -->
+    <div class="flex justify-between items-center py-2.5">
+      <p class="text-sm text-slate-400">Payment</p>
+      <div class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:14px;">stars</span>
+        <p class="text-sm font-medium text-slate-100">Bravo Credits</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="anim-slide-4 flex gap-3">
+    <button onclick="viewCredits()" class="flex-1 py-4 rounded-2xl font-bold text-sm tracking-wide text-slate-100 transition-all active:scale-[0.98]"
+      style="background:#0D1929; border:1px solid #1E2D45; letter-spacing:0.5px;">
+      VIEW CREDITS
+    </button>
+    <button onclick="goToBooking()" class="flex-1 py-4 rounded-2xl font-bold text-sm tracking-wide text-white transition-all active:scale-[0.98]"
+      style="background:#2563EB; letter-spacing:0.5px; box-shadow:0 4px 16px rgba(37,99,235,0.3);">
+      GO TO BOOKING →
+    </button>
+  </div>
+
+</main>
+
+<script>
+  function viewCredits() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('credits'));
+      window.parent.loadScreen('screens/credits.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goToBooking() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('live-tracking'));
+      window.parent.loadScreen('screens/live-tracking.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+
+</body></html>

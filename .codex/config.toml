@@ -1,0 +1,6 @@
+[mcp_servers.code-review-graph]
+command = "code-review-graph"
+args = ["serve"]
+
+[mcp_servers.supabase]
+url = "https://mcp.supabase.com/mcp?project_ref=qkkfkicgoncxslbwhyhz&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cbranching%2Cfunctions%2Cdevelopment%2Cstorage"

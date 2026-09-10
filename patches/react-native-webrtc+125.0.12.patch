@@ -1,0 +1,73 @@
+diff --git a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
+index ddd2d7b..e019695 100644
+--- a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
++++ b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
+@@ -1547,4 +1547,36 @@ public class WebRTCModule extends ReactContextBaseJavaModule {
+     public void removeListeners(Integer count) {
+         // Keep: Required for RN built in Event Emitter Calls.
+     }
++
++    // ============================================================
++    // Bravo patch — FrameCryptor accessors (see
++    // docs/ARCHITECTURE_AMENDMENT_SFRAME.md and the
++    // BravoFrameCryptorModule in this app's android/app/src tree).
++    // Fork note (125.0.12): the fork's PeerConnectionObserver already
++    // ships getSender/getReceiver (package-private — same package, so
++    // these wrappers reach them), and the fork's own RTCFrameCryptor
++    // JS glue coexists unused; our sibling Kotlin module keeps the
++    // app's established BravoFrameCryptor JS contract on both
++    // platforms. Only key material crosses the JS boundary (~1x per
++    // rekey, never per-frame).
++    // ============================================================
++
++    /** App-side FrameCryptor module looks up the sender by JS-side id. */
++    public org.webrtc.RtpSender getRtpSenderById(int peerConnectionId, String senderId) {
++        PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
++        if (pco == null) { return null; }
++        return pco.getSender(senderId);
++    }
++
++    /** App-side FrameCryptor module looks up the receiver by JS-side id. */
++    public org.webrtc.RtpReceiver getRtpReceiverById(int peerConnectionId, String receiverId) {
++        PeerConnectionObserver pco = mPeerConnectionObservers.get(peerConnectionId);
++        if (pco == null) { return null; }
++        return pco.getReceiver(receiverId);
++    }
++
++    /** App-side FrameCryptor module needs the shared factory to build cryptors. */
++    public PeerConnectionFactory getPeerConnectionFactory() {
++        return mFactory;
++    }
+ }
+diff --git a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/CameraCaptureController.java b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/CameraCaptureController.java
+index 0000000..1111111 100644
+--- a/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/CameraCaptureController.java
++++ b/node_modules/react-native-webrtc/android/src/main/java/com/oney/WebRTCModule/CameraCaptureController.java
+@@ -222,11 +222,22 @@
+     private void updateActualSize(int cameraIndex, String cameraName, VideoCapturer videoCapturer) {
+         // Find actual capture format.
+         Size actualSize = null;
+-        if (videoCapturer instanceof Camera1Capturer) {
+-            actualSize = Camera1Helper.findClosestCaptureFormat(cameraIndex, targetWidth, targetHeight);
+-        } else if (videoCapturer instanceof Camera2Capturer) {
+-            CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+-            actualSize = Camera2Helper.findClosestCaptureFormat(cameraManager, cameraName, targetWidth, targetHeight);
++        // Bravo patch (B-118): findClosestCaptureFormat runs Collections.min
++        // over the camera's supported-format list; a camera reporting ZERO
++        // formats (held by another app, emulator shared-webcam, permission
++        // race) made it throw NoSuchElementException on the capturer
++        // executor thread and KILL the process (deterministic callee crash
++        // on video accept). The lookup is purely advisory — actualSize==null
++        // keeps the requested size — so degrade gracefully instead of dying.
++        try {
++            if (videoCapturer instanceof Camera1Capturer) {
++                actualSize = Camera1Helper.findClosestCaptureFormat(cameraIndex, targetWidth, targetHeight);
++            } else if (videoCapturer instanceof Camera2Capturer) {
++                CameraManager cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
++                actualSize = Camera2Helper.findClosestCaptureFormat(cameraManager, cameraName, targetWidth, targetHeight);
++            }
++        } catch (RuntimeException e) {
++            Log.w(TAG, "updateActualSize: camera reported no usable formats — keeping requested size", e);
+         }
+ 
+         if (actualSize != null) {

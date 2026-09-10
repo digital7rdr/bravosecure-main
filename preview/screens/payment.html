@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+    </button>
+    <span class="text-[11px] font-bold uppercase tracking-[2px] text-slate-400">Confirm & Pay</span>
+  </div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+
+  <!-- Credits Amount Block -->
+  <div class="flex flex-col items-center py-5">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="material-symbols-outlined filled text-yellow-400" style="font-size:28px;">stars</span>
+      <p class="font-bold text-slate-100 leading-none" style="font-size:40px; letter-spacing:1px;">1,880</p>
+    </div>
+    <p class="text-sm text-slate-400 mt-1">Bravo Credits required</p>
+  </div>
+
+  <!-- Credits Balance Check — INSUFFICIENT STATE -->
+  <div class="rounded-2xl overflow-hidden border" style="background:#0D1929; border-color:rgba(239,68,68,0.35);">
+    <div class="h-1" style="background:linear-gradient(90deg,#ef4444,#f97316);"></div>
+    <div class="p-4 flex items-center gap-3">
+      <span class="material-symbols-outlined filled text-yellow-400" style="font-size:22px;">stars</span>
+      <div class="flex-1">
+        <p class="text-sm font-bold text-slate-100">Your Bravo Credits Balance</p>
+        <p class="text-xs text-slate-500 mt-0.5">Available in wallet</p>
+      </div>
+      <div class="text-right">
+        <p class="text-lg font-bold text-red-400">760</p>
+        <p class="text-xs font-bold mt-0.5 text-red-400">✗ Insufficient</p>
+      </div>
+    </div>
+    <!-- Shortfall row -->
+    <div class="px-4 py-3 border-t flex items-center justify-between" style="border-color:rgba(239,68,68,0.2); background:rgba(239,68,68,0.04);">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-red-400" style="font-size:14px;">warning</span>
+        <p class="text-[11px] font-bold text-red-300">Short by 1,120 Bravo Credits</p>
+      </div>
+      <button onclick="goToPaywall()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all active:opacity-70" style="background:#ef4444; color:#fff; letter-spacing:0.03em;">
+        Top Up →
+      </button>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="rounded-xl px-4 py-3 border" style="background:#0D1929; border-color:#1E2D45;">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Balance vs. Required</p>
+      <p class="text-[10px] font-bold text-red-400">40% funded</p>
+    </div>
+    <div class="h-2 rounded-full overflow-hidden" style="background:#1E2D45;">
+      <div class="h-full rounded-full" style="width:40%; background:linear-gradient(90deg,#ef4444,#f97316);"></div>
+    </div>
+    <div class="flex justify-between mt-2">
+      <span class="text-[10px] text-slate-500">Have: <span class="font-bold text-slate-300">760 BC</span></span>
+      <span class="text-[10px] text-slate-500">Need: <span class="font-bold text-slate-300">1,880 BC</span></span>
+    </div>
+  </div>
+
+  <!-- Service Pricing Breakdown -->
+  <div class="rounded-2xl p-4 border" style="background:#0D1929; border-color:#1E2D45;">
+    <p class="text-xs font-bold tracking-widest text-slate-500 mb-3">SERVICE BREAKDOWN</p>
+
+    <div class="space-y-0">
+      <div class="flex items-start justify-between py-2.5 border-b" style="border-color:#1E2D45;">
+        <div>
+          <p class="text-sm font-medium text-slate-100">Close Protection</p>
+          <p class="text-xs text-slate-500 mt-0.5">4 hrs × 248 credits/hr</p>
+        </div>
+        <p class="text-sm font-semibold text-slate-100">992 cr</p>
+      </div>
+      <div class="flex items-start justify-between py-2.5 border-b" style="border-color:#1E2D45;">
+        <div>
+          <p class="text-sm font-medium text-slate-100">Advance Team</p>
+          <p class="text-xs text-slate-500 mt-0.5">4 hrs × 119 credits/hr</p>
+        </div>
+        <p class="text-sm font-semibold text-slate-100">476 cr</p>
+      </div>
+      <div class="flex items-start justify-between py-2.5 border-b" style="border-color:#1E2D45;">
+        <div>
+          <p class="text-sm font-medium text-slate-100">Vehicle &amp; Driver</p>
+          <p class="text-xs text-slate-500 mt-0.5">4 hrs × 79 credits/hr</p>
+        </div>
+        <p class="text-sm font-semibold text-slate-100">316 cr</p>
+      </div>
+      <div class="flex items-start justify-between py-2.5">
+        <div>
+          <p class="text-sm font-medium text-slate-100">Ops Room Fee</p>
+          <p class="text-xs text-slate-500 mt-0.5">Fixed</p>
+        </div>
+        <p class="text-sm font-semibold text-slate-100">96 cr</p>
+      </div>
+    </div>
+
+    <div class="h-px mt-2 mb-3" style="background:#1E2D45;"></div>
+    <div class="flex items-end justify-between">
+      <p class="text-xs font-bold tracking-widest text-slate-400">TOTAL</p>
+      <div class="text-right flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+        <p class="text-xl font-bold text-slate-100">1,880 credits</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info note -->
+  <div class="rounded-xl p-3 border flex items-start gap-2" style="background:rgba(37,99,235,0.05); border-color:#1E2D45;">
+    <span class="material-symbols-outlined filled text-blue-400 shrink-0" style="font-size:15px;">info</span>
+    <p class="text-xs text-slate-400 leading-relaxed">Bravo Credits are deducted instantly on confirmation. Top up your Bravo Credits balance to unlock payment.</p>
+  </div>
+
+  <!-- CTA — disabled (insufficient) -->
+  <div class="space-y-2">
+    <button onclick="confirmPayment()" disabled class="w-full py-4 rounded-2xl font-bold text-sm tracking-wide text-white transition-all flex items-center justify-center gap-2"
+      style="background:#1E2D45; color:#475569; letter-spacing:0.5px; cursor:not-allowed;">
+      <span class="material-symbols-outlined filled" style="font-size:18px; color:#475569;">stars</span>
+      PAY 1,880 BRAVO CREDITS
+    </button>
+    <button onclick="goToPaywall()" class="w-full py-4 rounded-2xl font-extrabold text-sm tracking-wide text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+      style="background:linear-gradient(160deg,#ef4444,#b91c1c); box-shadow:0 6px 20px rgba(239,68,68,0.3); letter-spacing:0.04em;">
+      <span class="material-symbols-outlined filled text-white" style="font-size:18px;">stars</span>
+      TOP UP BRAVO CREDITS →
+    </button>
+  </div>
+
+</main>
+
+<script>
+  function confirmPayment() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('confirmation'));
+      window.parent.loadScreen('screens/confirmation.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('ops-room-review'));
+      window.parent.loadScreen('screens/ops-room-review.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goToPaywall() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('credit-paywall'));
+      window.parent.loadScreen('screens/credit-paywall.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goToTopUp() {
+    goToPaywall();
+  }
+</script>
+
+</body></html>

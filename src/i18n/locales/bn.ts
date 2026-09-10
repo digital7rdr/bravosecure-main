@@ -1,0 +1,28 @@
+/** Bengali catalog (BUILD_RUNBOOK Step 25). Missing keys fall back to English. */
+const bn: Record<string, string> = {
+  'settings.title': 'সেটিংস',
+  'settings.language': 'ভাষা',
+  'settings.currency': 'মুদ্রা',
+  'settings.notifications': 'বিজ্ঞপ্তি',
+  'settings.notifications.safety': 'নিরাপত্তা সতর্কতা',
+  'settings.notifications.safety.locked': 'সর্বদা চালু',
+  'settings.notifications.trip': 'ট্রিপ আপডেট',
+  'settings.notifications.marketing': 'অফার ও খবর',
+  'settings.location': 'অবস্থান শেয়ারিং',
+  'settings.location.while_on_duty': 'ডিউটিতে থাকাকালীন',
+  'settings.location.during_mission': 'শুধু মিশন চলাকালীন',
+  'settings.location.never': 'কখনই নয়',
+  'settings.appLock': 'অ্যাপ লক',
+  'settings.appLock.desc': 'অ্যাপ খুলতে Face ID / পাসকোড প্রয়োজন',
+  'settings.restartPrompt': 'নতুন লেআউট দিকনির্দেশ সম্পূর্ণ প্রয়োগ করতে রিস্টার্ট প্রয়োজন।',
+  'settings.saved': 'পছন্দ সংরক্ষিত হয়েছে',
+  'common.save': 'সংরক্ষণ',
+  'common.cancel': 'বাতিল',
+  'common.done': 'সম্পন্ন',
+  'common.retry': 'আবার চেষ্টা করুন',
+  'dispatch.finding': 'আপনার কাছাকাছি একটি এজেন্সি খোঁজা হচ্ছে…',
+  'dispatch.noProvider': 'এই মুহূর্তে কোনো এজেন্সি উপলব্ধ নেই',
+  'dispatch.rate.title': 'এজেন্সিকে রেট দিন',
+  'dispatch.consent': 'আমি নির্ধারিত এজেন্সির সাথে আমার লাইভ অবস্থান শেয়ার করতে সম্মত।',
+};
+export default bn;

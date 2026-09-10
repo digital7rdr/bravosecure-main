@@ -1,0 +1,93 @@
+# Bravo Secure — production edge. /etc/caddy/Caddyfile on 31.97.126.211
+#
+# Caddy terminates TLS (Let's Encrypt, auto) and is the ONLY public ingress.
+# Every app container binds 127.0.0.1 in docker-compose.prod.yml, so nothing
+# is reachable except through here.
+#
+# All four service hostnames share the parent domain bravosecure.cloud ON
+# PURPOSE: the ops session cookie is issued with Domain=.bravosecure.cloud so
+# a cookie set by auth. is delivered to ops.. Move any of these to a different
+# apex and the console login silently bounces forever.
+
+{
+	email admin@bravosecure.cloud
+	# Uncomment for the first run to avoid burning Let's Encrypt rate limits
+	# while DNS/firewall are still settling, then remove and reload:
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+(security) {
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
+
+auth.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	reverse_proxy localhost:3001
+}
+
+relay.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	# The messenger relay is REST + a socket.io WebSocket at /ws. Caddy's
+	# reverse_proxy upgrades WebSockets natively, but the read timeout must
+	# outlast the 30s heartbeat or long-lived call signalling sockets get cut.
+	reverse_proxy localhost:3100 {
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+}
+
+ops.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	reverse_proxy localhost:3002
+}
+
+media.bravosecure.cloud {
+	import security
+	# Attachments are already AES-256-CBC encrypted client-side before upload;
+	# MinIO never sees plaintext. Presigned URLs are signed over THIS hostname
+	# (MINIO_SERVER_URL), so it must match exactly.
+	request_body {
+		max_size 60MB
+	}
+	reverse_proxy localhost:9000
+}
+
+# The MOBILE app uses supabase-js directly — PostgREST (`from`), Realtime
+# (`channel`, WebSocket) and Storage — not via auth-service. So the Supabase
+# gateway (Kong, :8000) must be public. Only the four API prefixes are
+# proxied: Studio and the dashboard sit behind Kong's basic-auth at `/` and
+# must never face the internet. Everything else here is a 404.
+api.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	@api path /rest/v1/* /auth/v1/* /storage/v1/* /realtime/v1/* /functions/v1/*
+	handle @api {
+		reverse_proxy localhost:8000 {
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+	handle {
+		respond 404
+	}
+}
+
+# TURN needs a real certificate for TLS-over-TCP/5349, which is the transport
+# that gets calls through corporate and hotel networks blocking UDP. Caddy
+# obtains it here; a hook copies it to ./secrets/coturn-certs (README §5).
+turn.bravosecure.cloud {
+	import security
+	respond "TURN cert host" 200
+}

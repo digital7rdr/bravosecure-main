@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  .map-preview {
+    background-color: #070B12;
+    background-image:
+      radial-gradient(circle at 40% 50%, rgba(37,99,235,0.1) 0%, transparent 60%),
+      linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 28px 28px, 28px 28px;
+  }
+
+  .road-h { position: absolute; height: 1px; background: rgba(37,99,235,0.1); }
+  .road-v { position: absolute; width: 1px;  background: rgba(37,99,235,0.1); }
+
+  @keyframes pulse-pin {
+    0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.6); }
+    50%      { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+  }
+  .pin-pulse { animation: pulse-pin 2s ease-out infinite; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+    </button>
+    <span class="text-[11px] font-bold uppercase tracking-[2px] text-slate-400">Location Selection</span>
+  </div>
+  <div></div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto">
+
+  <!-- Booking summary card -->
+  <div class="px-4 pt-4 pb-2">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-xl" style="background:#0D1929; border:1px solid #1E2D45;">
+      <div class="size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Booking Type</p>
+        <p class="text-[13px] font-bold text-slate-100">Transfer <span class="text-slate-500 font-normal">· Under 1 hour</span></p>
+      </div>
+      <span class="text-[12px] font-extrabold text-primary">From 199 cr</span>
+    </div>
+  </div>
+
+  <!-- Location inputs -->
+  <div class="px-4 pt-3 pb-2">
+    <div class="rounded-2xl overflow-visible" style="background:#0D1929; border:1px solid #1E2D45;">
+
+      <!-- Pickup -->
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45;">
+        <div class="flex flex-col items-center gap-1 shrink-0">
+          <div class="size-2.5 rounded-full" style="background:#2563EB;"></div>
+        </div>
+        <input
+          id="pickup-input"
+          class="flex-1 bg-transparent text-[13px] text-slate-100 placeholder:text-slate-500 focus:outline-none border-none"
+          placeholder="Pickup location"
+          type="text"
+          onfocus="showDropdown('pickup')"
+        />
+        <button class="shrink-0 size-7 flex items-center justify-center rounded-full" style="background:rgba(37,99,235,0.1);">
+          <span class="material-symbols-outlined text-primary" style="font-size:14px;">my_location</span>
+        </button>
+      </div>
+
+      <!-- Swap button -->
+      <div class="relative h-0 flex justify-end pr-4">
+        <button onclick="swapLocations()" class="absolute -top-4 z-10 size-8 rounded-full flex items-center justify-center shadow-lg"
+          style="background:#0D1929; border:1px solid #1E2D45;">
+          <span class="material-symbols-outlined text-slate-400" style="font-size:16px;">swap_vert</span>
+        </button>
+      </div>
+
+      <!-- Destination -->
+      <div class="flex items-center gap-3 px-4 py-3.5">
+        <div class="size-2.5 rounded-sm shrink-0" style="background:#60A5FA;"></div>
+        <input
+          id="dest-input"
+          class="flex-1 bg-transparent text-[13px] text-slate-100 placeholder:text-slate-500 focus:outline-none border-none"
+          placeholder="Where to?"
+          type="text"
+          onfocus="showDropdown('dest')"
+        />
+        <button class="shrink-0 size-7 flex items-center justify-center rounded-full" style="background:rgba(255,255,255,0.04);">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px;">search</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Autocomplete dropdown -->
+  <div id="autocomplete-panel" class="px-4 pb-2 hidden">
+    <div class="rounded-xl overflow-hidden" style="background:#0D1929; border:1px solid #1E2D45;">
+      <div class="py-1">
+        <button onclick="selectLocation('Heathrow Airport, London')" class="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors" style="border-bottom:1px solid #1E2D45;">
+          <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:16px;">flight</span>
+          <div>
+            <p class="text-[13px] text-slate-100">Heathrow Airport</p>
+            <p class="text-[11px] text-slate-500">London, UK</p>
+          </div>
+        </button>
+        <button onclick="selectLocation('The Savoy Hotel, London')" class="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors" style="border-bottom:1px solid #1E2D45;">
+          <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:16px;">hotel</span>
+          <div>
+            <p class="text-[13px] text-slate-100">The Savoy Hotel</p>
+            <p class="text-[11px] text-slate-500">Strand, London, UK</p>
+          </div>
+        </button>
+        <button onclick="selectLocation('Canary Wharf, London')" class="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors">
+          <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:16px;">business</span>
+          <div>
+            <p class="text-[13px] text-slate-100">Canary Wharf</p>
+            <p class="text-[11px] text-slate-500">London, UK</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map Preview -->
+  <div class="px-4 pb-3">
+    <div class="map-preview rounded-2xl overflow-hidden relative" style="height:160px;">
+      <div class="road-h" style="top:35%; left:0; right:0;"></div>
+      <div class="road-h" style="top:65%; left:0; right:0;"></div>
+      <div class="road-v" style="left:30%; top:0; bottom:0;"></div>
+      <div class="road-v" style="left:65%; top:0; bottom:0;"></div>
+
+      <!-- Route line -->
+      <svg class="absolute inset-0 w-full h-full" style="opacity:0.5;">
+        <line x1="30%" y1="35%" x2="65%" y2="65%" stroke="#2563EB" stroke-width="2" stroke-dasharray="6 4"/>
+      </svg>
+
+      <!-- Pickup dot -->
+      <div class="pin-pulse absolute size-3.5 rounded-full border-2 border-white" style="left:30%; top:35%; transform:translate(-50%,-50%); background:#2563EB;"></div>
+
+      <!-- Dest pin -->
+      <div class="absolute" style="left:65%; top:65%; transform:translate(-50%,-100%);">
+        <span class="material-symbols-outlined filled text-blue-300" style="font-size:22px;">location_on</span>
+      </div>
+
+      <!-- Label -->
+      <div class="absolute bottom-2 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold"
+        style="background:rgba(10,15,30,0.85); border:1px solid #1E2D45; color:#60A5FA;">
+        <span class="material-symbols-outlined" style="font-size:11px;">map</span>
+        Route preview
+      </div>
+
+      <!-- Expand -->
+      <button class="absolute bottom-2 right-2 size-7 rounded-full flex items-center justify-center"
+        style="background:rgba(13,25,41,0.9); border:1px solid #1E2D45;">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:14px;">open_in_full</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Recent locations -->
+  <div class="px-4 pb-4">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Recent Locations</p>
+    <div class="space-y-1.5">
+
+      <button onclick="fillLocation('Mayfair, London, UK')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+        style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">history</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-semibold text-slate-100 truncate">Mayfair</p>
+          <p class="text-[11px] text-slate-500 truncate">London, UK</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-600" style="font-size:16px;">north_west</span>
+      </button>
+
+      <button onclick="fillLocation('Dubai International Airport, UAE')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+        style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">history</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-semibold text-slate-100 truncate">Dubai International Airport</p>
+          <p class="text-[11px] text-slate-500 truncate">Dubai, UAE</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-600" style="font-size:16px;">north_west</span>
+      </button>
+
+      <button onclick="fillLocation('Sandton City, Johannesburg, ZA')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+        style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">history</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-semibold text-slate-100 truncate">Sandton City</p>
+          <p class="text-[11px] text-slate-500 truncate">Johannesburg, ZA</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-600" style="font-size:16px;">north_west</span>
+      </button>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer CTA -->
+<div class="shrink-0 px-4 py-4 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="goNext()" class="w-full py-4 rounded-xl font-extrabold text-[14px] text-white tracking-wide transition-all active:scale-[0.98]"
+    style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+    Confirm Location
+  </button>
+</div>
+
+<script>
+  let activeField = null;
+
+  function showDropdown(field) {
+    activeField = field;
+    document.getElementById('autocomplete-panel').classList.remove('hidden');
+  }
+
+  function selectLocation(value) {
+    if (activeField === 'pickup') {
+      document.getElementById('pickup-input').value = value;
+    } else {
+      document.getElementById('dest-input').value = value;
+    }
+    document.getElementById('autocomplete-panel').classList.add('hidden');
+    activeField = null;
+  }
+
+  function fillLocation(value) {
+    const dest = document.getElementById('dest-input');
+    if (!dest.value) {
+      dest.value = value;
+    } else {
+      document.getElementById('pickup-input').value = value;
+    }
+  }
+
+  function swapLocations() {
+    const pickup = document.getElementById('pickup-input');
+    const dest   = document.getElementById('dest-input');
+    const tmp = pickup.value;
+    pickup.value = dest.value;
+    dest.value   = tmp;
+  }
+
+  document.addEventListener('click', function(e) {
+    const panel = document.getElementById('autocomplete-panel');
+    if (!panel.classList.contains('hidden')) {
+      const inputs = document.querySelectorAll('#pickup-input, #dest-input');
+      let inside = panel.contains(e.target);
+      inputs.forEach(i => { if (i === e.target) inside = true; });
+      if (!inside) panel.classList.add('hidden');
+    }
+  });
+
+  function goNext() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('add-ons'));
+      window.parent.loadScreen('screens/add-ons.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('booking-type'));
+      window.parent.loadScreen('screens/booking-type.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+
+</body></html>

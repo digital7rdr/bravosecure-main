@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled-icon { font-variation-settings: 'FILL' 1; }
+  input { outline: none; }
+  input:focus { border-color: #2563EB !important; box-shadow: 0 0 0 1px rgba(37,99,235,0.3); }
+  input::placeholder { color: #475569; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100" style="height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Header -->
+  <header class="flex items-center px-4 justify-between border-b border-primary/10 shrink-0" style="padding-top:50px; padding-bottom:8px;">
+    <button onclick="goBack()" class="flex size-9 items-center justify-center hover:bg-primary/10 rounded-full transition-colors">
+      <span class="material-symbols-outlined text-slate-300 text-[20px]">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-[2px] uppercase text-slate-400">Reset PIN</span>
+    <div class="size-9"></div>
+  </header>
+
+  <!-- Scrollable content -->
+  <div class="flex-1 overflow-y-auto px-5 pt-6 pb-6">
+
+    <!-- Icon + title -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="flex size-14 items-center justify-center rounded-2xl mb-3" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+        <span class="material-symbols-outlined filled-icon text-blue-400" style="font-size:28px;">lock_reset</span>
+      </div>
+      <h1 class="text-lg font-extrabold text-slate-100 mb-1">Forgot Your PIN?</h1>
+      <p class="text-[11px] text-slate-500 text-center leading-relaxed">Enter your registered email and phone number.<br/>We'll send an OTP to both.</p>
+    </div>
+
+    <!-- Email field -->
+    <div class="mb-4">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">Email Address</label>
+      <div class="flex items-center rounded-[12px] h-11 px-3 gap-2" style="background:#0D1929; border:1px solid #1E2D45;">
+        <span class="material-symbols-outlined text-slate-500 text-[18px]">mail</span>
+        <input id="email-input" type="email" placeholder="you@example.com"
+          class="flex-1 bg-transparent text-[13px] text-slate-100 font-medium border-none"
+          style="outline:none;"/>
+      </div>
+    </div>
+
+    <!-- Phone field -->
+    <div class="mb-6">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">Phone Number</label>
+      <div class="flex items-center rounded-[12px] h-11 px-3 gap-2" style="background:#0D1929; border:1px solid #1E2D45;">
+        <span class="material-symbols-outlined text-slate-500 text-[18px]">phone</span>
+        <input id="phone-input" type="tel" placeholder="+1 000 000 0000"
+          class="flex-1 bg-transparent text-[13px] text-slate-100 font-medium border-none"
+          style="outline:none;"/>
+      </div>
+    </div>
+
+    <!-- Info note -->
+    <div class="flex items-start gap-2 rounded-xl p-3 mb-6" style="background:rgba(37,99,235,0.07); border:1px solid rgba(37,99,235,0.15);">
+      <span class="material-symbols-outlined text-blue-400 text-[16px] mt-0.5 shrink-0">info</span>
+      <p class="text-[11px] text-slate-400 leading-relaxed">A 6-digit OTP will be sent to both your email and phone number for verification.</p>
+    </div>
+
+    <!-- Send OTP button -->
+    <button onclick="sendOTP()"
+      class="w-full h-11 rounded-[12px] font-extrabold text-[13px] tracking-[2px] uppercase text-white transition-all"
+      style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+      Send OTP
+    </button>
+
+    <!-- Back to login -->
+    <div class="flex justify-center mt-4">
+      <button onclick="goBack()" class="text-xs text-slate-500 hover:text-blue-400 transition-colors font-medium">
+        Back to Vault Login
+      </button>
+    </div>
+
+  </div>
+
+<script>
+  function sendOTP() {
+    const email = document.getElementById('email-input').value.trim();
+    const phone = document.getElementById('phone-input').value.trim();
+    if (!email || !phone) return;
+    navigate('screens/vault-otp-verify.html');
+  }
+
+  function navigate(src) {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(src.replace('screens/','')));
+      window.parent.loadScreen(src, navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    navigate('screens/vault-lock.html');
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+name: Flake Watch
+
+on:
+  schedule:
+    # Daily 03:00 UTC — keep flake history outside busy CI hours
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    name: Detect flaky tests (5x rerun)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [messenger-crypto, booking, app]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+
+      - name: Run jest 5x and record per-test failures
+        run: node scripts/flake-detect.mjs ${{ matrix.project }}
+
+      - name: Upload flake report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flake-report-${{ matrix.project }}
+          path: flake-report-${{ matrix.project }}.json
+          retention-days: 30
+
+      - name: Open / update flake-watch issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/flake-issue.mjs ${{ matrix.project }}

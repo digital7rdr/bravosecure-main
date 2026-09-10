@@ -1,0 +1,41 @@
+# gitleaks v8 config — extends the default ruleset.
+#
+# Why we have allowlists here:
+#
+#   1. Firebase google-services.json (Android) + GoogleService-Info.plist
+#      (iOS) ship per-project public API keys. Google explicitly
+#      documents these as safe to distribute. Real protection comes
+#      from SHA-1 fingerprint + package-name restrictions in GCP.
+#
+#   2. EXPO_PUBLIC_SUPABASE_ANON_KEY appears in package.json scripts +
+#      eas.json. Supabase anon keys are public-by-design — RLS policies
+#      enforce row-level access. The dangerous SERVICE_ROLE key never
+#      appears in client code.
+#
+#   3. .env.example contains empty placeholder values by convention.
+#
+#   4. docs/openapi/*.yaml has request/response examples with placeholder
+#      tokens, not real secrets.
+#
+# Path-based allowlists are precise (still scans the rest of the repo
+# for the same patterns).
+
+title = "Bravo Secure gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known-safe locations: public Firebase/Supabase client keys, env templates, API docs"
+paths = [
+    '''android/app/google-services\.json''',
+    '''ios/.*GoogleService-Info\.plist''',
+    '''package\.json''',
+    '''package-lock\.json''',
+    '''eas\.json''',
+    '''(^|/)\.env\.example$''',
+    '''docs/openapi/.*\.ya?ml''',
+    '''AUTH_TESTING\.md''',
+    '''.*\.spec\.ts$''',
+    '''.*\.test\.ts$''',
+]

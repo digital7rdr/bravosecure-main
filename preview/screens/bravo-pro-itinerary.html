@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"pro":"#6366F1","background-dark":"#0A0F1E"},fontFamily:{"display":["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .dot-progress{display:flex;gap:5px;align-items:center;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#1E2D45;}
+  .dot.active{background:#6366F1;width:18px;border-radius:3px;}
+  .dot.done{background:#6366F1;}
+
+  /* Upload zone */
+  .upload-zone{
+    border:2px dashed rgba(99,102,241,0.4);border-radius:1.25rem;
+    background:rgba(99,102,241,0.04);padding:24px;text-align:center;
+    cursor:pointer;transition:all 0.2s;position:relative;
+  }
+  .upload-zone:hover,.upload-zone.drag-over{border-color:rgba(99,102,241,0.7);background:rgba(99,102,241,0.09);}
+  .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;border-radius:1.25rem;}
+
+  @keyframes folder-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .folder-icon{animation:folder-float 3s ease-in-out infinite;}
+  @keyframes parse-sweep{0%{width:0%}100%{width:100%}}
+  .parse-bar{height:3px;background:linear-gradient(90deg,#6366F1,#a5b4fc);border-radius:9999px;animation:parse-sweep 1.8s ease forwards;}
+
+  /* Journey leg */
+  .leg-card{
+    background:#0D1929;border:1px solid #1E2D45;border-radius:14px;
+    overflow:hidden;transition:border-color 0.2s;
+  }
+  .leg-card.booked{border-color:rgba(99,102,241,0.35);}
+  .leg-card.pending{border-color:rgba(245,158,11,0.3);}
+
+  .leg-timeline-dot{
+    width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  }
+  .leg-line{width:1px;flex:1;min-height:20px;background:#1E2D45;margin:2px auto;}
+
+  /* Status badge */
+  .status-badge{font-size:8px;font-weight:800;letter-spacing:1.2px;padding:2px 7px;border-radius:4px;}
+
+  /* Control room toggle row */
+  .ctrl-row{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 14px;border-bottom:1px solid #1E2D45;
+    cursor:pointer;transition:background 0.15s;
+  }
+  .ctrl-row:last-child{border-bottom:none;}
+  .ctrl-row:active{background:rgba(99,102,241,0.04);}
+
+  /* Mini toggle */
+  .mini-tog{
+    width:36px;height:20px;border-radius:10px;flex-shrink:0;
+    background:#1E2D45;position:relative;cursor:pointer;transition:background 0.2s;
+  }
+  .mini-tog.on{background:#6366F1;}
+  .mini-tog::after{
+    content:'';position:absolute;top:2px;left:2px;
+    width:16px;height:16px;border-radius:50%;background:#fff;
+    transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  }
+  .mini-tog.on::after{transform:translateX(16px);}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-widest uppercase" style="color:#6366F1">Itinerary Upload</span>
+  </div>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full border" style="color:#6366F1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)">STEP 3/10</span>
+</header>
+
+<div class="px-5 pb-3">
+  <div class="dot-progress">
+    <div class="dot done"></div><div class="dot done"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+</div>
+
+<main class="flex-1 px-4 pb-28 overflow-y-auto space-y-4 pt-1">
+
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="upload-zone"
+       onclick="document.getElementById('file-input').click()"
+       ondragover="event.preventDefault();this.classList.add('drag-over')"
+       ondragleave="this.classList.remove('drag-over')"
+       ondrop="handleDrop(event)">
+    <input type="file" id="file-input" accept=".pdf,.ics,.xls,.xlsx,.doc,.docx" onchange="handleFile(event)"/>
+    <div id="upload-idle">
+      <div class="folder-icon text-4xl mb-2">📁</div>
+      <p class="text-sm font-bold tracking-widest uppercase mb-1" style="color:#a5b4fc">Upload Itinerary</p>
+      <p class="text-xs text-slate-500 mb-0.5">PDF · ICS · Excel · Word</p>
+      <p class="text-xs text-slate-600">Or tap to browse files</p>
+    </div>
+    <div id="upload-progress" class="hidden">
+      <div class="text-3xl mb-2">📄</div>
+      <p id="upload-filename" class="text-sm font-bold text-slate-200 mb-2">document.pdf</p>
+      <div class="bg-slate-800 rounded-full overflow-hidden mb-1"><div class="parse-bar"></div></div>
+      <p class="text-xs text-slate-400">Parsing itinerary…</p>
+    </div>
+    <div id="upload-done" class="hidden">
+      <div class="text-3xl mb-2">✅</div>
+      <p id="upload-done-name" class="text-sm font-bold text-slate-200 mb-0.5">document.pdf</p>
+      <p class="text-xs" style="color:#a5b4fc">14 events detected · 3 travel legs</p>
+    </div>
+  </div>
+
+  <!-- ── TRAVEL JOURNEY MANAGEMENT ─────────── -->
+  <div>
+    <div class="flex items-center justify-between mb-2 px-0.5">
+      <p class="text-[10px] font-bold tracking-widest uppercase text-slate-500">Travel Journey Management</p>
+      <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">3 LEGS</span>
+    </div>
+
+    <div class="space-y-2">
+
+      <!-- Leg 1: Dubai → London -->
+      <div class="leg-card booked" id="leg-1">
+        <div class="flex items-center justify-between px-4 pt-3 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined filled shrink-0" style="font-size:16px;color:#6366F1">flight_takeoff</span>
+            <div>
+              <p class="text-[12px] font-bold text-slate-100">Dubai → London</p>
+              <p class="text-[10px] text-slate-500">EK003 · Mon 14 Apr · Dep 09:20</p>
+            </div>
+          </div>
+          <span class="status-badge" style="background:rgba(99,102,241,0.12);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);">BOOKED</span>
+        </div>
+        <!-- Pre-booking detail -->
+        <div class="px-4 pb-3 flex items-center gap-3 border-t" style="border-color:#1E2D45;padding-top:10px;">
+          <div class="flex-1 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span>
+              <p class="text-[10px] text-slate-400">Airport CPO pre-assigned — DXB T3</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span>
+              <p class="text-[10px] text-slate-400">Armoured vehicle — kerbside LHR T5</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span>
+              <p class="text-[10px] text-slate-400">Control room notified · ETA flagged</p>
+            </div>
+          </div>
+          <button onclick="event.stopPropagation();editLeg(1)" class="text-[9px] font-bold px-3 py-1.5 rounded-lg" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.2);">EDIT</button>
+        </div>
+      </div>
+
+      <!-- Leg 2: London Ground Transfer -->
+      <div class="leg-card pending" id="leg-2">
+        <div class="flex items-center justify-between px-4 pt-3 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined filled shrink-0" style="font-size:16px;color:#f59e0b">directions_car</span>
+            <div>
+              <p class="text-[12px] font-bold text-slate-100">LHR → Mayfair Hotel</p>
+              <p class="text-[10px] text-slate-500">Ground transfer · Mon 14 Apr · ~16:45</p>
+            </div>
+          </div>
+          <span class="status-badge" style="background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);">PENDING</span>
+        </div>
+        <div class="px-4 pb-3 flex items-center gap-3 border-t" style="border-color:#1E2D45;padding-top:10px;">
+          <div class="flex-1 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span>
+              <p class="text-[10px] text-slate-400">Driver pre-booked — awaiting confirmation</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px;">pending</span>
+              <p class="text-[10px] text-slate-400">Route risk assessment in progress</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px;">pending</span>
+              <p class="text-[10px] text-slate-400">Control room handover — pending ETA lock</p>
+            </div>
+          </div>
+          <button onclick="event.stopPropagation();prebook(2)" class="text-[9px] font-bold px-3 py-1.5 rounded-lg" style="background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.25);">CONFIRM</button>
+        </div>
+      </div>
+
+      <!-- Leg 3: London → Edinburgh -->
+      <div class="leg-card" id="leg-3">
+        <div class="flex items-center justify-between px-4 pt-3 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined filled shrink-0" style="font-size:16px;color:#64748b">train</span>
+            <div>
+              <p class="text-[12px] font-bold text-slate-400">London → Edinburgh</p>
+              <p class="text-[10px] text-slate-600">LNER · Thu 17 Apr · Dep 11:00</p>
+            </div>
+          </div>
+          <span class="status-badge" style="background:rgba(100,116,139,0.1);color:#64748b;border:1px solid #1E2D45;">OPEN</span>
+        </div>
+        <div class="px-4 pb-3 border-t" style="border-color:#1E2D45;padding-top:10px;">
+          <button onclick="prebook(3)" class="w-full text-[10px] font-bold py-2 rounded-lg flex items-center justify-center gap-2" style="background:rgba(99,102,241,0.08);color:#818cf8;border:1px dashed rgba(99,102,241,0.25);">
+            <span class="material-symbols-outlined" style="font-size:14px;">add_circle</span>
+            PRE-BOOK SECURITY FOR THIS LEG
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CONTROL ROOM UPDATES ───────────────── -->
+  <div class="rounded-2xl overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45;">
+    <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color:#1E2D45;">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled shrink-0" style="font-size:16px;color:#6366F1;">settings_input_antenna</span>
+        <p class="text-[11px] font-bold text-slate-200">Control Room Updates</p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+        <span class="text-[9px] font-bold text-emerald-400 tracking-widest">LIVE</span>
+      </div>
+    </div>
+
+    <div class="ctrl-row" onclick="toggleCtrl(this)">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px;color:#818cf8;">flight</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-semibold text-slate-200">Departure &amp; Arrival Alerts</p>
+        <p class="text-[10px] text-slate-500">Ops room notified at check-in and landing</p>
+      </div>
+      <div class="mini-tog on"></div>
+    </div>
+
+    <div class="ctrl-row" onclick="toggleCtrl(this)">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px;color:#818cf8;">route</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-semibold text-slate-200">Real-Time Route Updates</p>
+        <p class="text-[10px] text-slate-500">Live GPS tracking pushed to control room</p>
+      </div>
+      <div class="mini-tog on"></div>
+    </div>
+
+    <div class="ctrl-row" onclick="toggleCtrl(this)">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px;color:#fbbf24;">update</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-semibold text-slate-200">Delay &amp; Schedule Changes</p>
+        <p class="text-[10px] text-slate-500">Flight delays, gate changes sent immediately</p>
+      </div>
+      <div class="mini-tog on"></div>
+    </div>
+
+    <div class="ctrl-row" onclick="toggleCtrl(this)">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px;color:#f87171;">emergency</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-semibold text-slate-200">Emergency Escalation</p>
+        <p class="text-[10px] text-slate-500">Auto-escalate SOS to on-call duty officer</p>
+      </div>
+      <div class="mini-tog on"></div>
+    </div>
+
+    <div class="ctrl-row" onclick="toggleCtrl(this)">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px;color:#64748b;">hotel</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-semibold text-slate-200">Hotel Check-In Confirmation</p>
+        <p class="text-[10px] text-slate-500">Notify control room when principal is secured</p>
+      </div>
+      <div class="mini-tog"></div>
+    </div>
+
+  </div>
+
+  <!-- Pre-book confirmation snackbar (hidden) -->
+  <div id="prebook-toast" class="hidden rounded-xl px-4 py-3 flex items-center gap-3" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);">
+    <span class="material-symbols-outlined filled text-indigo-400 shrink-0" style="font-size:18px;">check_circle</span>
+    <p class="text-[12px] font-semibold text-slate-200" id="prebook-msg">Security pre-booked for this leg.</p>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goNext()" id="cta-btn" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all"
+    style="background:linear-gradient(160deg,#818cf8,#6366F1,#4338ca);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(99,102,241,0.3);color:white;letter-spacing:0.05em;font-size:0.8125rem">
+    <span class="material-symbols-outlined" style="font-size:16px">route</span>
+    CONFIRM JOURNEY &amp; CONTINUE
+  </button>
+</footer>
+
+<script>
+  // ── Upload ─────────────────────────────────
+  function handleFile(e){processFile(e.target.files[0]);}
+  function handleDrop(e){
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.remove('drag-over');
+    if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+  }
+  function processFile(file){
+    if(!file)return;
+    document.getElementById('upload-idle').classList.add('hidden');
+    document.getElementById('upload-progress').classList.remove('hidden');
+    document.getElementById('upload-filename').textContent=file.name;
+    setTimeout(()=>{
+      document.getElementById('upload-progress').classList.add('hidden');
+      document.getElementById('upload-done').classList.remove('hidden');
+      document.getElementById('upload-done-name').textContent=file.name;
+    },2000);
+  }
+
+  // ── Control room toggles ───────────────────
+  function toggleCtrl(row){
+    const tog=row.querySelector('.mini-tog');
+    tog.classList.toggle('on');
+  }
+
+  // ── Pre-book leg ───────────────────────────
+  function prebook(legNum){
+    const card=document.getElementById('leg-'+legNum);
+    card.classList.remove('pending');
+    card.classList.add('booked');
+    // Update status badge
+    const badge=card.querySelector('.status-badge');
+    badge.textContent='BOOKED';
+    badge.style.background='rgba(99,102,241,0.12)';
+    badge.style.color='#a5b4fc';
+    badge.style.border='1px solid rgba(99,102,241,0.3)';
+    // Update header icon
+    const icon=card.querySelector('.material-symbols-outlined.filled');
+    if(icon){icon.style.color='#6366F1';}
+    // Replace open/confirm button with edit
+    const btnArea=card.querySelector('button[onclick*="prebook"], button[onclick*="editLeg"]')?.closest('.border-t');
+    if(btnArea){
+      btnArea.innerHTML=`
+        <div class="flex items-center gap-3" style="padding:10px 0 0;">
+          <div class="flex-1 space-y-1.5">
+            <div class="flex items-center gap-2"><span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span><p class="text-[10px] text-slate-400">CPO pre-assigned for this leg</p></div>
+            <div class="flex items-center gap-2"><span class="material-symbols-outlined filled text-emerald-400" style="font-size:12px;">check_circle</span><p class="text-[10px] text-slate-400">Control room notified · leg added to route</p></div>
+          </div>
+          <button onclick="event.stopPropagation();editLeg(${legNum})" class="text-[9px] font-bold px-3 py-1.5 rounded-lg" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.2);">EDIT</button>
+        </div>`;
+    }
+    // Show toast
+    const toast=document.getElementById('prebook-toast');
+    document.getElementById('prebook-msg').textContent='Leg '+legNum+' security pre-booked · Control room updated.';
+    toast.classList.remove('hidden');
+    setTimeout(()=>toast.classList.add('hidden'),3000);
+  }
+
+  function editLeg(n){
+    // Visual feedback only
+    const card=document.getElementById('leg-'+n);
+    card.style.opacity='0.7';
+    setTimeout(()=>card.style.opacity='',300);
+  }
+
+  // ── Nav ────────────────────────────────────
+  function goBack(){
+    if(window.parent&&window.parent.loadScreen){
+      const nav=window.parent.document.querySelector('[onclick*="bravo-pro-client-profile"]')||window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/bravo-pro-client-profile.html',nav||document.createElement('div'));
+    }
+  }
+  function goNext(){
+    if(window.parent&&window.parent.loadScreen){
+      const nav=window.parent.document.querySelector('[onclick*="bravo-pro-ai-scheduling"]')||window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/bravo-pro-ai-scheduling.html',nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

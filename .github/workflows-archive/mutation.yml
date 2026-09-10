@@ -1,0 +1,70 @@
+name: Mutation Testing (Crypto)
+
+on:
+  # Weekly — mutation testing is expensive, don't run on every push
+  schedule:
+    - cron: '0 4 * * 1' # Monday 04:00 UTC
+  # Manual trigger
+  workflow_dispatch:
+  # Run on PRs that touch crypto
+  pull_request:
+    branches: [main]
+    paths:
+      # AUDIT-2026-08-13 #7 — the crypto primitives live in messenger-core
+      # (the mobile crypto/ files are tombstone re-exports); without the core
+      # paths a primitives PR never fired this job.
+      - 'packages/messenger-core/src/crypto/**'
+      - 'packages/messenger-core/__tests__/**'
+      - 'src/modules/messenger/crypto/**'
+      - 'src/modules/messenger/__tests__/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mutation:
+    name: Stryker (messenger/crypto)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+
+      - name: Install Stryker
+        run: |
+          npm install --no-save \
+            @stryker-mutator/core \
+            @stryker-mutator/jest-runner
+
+      - name: Run mutation tests
+        run: npx stryker run stryker.crypto.config.mjs
+        continue-on-error: true
+
+      - name: Upload mutation report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 30
+
+      - name: Post mutation score to PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: mutation
+          message: |
+            ### 🧬 Mutation Testing Report (crypto)
+
+            See uploaded artifact `mutation-report` for full HTML report.
+            Mutation thresholds: high=80%, low=60%, break=50%.
+
+            > Mutation testing intentionally breaks your code (e.g. flips `>` to `>=`)
+            > and re-runs tests. If tests still pass, that mutation _survived_ —
+            > meaning your tests don't actually verify that logic. For crypto code,
+            > surviving mutations are a security risk.

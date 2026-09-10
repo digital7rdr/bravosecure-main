@@ -1,0 +1,79 @@
+# ──────────────────────────────────────────────────────────────────────
+# Deploy Supabase migrations to staging.
+#
+# Audit reference: DEPLOY_PLAN.md §C.1 / Bravo Lite Audit Tracker
+# (Phases 1, 2, 4 each introduced new migrations).
+#
+# Triggers:
+#   - push to main that touches supabase/migrations/**
+#   - manual `workflow_dispatch` so a hotfix migration can be re-applied
+#     without a fresh commit.
+#
+# Behaviour:
+#   - Uses the official `supabase/setup-cli` action.
+#   - `supabase link --project-ref <staging>` (project ref is checked-in
+#     because it isn't secret; it appears in every public URL anyway).
+#   - `supabase db push --include-all` applies every unapplied migration
+#     in lex order. Idempotent — already-applied migrations are skipped.
+#
+# Required GitHub secrets:
+#   - SUPABASE_ACCESS_TOKEN  — personal access token from
+#                              https://supabase.com/dashboard/account/tokens
+#   - SUPABASE_DB_PASSWORD   — the staging project's DB password
+#                              (Project Settings → Database → Connection)
+#
+# Rollback: Supabase migrations are forward-only. To undo, write a new
+# migration that reverses the change and let this workflow apply it.
+# Manual `supabase db reset --linked` against staging is the nuclear
+# option; do not run from CI.
+# ──────────────────────────────────────────────────────────────────────
+name: Deploy Supabase migrations (staging)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/deploy-migrations.yml'
+  workflow_dispatch:
+
+# Single in-flight migration deploy at a time. Concurrent applies could
+# race on the schema_migrations table and produce confusing failures.
+concurrency:
+  group: deploy-migrations-staging
+  cancel-in-progress: false
+
+jobs:
+  push:
+    name: supabase db push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Bind the secret to the env so any future script changes inherit it.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      STAGING_PROJECT_REF: qkkfkicgoncxslbwhyhz
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to staging project
+        run: supabase link --project-ref "$STAGING_PROJECT_REF"
+
+      - name: Apply migrations
+        # --include-all ensures every migration is considered, not just
+        # the ones the CLI thinks are new. Useful when the local CLI
+        # state was reset; safe because already-applied rows are no-op.
+        run: supabase db push --include-all
+
+      - name: Summarise applied state
+        if: always()
+        run: |
+          echo "::group::Migration status"
+          supabase migration list --linked || true
+          echo "::endgroup::"

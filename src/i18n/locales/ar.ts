@@ -1,0 +1,28 @@
+/** Arabic catalog (BUILD_RUNBOOK Step 25) — RTL. Missing keys fall back to English. */
+const ar: Record<string, string> = {
+  'settings.title': 'الإعدادات',
+  'settings.language': 'اللغة',
+  'settings.currency': 'العملة',
+  'settings.notifications': 'الإشعارات',
+  'settings.notifications.safety': 'تنبيهات السلامة',
+  'settings.notifications.safety.locked': 'مفعّل دائمًا',
+  'settings.notifications.trip': 'تحديثات الرحلة',
+  'settings.notifications.marketing': 'العروض والأخبار',
+  'settings.location': 'مشاركة الموقع',
+  'settings.location.while_on_duty': 'أثناء الخدمة',
+  'settings.location.during_mission': 'أثناء المهمة فقط',
+  'settings.location.never': 'أبدًا',
+  'settings.appLock': 'قفل التطبيق',
+  'settings.appLock.desc': 'يتطلب Face ID / رمز المرور لفتح التطبيق',
+  'settings.restartPrompt': 'يلزم إعادة التشغيل لتطبيق اتجاه التخطيط الجديد بالكامل.',
+  'settings.saved': 'تم حفظ التفضيلات',
+  'common.save': 'حفظ',
+  'common.cancel': 'إلغاء',
+  'common.done': 'تم',
+  'common.retry': 'إعادة المحاولة',
+  'dispatch.finding': 'جارٍ البحث عن وكالة بالقرب منك…',
+  'dispatch.noProvider': 'لا توجد وكالة متاحة الآن',
+  'dispatch.rate.title': 'قيّم الوكالة',
+  'dispatch.consent': 'أوافق على مشاركة موقعي المباشر مع الوكالة المعيّنة.',
+};
+export default ar;

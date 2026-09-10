@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  @keyframes ping-once {
+    0%   { transform: scale(1);   opacity: 0.7; }
+    80%  { transform: scale(1.9); opacity: 0;   }
+    100% { transform: scale(1.9); opacity: 0;   }
+  }
+  .ping-once { animation: ping-once 1.4s ease-out forwards; }
+
+  @keyframes countdown-anim {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: 50.3; }
+  }
+  .countdown-ring { animation: countdown-anim 30s linear forwards; }
+
+  /* ── Accept / Decline full-screen flash animations ── */
+  @keyframes accept-flash {
+    0%   { opacity: 0; transform: scale(0.85); }
+    20%  { opacity: 1; transform: scale(1.04); }
+    60%  { opacity: 1; transform: scale(1);    }
+    100% { opacity: 1; transform: scale(1);    }
+  }
+  @keyframes decline-flash {
+    0%   { opacity: 0; transform: scale(0.85); }
+    20%  { opacity: 1; transform: scale(1.04); }
+    60%  { opacity: 1; transform: scale(1);    }
+    100% { opacity: 1; transform: scale(1);    }
+  }
+  @keyframes icon-bounce {
+    0%   { transform: scale(0);   opacity: 0; }
+    55%  { transform: scale(1.3); opacity: 1; }
+    75%  { transform: scale(0.9);             }
+    100% { transform: scale(1);               }
+  }
+  @keyframes ripple-out {
+    0%   { transform: scale(1);   opacity: 0.5; }
+    100% { transform: scale(3);   opacity: 0;   }
+  }
+
+  .accept-overlay  { animation: accept-flash  0.4s ease-out forwards; }
+  .decline-overlay { animation: decline-flash 0.4s ease-out forwards; }
+  .icon-bounce     { animation: icon-bounce   0.55s cubic-bezier(.36,.07,.19,.97) 0.15s both; }
+  .ripple          { animation: ripple-out    0.8s ease-out 0.2s forwards; }
+
+  /* Price input number spinner hide */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { appearance: textfield; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+    </button>
+    <span class="text-[11px] font-bold uppercase tracking-[2px] text-slate-400">Incoming Booking</span>
+  </div>
+  <!-- Countdown -->
+  <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+    <div class="relative size-5 shrink-0">
+      <svg class="size-5 -rotate-90" viewBox="0 0 20 20">
+        <circle cx="10" cy="10" r="8" fill="none" stroke="#1E2D45" stroke-width="2"/>
+        <circle id="countdown-circle" cx="10" cy="10" r="8" fill="none" stroke="#2563EB" stroke-width="2"
+          stroke-dasharray="50.3" stroke-dashoffset="0" class="countdown-ring" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span id="timer-display" class="text-[12px] font-extrabold text-primary tabular-nums">0:30</span>
+  </div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+
+  <!-- Alert pulse + title -->
+  <div class="flex items-center gap-4 py-1">
+    <div class="relative shrink-0">
+      <div class="ping-once absolute inset-0 rounded-full" style="background:rgba(37,99,235,0.3);"></div>
+      <div class="size-12 rounded-full flex items-center justify-center relative z-10" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+        <span class="material-symbols-outlined filled text-primary" style="font-size:22px;">notification_important</span>
+      </div>
+    </div>
+    <div>
+      <h1 class="text-[17px] font-extrabold text-slate-100 leading-tight">New Job Request</h1>
+      <p class="text-[12px] text-slate-500 mt-0.5">You have 30 seconds to respond</p>
+    </div>
+  </div>
+
+  <!-- Client card -->
+  <div class="flex items-center gap-3 px-4 py-3 rounded-xl" style="background:#0D1929; border:1px solid #1E2D45;">
+    <div class="size-10 rounded-full flex items-center justify-center text-[13px] font-extrabold text-white shrink-0"
+      style="background:linear-gradient(135deg,#1D4ED8,#2563EB);">JH</div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-100">James Harrington</p>
+      <div class="flex items-center gap-1 mt-0.5">
+        <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px;">star</span>
+        <span class="text-[11px] font-semibold text-slate-400">4.9 · 32 bookings</span>
+      </div>
+    </div>
+    <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase text-primary" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">Verified</span>
+  </div>
+
+  <!-- Booking summary -->
+  <div class="rounded-2xl overflow-hidden" style="background:#0D1929; border:1px solid #1E2D45;">
+
+    <!-- Type -->
+    <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45;">
+      <div class="size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+        <span class="material-symbols-outlined text-primary" style="font-size:18px;">location_on</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Booking Type</p>
+        <p class="text-[13px] font-bold text-slate-100">Transfer <span class="text-slate-500 font-normal">· Under 1 hour</span></p>
+      </div>
+      <span class="text-[13px] font-extrabold text-primary">345 cr/hr</span>
+    </div>
+
+    <!-- Route -->
+    <div class="px-4 py-3 border-b" style="border-color:#1E2D45;">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Route</p>
+      <div class="flex items-start gap-3">
+        <div class="flex flex-col items-center gap-1 mt-1 shrink-0">
+          <div class="size-2.5 rounded-full" style="background:#2563EB;"></div>
+          <div class="w-px" style="height:20px; background:#1E2D45;"></div>
+          <div class="size-2.5 rounded-sm" style="background:#60A5FA;"></div>
+        </div>
+        <div class="space-y-3 flex-1 min-w-0">
+          <div>
+            <p class="text-[12px] font-semibold text-slate-200">Heathrow Airport, London</p>
+            <p class="text-[10px] text-slate-500">Pickup · Terminal 5</p>
+          </div>
+          <div>
+            <p class="text-[12px] font-semibold text-slate-200">The Savoy Hotel, Strand</p>
+            <p class="text-[10px] text-slate-500">Destination · London, UK</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-[11px] font-bold text-slate-400">~18 min</p>
+          <p class="text-[10px] text-slate-600">est. drive</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date & time -->
+    <div class="grid grid-cols-2" style="border-color:#1E2D45;">
+      <div class="px-4 py-3" style="border-right:1px solid #1E2D45;">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Date</p>
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary" style="font-size:14px;">calendar_month</span>
+          <p class="text-[12px] font-semibold text-slate-200">Wed, 26 Mar</p>
+        </div>
+      </div>
+      <div class="px-4 py-3">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Time</p>
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary" style="font-size:14px;">schedule</span>
+          <p class="text-[12px] font-semibold text-slate-200">10:45 AM</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Package -->
+  <div>
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Package</p>
+    <div class="rounded-2xl overflow-hidden" style="background:#0D1929; border:1px solid #1E2D45;">
+
+      <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45;">
+        <div class="size-8 rounded-[8px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">person</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[12px] font-semibold text-slate-100">1× Lead CPO</p>
+          <p class="text-[10px] text-slate-500">SIA Licensed</p>
+        </div>
+        <span class="material-symbols-outlined filled text-primary" style="font-size:16px;">check_circle</span>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45;">
+        <div class="size-8 rounded-[8px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">directions_car</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[12px] font-semibold text-slate-100">1× Security Driver</p>
+          <p class="text-[10px] text-slate-500">Advanced Tactical Driving</p>
+        </div>
+        <span class="material-symbols-outlined filled text-primary" style="font-size:16px;">check_circle</span>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45;">
+        <div class="size-8 rounded-[8px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+          <span class="material-symbols-outlined text-primary" style="font-size:16px;">radio</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-[12px] font-semibold text-slate-100">1× Secure Comms Kit</p>
+          <p class="text-[10px] text-slate-500">Encrypted radios · +40 cr/hr</p>
+        </div>
+        <span class="material-symbols-outlined filled text-primary" style="font-size:16px;">check_circle</span>
+      </div>
+
+      <!-- Armoured Vehicle row -->
+      <div class="flex items-start gap-3 px-4 py-3 border-b" style="border-color:#1E2D45; background:rgba(251,191,36,0.03);">
+        <div class="size-8 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style="background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.2);">
+          <span class="material-symbols-outlined" style="font-size:16px; color:#FBBF24;">shield</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <p class="text-[12px] font-semibold text-slate-100">1× Armoured Vehicle (VR7+)</p>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase" style="background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.2); color:#FBBF24;">Ops approval</span>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-0.5">Custom pricing — set by agent</p>
+        </div>
+      </div>
+
+      <!-- Armoured Vehicle custom price input -->
+      <div class="px-4 py-3" style="background:rgba(251,191,36,0.04);">
+        <p class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:#FBBF24;">Set Your Price for Armoured Vehicle</p>
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl" style="background:#0A0F1E; border:1px solid rgba(251,191,36,0.25);">
+          <input
+            id="armour-price"
+            type="number"
+            min="0"
+            placeholder="0"
+            oninput="updatePayout()"
+            class="flex-1 bg-transparent text-[16px] font-extrabold text-slate-100 placeholder:text-slate-600 focus:outline-none border-none w-full"
+          />
+          <span class="text-[12px] font-semibold text-slate-500 shrink-0">cr / hr</span>
+        </div>
+        <p id="payout-preview" class="text-[11px] text-slate-500 mt-2 text-right">Your payout: <span class="font-bold text-slate-300">0 cr/hr</span> after platform fee</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Payout card -->
+  <div class="flex items-center gap-3 px-4 py-3 rounded-xl" style="background:rgba(37,99,235,0.06); border:1px solid rgba(37,99,235,0.2);">
+    <span class="material-symbols-outlined text-primary shrink-0" style="font-size:20px;">payments</span>
+    <div class="flex-1">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Estimated Payout</p>
+      <p id="total-payout" class="text-[16px] font-extrabold text-slate-100">310 cr <span class="text-[11px] font-normal text-slate-500">/ hr · after platform fee</span></p>
+    </div>
+    <span class="px-2 py-1 rounded-lg text-[10px] font-bold text-emerald-400" style="background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.2);">+10%</span>
+  </div>
+
+  <!-- Ops warning -->
+  <div class="flex items-start gap-3 px-4 py-3 rounded-xl" style="background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.2);">
+    <span class="material-symbols-outlined shrink-0 mt-0.5" style="font-size:18px; color:#FBBF24;">warning</span>
+    <div>
+      <p class="text-[12px] font-bold" style="color:#FBBF24;">Ops Room Review Pending</p>
+      <p class="text-[12px] text-slate-400 mt-0.5 leading-snug">Armoured vehicle requires manual approval. Accepting will place it in the review queue.</p>
+    </div>
+  </div>
+
+  <div class="pb-2"></div>
+</main>
+
+<!-- Footer -->
+<div class="shrink-0 px-4 pt-3 pb-4 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <div class="grid grid-cols-2 gap-3">
+    <button id="decline-btn" onclick="declineJob()"
+      class="py-3 rounded-xl font-extrabold text-[14px] transition-all active:scale-[0.98]"
+      style="background:rgba(204,51,51,0.07); border:1px solid rgba(204,51,51,0.2); color:#F87171;">
+      <span class="flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+        Decline
+      </span>
+    </button>
+    <button id="accept-btn" onclick="acceptJob()"
+      class="py-3 rounded-xl font-extrabold text-[14px] text-white transition-all active:scale-[0.98]"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(37,99,235,0.3);letter-spacing:0.03em">
+      <span class="flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px;">check</span>
+        Accept Job
+      </span>
+    </button>
+  </div>
+</div>
+
+<!-- ── ACCEPT full-screen overlay ── -->
+<div id="accept-overlay" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center"
+  style="background:#0A0F1E;">
+  <div class="relative flex items-center justify-center">
+    <!-- Ripple rings -->
+    <div class="ripple absolute rounded-full" style="width:160px; height:160px; background:rgba(52,211,153,0.15);"></div>
+    <div class="ripple absolute rounded-full" style="width:160px; height:160px; background:rgba(52,211,153,0.1); animation-delay:0.3s;"></div>
+    <!-- Icon circle -->
+    <div class="relative z-10 size-24 rounded-full flex items-center justify-center icon-bounce"
+      style="background:rgba(52,211,153,0.15); border:2px solid rgba(52,211,153,0.35);">
+      <span class="material-symbols-outlined filled" style="font-size:44px; color:#34D399;">check_circle</span>
+    </div>
+  </div>
+  <h2 class="text-[22px] font-extrabold text-slate-100 mt-6 mb-1">Job Accepted!</h2>
+  <p class="text-[13px] text-slate-500 mb-2">Wed, 26 Mar · 10:45 AM</p>
+  <div id="accept-payout-line" class="flex items-center gap-2 px-4 py-2 rounded-full mt-2"
+    style="background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.2);">
+    <span class="material-symbols-outlined" style="font-size:15px; color:#34D399;">payments</span>
+    <span id="accept-payout-text" class="text-[13px] font-bold" style="color:#34D399;">310 cr/hr locked in</span>
+  </div>
+  <button onclick="goToDashboard()" class="mt-8 px-8 py-3.5 rounded-xl font-extrabold text-[14px] text-white"
+    style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+    Go to Dashboard
+  </button>
+</div>
+
+<!-- ── DECLINE full-screen overlay ── -->
+<div id="decline-overlay" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center"
+  style="background:#0A0F1E;">
+  <div class="relative flex items-center justify-center">
+    <div class="ripple absolute rounded-full" style="width:160px; height:160px; background:rgba(204,51,51,0.15);"></div>
+    <div class="ripple absolute rounded-full" style="width:160px; height:160px; background:rgba(204,51,51,0.1); animation-delay:0.3s;"></div>
+    <div class="relative z-10 size-24 rounded-full flex items-center justify-center icon-bounce"
+      style="background:rgba(204,51,51,0.15); border:2px solid rgba(204,51,51,0.3);">
+      <span class="material-symbols-outlined filled" style="font-size:44px; color:#F87171;">cancel</span>
+    </div>
+  </div>
+  <h2 class="text-[22px] font-extrabold text-slate-100 mt-6 mb-1">Job Declined</h2>
+  <p class="text-[13px] text-slate-500 mb-6">Request passed to next available agent</p>
+  <button onclick="goBack()" class="px-8 py-3.5 rounded-xl font-extrabold text-[14px] transition-all"
+    style="background:rgba(204,51,51,0.12); border:1px solid rgba(204,51,51,0.25); color:#F87171;">
+    Back to Dashboard
+  </button>
+</div>
+
+<!-- Decline confirm sheet -->
+<div id="decline-modal" class="fixed inset-0 z-50 hidden flex-col items-center justify-end"
+  style="background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);">
+  <div id="decline-sheet" class="w-full rounded-t-[24px] px-5 pt-5 pb-8 flex flex-col items-center text-center"
+    style="background:#0D1929; border-top:1px solid #1E2D45; transform:translateY(100%); transition:transform 0.3s ease;">
+    <div class="w-10 h-1 rounded-full mb-5" style="background:rgba(37,99,235,0.3);"></div>
+    <div class="size-14 rounded-2xl flex items-center justify-center mb-4" style="background:rgba(204,51,51,0.1); border:1px solid rgba(204,51,51,0.2);">
+      <span class="material-symbols-outlined" style="font-size:28px; color:#F87171;">block</span>
+    </div>
+    <h2 class="text-[17px] font-extrabold text-slate-100 mb-2">Decline this job?</h2>
+    <p class="text-[13px] text-slate-400 leading-relaxed mb-6">This request will be passed to another available agent. Repeated declines may affect your rating.</p>
+    <div class="w-full space-y-3">
+      <button onclick="confirmDecline()" class="w-full py-4 rounded-xl font-extrabold text-[14px] transition-all active:scale-[0.98]"
+        style="background:rgba(204,51,51,0.15); border:1px solid rgba(204,51,51,0.3); color:#F87171;">
+        Yes, Decline
+      </button>
+      <button onclick="closeSheet('decline-modal','decline-sheet')" class="w-full py-3 text-[13px] font-semibold text-slate-500">
+        Keep reviewing
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE_PAYOUT = 310;
+  let armourPrice = 0;
+
+  function updatePayout() {
+    armourPrice = parseFloat(document.getElementById('armour-price').value) || 0;
+    const agentCut = Math.round(armourPrice * 0.9);
+    const total = BASE_PAYOUT + agentCut;
+    document.getElementById('payout-preview').innerHTML =
+      'Your payout: <span class="font-bold text-slate-300">' + agentCut + ' cr/hr</span> after platform fee';
+    document.getElementById('total-payout').innerHTML =
+      total + ' cr <span style="font-size:11px; font-weight:400; color:#64748b;">/ hr · after platform fee</span>';
+    document.getElementById('accept-payout-text').textContent = total + ' cr/hr locked in';
+  }
+
+  // Countdown
+  let seconds = 30;
+  const timerEl = document.getElementById('timer-display');
+  const timerInterval = setInterval(() => {
+    seconds--;
+    timerEl.textContent = '0:' + String(seconds).padStart(2, '0');
+    if (seconds <= 10) timerEl.style.color = '#F87171';
+    if (seconds <= 0) {
+      clearInterval(timerInterval);
+      timerEl.textContent = '0:00';
+      showDeclineOverlay();
+    }
+  }, 1000);
+
+  function openSheet(modalId, sheetId) {
+    const modal = document.getElementById(modalId);
+    const sheet = document.getElementById(sheetId);
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+  }
+
+  function closeSheet(modalId, sheetId) {
+    const sheet = document.getElementById(sheetId);
+    sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+      const modal = document.getElementById(modalId);
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }, 300);
+  }
+
+  function declineJob() {
+    openSheet('decline-modal', 'decline-sheet');
+  }
+
+  function confirmDecline() {
+    clearInterval(timerInterval);
+    closeSheet('decline-modal', 'decline-sheet');
+    setTimeout(() => showDeclineOverlay(), 320);
+  }
+
+  function showDeclineOverlay() {
+    const overlay = document.getElementById('decline-overlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    overlay.classList.add('decline-overlay');
+  }
+
+  function acceptJob() {
+    clearInterval(timerInterval);
+    const overlay = document.getElementById('accept-overlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    overlay.classList.add('accept-overlay');
+  }
+
+  function goToDashboard() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('agent-dashboard'));
+      window.parent.loadScreen('screens/agent-dashboard.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('agent-dashboard'));
+      window.parent.loadScreen('screens/agent-dashboard.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+
+</body></html>

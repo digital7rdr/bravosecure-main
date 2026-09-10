@@ -1,0 +1,39 @@
+diff --git a/node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java b/node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java
+index 025480a..d2f9d29 100644
+--- a/node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java
++++ b/node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java
+@@ -434,7 +434,21 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
+         this.hasListeners = false;
+     }
+ 
+-    @ReactMethod
++    // Bravo patch v2: TurboModules (newArchEnabled=true on RN 0.81)
++    // refuses two methods with the same JS name → keep @ReactMethod on
++    // exactly ONE overload. The right overload to expose is the 4-arg
++    // version because the upstream JS bridge in
++    // node_modules/react-native-callkeep/index.js:141 explicitly calls
++    // `RNCallKeepModule.displayIncomingCall(uuid, handle,
++    // localizedCallerName, hasVideo)` on Android (the 5-arg with
++    // Bundle is wired for iOS only — different signature, different
++    // codepath). Marshalling a Bundle through the JNI bridge is also
++    // unsupported under TurboModules:
++    //   "Detected unsupported parameter class: android.os.Bundle"
++    // — that was Bravo patch v1's symptom. v2 keeps @ReactMethod on
++    // the (String, String, String, boolean) overload only; the Bundle
++    // overload stays as a plain Java method invoked by the 4-arg one.
++    // Same fix below for startCall().
+     public void displayIncomingCall(String uuid, String number, String callerName) {
+         this.displayIncomingCall(uuid, number, callerName, false, null);
+     }
+@@ -483,7 +497,10 @@ public class RNCallKeepModule extends ReactContextBaseJavaModule implements Life
+         conn.onAnswer();
+     }
+ 
+-    @ReactMethod
++    // Bravo patch v2: same TurboModule fix as displayIncomingCall above.
++    // Upstream JS bridge calls the 4-arg overload on Android (see
++    // index.js:172 — `RNCallKeepModule.startCall(uuid, handle,
++    // contactIdentifier, hasVideo)`). Bundle isn't marshallable.
+     public void startCall(String uuid, String number, String callerName) {
+         this.startCall(uuid, number, callerName, false, null);
+     }

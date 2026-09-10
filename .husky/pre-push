@@ -1,0 +1,76 @@
+#!/usr/bin/env sh
+# Pre-push gate — runs on every `git push` before the push goes out.
+#
+# Stricter than pre-commit because it's the last local checkpoint.
+#   1. tsc-ratchet: typecheck count must not exceed the baseline in
+#      .tsc-baseline.json. Lets the legacy pile of errors stay (we'll
+#      chip them away over time) but blocks any NEW error a push would
+#      introduce. To lower the ratchet after fixing some:
+#         npm run tsc:rebaseline
+#   2. tests for files changed since origin/main (--changedSince)
+#
+# If any check fails the push aborts. Fix and retry.
+#
+# Bypass: `git push --no-verify` (only when you really know).
+
+set -e
+
+# 1. tsc ratchet — count current errors, compare to baseline.
+echo "[pre-push] typecheck (ratchet vs .tsc-baseline.json)…"
+ACTUAL=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || true)
+BASELINE=$(node -e "console.log(require('./.tsc-baseline.json').errorCount)" 2>/dev/null || echo 0)
+
+if [ "$ACTUAL" -gt "$BASELINE" ]; then
+  DELTA=$((ACTUAL - BASELINE))
+  echo ""
+  echo "[pre-push] tsc REGRESSION: $ACTUAL errors vs baseline $BASELINE (+$DELTA new)"
+  echo "           See full list: npx tsc --noEmit"
+  echo "           Fix the new errors, or update baseline if intentional:"
+  echo "             npm run tsc:rebaseline"
+  echo ""
+  exit 1
+elif [ "$ACTUAL" -lt "$BASELINE" ]; then
+  IMPROVED=$((BASELINE - ACTUAL))
+  echo "[pre-push] tsc IMPROVED: $ACTUAL errors vs baseline $BASELINE (-$IMPROVED 🎉)"
+  echo "           Lock in the win:  npm run tsc:rebaseline"
+else
+  echo "[pre-push] tsc held flat at $ACTUAL errors (baseline $BASELINE)."
+fi
+
+# 2. Test only what your branch actually changed since origin/main.
+#    Full suite still runs in CI — this is the fast feedback gate.
+echo "[pre-push] jest --changedSince=origin/main…"
+npm run test:changed --silent
+
+# 3. Static-scan sweep (W7). --changedSince selects a test only if that test
+#    TRANSITIVELY IMPORTS the changed file. A scanner reads its target with
+#    readFileSync, which creates no module-graph edge, so it is invisible to the
+#    selection — a productionRuntime.ts-only diff selects 37 suites and not one
+#    of the five that exist to guard it. That is the hole B-106 shipped through.
+#
+#    Measured, so nobody retries them: a shared path constant, require.resolve(),
+#    and jest.mock() all fail to create the edge. Only a real executed import
+#    does, and no test can import productionRuntime.ts (react-native dies in the
+#    node project — which is exactly why the scanners read it as text).
+#
+#    So the sweep is unconditional rather than path-triggered. A trigger list is
+#    one more thing that goes stale; `readFileSync` in a test file is the precise
+#    definition of "invisible to the module graph", so grepping for it picks up
+#    every new scanner automatically. 22 suites / ~11s today.
+echo "[pre-push] static-scan sweep (readFileSync suites — invisible to --changedSince)…"
+SCANNER_COUNT=$(grep -rl "readFileSync" src --include="*.test.ts" --include="*.test.tsx" 2>/dev/null | wc -l || true)
+if [ "$SCANNER_COUNT" -gt 0 ]; then
+  # Why the guard: with an empty list `jest` would run the ENTIRE suite, turning
+  # a failed grep into a several-minute push. Better to say so and move on.
+  #
+  # W7b (2026-07-27) — the sweep outgrew one command line: 80+ scanner suites
+  # blow past Windows cmd's ~8k arg limit ("The command line is too long"),
+  # which failed the push with every test green. xargs chunks the list into as
+  # many jest invocations as needed; -n 40 keeps each comfortably under the
+  # limit, and GNU xargs exits non-zero (123) if ANY chunk fails, so set -e
+  # still aborts the push on a red scanner.
+  grep -rl "readFileSync" src --include="*.test.ts" --include="*.test.tsx" 2>/dev/null \
+    | xargs -n 40 npx jest --silent --passWithNoTests
+else
+  echo "[pre-push] WARNING: no static-scan suites found — the sweep did nothing."
+fi

@@ -1,0 +1,6 @@
+{
+  "errorCount": 46,
+  "note": "Pre-existing TypeScript error count when the pre-push gate was introduced. The pre-push hook fails if a push would INCREASE this number. Decrease it whenever you fix errors and update this baseline (or run `npm run tsc:rebaseline`). 2026-05-27 manual bump 105 -> 84: fixed AlgorithmIdentifier + Buffer-generic + SubtleCrypto polyfill type churn in src/modules/messenger/crypto/polyfills.ts. 2026-06-20 ratchet 84 -> 49: net improvement after the VBG feature work; locked in via `npm run tsc:rebaseline`.",
+  "lastUpdated": "2026-08-29",
+  "ratchet": "down-only"
+}

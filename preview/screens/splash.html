@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure - Splash</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{extend:{colors:{primary:"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+
+  /* Ambient glow pulse */
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.18; transform: scale(1); }
+    50%       { opacity: 0.32; transform: scale(1.08); }
+  }
+  .ambient-glow {
+    position: absolute;
+    width: 340px; height: 340px;
+    background: radial-gradient(circle, #2563EB 0%, transparent 70%);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: glowPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Loading bar fill */
+  @keyframes fillBar {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
+  .loading-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563EB, #60A5FA);
+    border-radius: 9999px;
+    animation: fillBar 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Logo badge glow */
+  .logo-badge {
+    background: linear-gradient(135deg, #1a2847 0%, #0d1929 100%);
+    border: 1.5px solid rgba(37,99,235,0.4);
+    box-shadow: 0 0 32px rgba(37,99,235,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display antialiased overflow-hidden">
+<div class="relative flex h-screen w-full flex-col items-center justify-center">
+
+  <!-- Ambient glow layer -->
+  <div class="ambient-glow"></div>
+
+  <!-- Subtle radial bg -->
+  <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(37,99,235,0.07) 0%, transparent 100%)"></div>
+
+  <!-- Content -->
+  <div class="relative z-10 flex flex-col items-center justify-center px-6">
+
+    <!-- Logo badge -->
+    <div class="logo-badge rounded-[20px] w-20 h-20 flex items-center justify-center mb-7">
+      <svg width="44" height="44" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40 5L10 18.3333V38.3333C10 57.1333 22.8 74.4667 40 78.3333C57.2 74.4667 70 57.1333 70 38.3333V18.3333L40 5Z"
+          fill="rgba(37,99,235,0.15)" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M30 40.5L37.5 48L51 34" stroke="#60A5FA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- Brand name -->
+    <h1 class="text-slate-100 text-2xl font-extrabold tracking-[0.22em] leading-tight text-center uppercase mb-1.5">
+      BRAVO SECURE
+    </h1>
+
+    <!-- Tagline -->
+    <p class="text-slate-500 text-[10px] font-semibold tracking-[3px] uppercase text-center">
+      Enterprise Security Platform
+    </p>
+  </div>
+
+  <!-- Loading bar at bottom -->
+  <div class="absolute bottom-14 left-0 w-full flex flex-col items-center gap-2.5 px-10 z-10">
+    <div class="w-full h-[2px] bg-slate-800 rounded-full overflow-hidden">
+      <div class="loading-fill"></div>
+    </div>
+    <p class="text-slate-700 text-[9px] font-semibold tracking-[2.5px] uppercase">
+      Loading &bull; Max 2.5s
+    </p>
+  </div>
+
+</div>
+
+<script>
+  // Auto-navigate after 2.5s
+  setTimeout(() => {
+    if (!window.parent || !window.parent.loadScreen) return;
+    if (localStorage.getItem('bs_session') === 'active') {
+      // Already logged in → go straight to dashboard
+      window.parent.loadScreen('screens/dashboard.html', document.createElement('div'));
+    } else {
+      // First time → go to path selection (Welcome to Bravo)
+      window.parent.loadScreen('screens/onboarding.html', document.createElement('div'));
+    }
+  }, 2500);
+</script>
+</body></html>

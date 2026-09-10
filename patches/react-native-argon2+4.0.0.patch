@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-argon2/RNArgon2.podspec b/node_modules/react-native-argon2/RNArgon2.podspec
+index 8d9d575..68b9cd2 100644
+--- a/node_modules/react-native-argon2/RNArgon2.podspec
++++ b/node_modules/react-native-argon2/RNArgon2.podspec
+@@ -18,4 +18,11 @@ Pod::Spec.new do |s|
+ 
+   s.dependency 'React-Core'
+   s.dependency 'Argon2Swift', '~> 1.0'
++
++  # Why: Argon2Swift's swiftmodule references its private clang module
++  # 'argon2'; Xcode 26's explicit-module build makes importers resolve that
++  # transitive module too, so this target needs the same module search paths.
++  s.pod_target_xcconfig = {
++    'SWIFT_INCLUDE_PATHS' => '"$(PODS_ROOT)/Argon2Swift/Sources/Modules" "$(PODS_ROOT)/Argon2Swift/Sources/Argon2" "$(PODS_ROOT)/Argon2Swift/Sources/Argon2/include"'
++  }
+ end

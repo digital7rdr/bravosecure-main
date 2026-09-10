@@ -1,0 +1,199 @@
+diff --git a/node_modules/react-native-incall-manager/android/src/main/java/com/zxcpoiu/incallmanager/InCallManagerModule.java b/node_modules/react-native-incall-manager/android/src/main/java/com/zxcpoiu/incallmanager/InCallManagerModule.java
+index 10cb1e5..98c6897 100644
+--- a/node_modules/react-native-incall-manager/android/src/main/java/com/zxcpoiu/incallmanager/InCallManagerModule.java
++++ b/node_modules/react-native-incall-manager/android/src/main/java/com/zxcpoiu/incallmanager/InCallManagerModule.java
+@@ -1589,15 +1589,28 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
+ 
+         switch (device) {
+             case SPEAKER_PHONE:
+-                setSpeakerphoneOn(true);
++                if (!bravoSetCommunicationDevice(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)) {
++                    setSpeakerphoneOn(true);
++                }
+                 break;
+             case EARPIECE:
+-                setSpeakerphoneOn(false);
++                if (!bravoSetCommunicationDevice(AudioDeviceInfo.TYPE_BUILTIN_EARPIECE)) {
++                    setSpeakerphoneOn(false);
++                }
+                 break;
+             case WIRED_HEADSET:
+-                setSpeakerphoneOn(false);
++                if (!bravoSetCommunicationDevice(AudioDeviceInfo.TYPE_WIRED_HEADSET,
++                                                 AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
++                                                 AudioDeviceInfo.TYPE_USB_HEADSET)) {
++                    setSpeakerphoneOn(false);
++                }
+                 break;
+             case BLUETOOTH:
++                // Bravo patch: deliberately unchanged. AppRTCBluetoothManager owns
++                // the SCO request (setCommunicationDevice(TYPE_BLUETOOTH_SCO) on
++                // API 31+), and updateAudioDeviceState() has already started it by
++                // the time we get here. Issuing another route request here would
++                // REPLACE that one and drop the SCO link.
+                 setSpeakerphoneOn(false);
+                 break;
+             default:
+@@ -1607,6 +1620,63 @@ public class InCallManagerModule extends ReactContextBaseJavaModule implements L
+         selectedAudioDevice = device;
+     }
+ 
++    /**
++     * Bravo patch — Android 12+ (API 31) communication routing.
++     *
++     * `setSpeakerphoneOn()` was deprecated in API 31 and is now a thin
++     * compatibility shim over the communication-route request stack:
++     * `true` registers a request for the built-in speaker, and `false` only
++     * CLEARS a request this app previously made (`AudioDeviceBroker.
++     * setSpeakerphoneOn` -> `if (!isSpeakerphoneOnRequested(...)) return false`).
++     * Two consequences the original code cannot express:
++     *
++     *   1. "false" cannot ASK for the earpiece. It can only withdraw a speaker
++     *      request and let the framework fall back to its own default — which is
++     *      the wired headset, or a connected Bluetooth device, whenever one is
++     *      present. There is no way to say "earpiece, specifically".
++     *   2. `setSpeakerphoneOn`'s caller-side guard (`enable !=
++     *      audioManager.isSpeakerphoneOn()`) reads the framework's CURRENT route,
++     *      not our request. When the two agree by coincidence the call is skipped
++     *      entirely, so no request of ours is ever registered and the framework
++     *      is free to re-route the moment another device appears — the B-236
++     *      "speaker toggle reverted to bt_sco_hs on the next
++     *      updateCommunicationRoute" capture.
++     *
++     * `setCommunicationDevice(AudioDeviceInfo)` is the replacement API: it names
++     * the exact device and registers a durable request. Idempotent by contract,
++     * so no is-it-already-there short-circuit here — re-issuing is how the
++     * request survives another app or another route touching the stack.
++     *
++     * Returns false when the modern path is unavailable or the device is not
++     * enumerable, so the caller keeps the legacy behaviour verbatim.
++     */
++    private boolean bravoSetCommunicationDevice(int... preferredTypes) {
++        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
++            return false;
++        }
++        try {
++            java.util.List<AudioDeviceInfo> available = audioManager.getAvailableCommunicationDevices();
++            for (int type : preferredTypes) {
++                for (AudioDeviceInfo info : available) {
++                    if (info.getType() != type) {
++                        continue;
++                    }
++                    // Parity with setSpeakerphoneOn(), which also asserted the mode
++                    // before routing: a communication route is only honoured while
++                    // the device is in MODE_IN_COMMUNICATION.
++                    audioManager.setMode(defaultAudioMode);
++                    boolean ok = audioManager.setCommunicationDevice(info);
++                    Log.d(TAG, "bravoSetCommunicationDevice(type=" + type + ") -> " + ok);
++                    return ok;
++                }
++            }
++            Log.d(TAG, "bravoSetCommunicationDevice: no match; " + available.size() + " device(s) enumerated");
++        } catch (Exception e) {
++            Log.w(TAG, "bravoSetCommunicationDevice failed", e);
++        }
++        return false;
++    }
++
+ 
+ 
+     /**
+diff --git a/node_modules/react-native-incall-manager/ios/RNInCallManager/RNInCallManager.m b/node_modules/react-native-incall-manager/ios/RNInCallManager/RNInCallManager.m
+index 7c54f6e..6de3675 100644
+--- a/node_modules/react-native-incall-manager/ios/RNInCallManager/RNInCallManager.m
++++ b/node_modules/react-native-incall-manager/ios/RNInCallManager/RNInCallManager.m
+@@ -237,16 +237,46 @@ RCT_EXPORT_METHOD(setSpeakerphoneOn:(BOOL)enable)
+     NSError *error = nil;
+     NSArray* routes = [_audioSession availableInputs];
+ 
++    // Bravo patch (BS-CALL-IOSBT) — keep Bluetooth a permitted call route.
++    //
++    // Both branches below re-set the category on EVERY speaker/earpiece
++    // application, and neither asked for .allowBluetooth: the earpiece branch
++    // passed no options at all, the loudspeaker branch only .defaultToSpeaker.
++    // PlayAndRecord without that option removes HFP devices from the session's
++    // available routes, so iOS drops back to the built-in mic — while a car
++    // head unit can keep playing the far end over A2DP. The far end then hears
++    // itself, loudly. This is not a rare path: the app has no chooseAudioRoute
++    // on iOS and no device enumerator, so the opening-route settle times out
++    // ~1.2 s into EVERY voice call and applies the earpiece default right
++    // here, which is exactly when a call in a car loses the head unit.
++    //
++    // Bluetooth stays merely PERMITTED — which physical route wins is still
++    // decided by iOS and by the overrideOutputAudioPort calls below, both
++    // unchanged.
++    AVAudioSessionCategoryOptions btOptions =
++        AVAudioSessionCategoryOptionAllowBluetooth
++        | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
++
+     if(!enable){
+         NSLog(@"Routing audio via Earpiece");
+         @try {
+-            success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
++            success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
++                        withOptions:btOptions
++                        error:&error];
+             if (!success)  NSLog(@"Cannot set category due to error: %@", error);
+             success = [_audioSession setMode:AVAudioSessionModeVoiceChat error:&error];
+             if (!success)  NSLog(@"Cannot set mode due to error: %@", error);
+             [_audioSession setPreferredOutputNumberOfChannels:0 error:nil];
+             if (!success)  NSLog(@"Port override failed due to: %@", error);
+-            [_audioSession overrideOutputAudioPort:[AVAudioSessionPortBuiltInReceiver intValue] error:&error];
++            // Bravo patch (BS-CALL-IOSPORT) — was
++            // `[AVAudioSessionPortBuiltInReceiver intValue]`. That constant is an
++            // NSString (@"Receiver"), so `intValue` parses it as a number, finds
++            // no digits, and yields 0. 0 happens to BE AVAudioSessionPortOverrideNone,
++            // which is what the earpiece case wants, so this branch was accidentally
++            // correct — but only by coincidence, and it read as if it were naming a
++            // port. Say what is meant: drop any override and let the category's
++            // default route (the receiver) apply.
++            [_audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:&error];
+             success = [_audioSession setActive:YES error:&error];
+             if (!success) NSLog(@"Audio session override failed: %@", error);
+             else NSLog(@"AudioSession override is successful ");
+@@ -259,13 +289,25 @@ RCT_EXPORT_METHOD(setSpeakerphoneOn:(BOOL)enable)
+         @try {
+             NSLog(@"Available routes: %@", routes[0]);
+             success = [_audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
+-                        withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker
++                        withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | btOptions
+                         error:nil];
+             if (!success)  NSLog(@"Cannot set category due to error: %@", error);
+             success = [_audioSession setMode:AVAudioSessionModeVoiceChat error: &error];
+             if (!success)  NSLog(@"Cannot set mode due to error: %@", error);
+             [_audioSession setPreferredOutputNumberOfChannels:0 error:nil];
+-            [_audioSession overrideOutputAudioPort:[AVAudioSessionPortBuiltInSpeaker intValue] error: &error];
++            // Bravo patch (BS-CALL-IOSPORT) — was
++            // `[AVAudioSessionPortBuiltInSpeaker intValue]`, i.e. `[@"Speaker" intValue]`,
++            // i.e. 0, i.e. AVAudioSessionPortOverrideNone — the exact OPPOSITE of
++            // "force the speaker". Nothing here has ever actually forced it; the
++            // loudspeaker only happened because `.defaultToSpeaker` made it the
++            // category's default route.
++            //
++            // That coincidence dies the moment a Bluetooth device is present. Now
++            // that the category also carries `.allowBluetooth` (BS-CALL-IOSBT, so a
++            // car kit is reachable at all), the DEFAULT route with a headset
++            // connected is the headset — so "None" would leave a user tapping
++            // Speaker still on Bluetooth. Name the real constant.
++            [_audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error: &error];
+             if (!success)  NSLog(@"Port override failed due to: %@", error);
+             success = [_audioSession setActive:YES error:&error];
+             if (!success) NSLog(@"Audio session override failed: %@", error);
+@@ -594,6 +636,17 @@ RCT_EXPORT_METHOD(getIsWiredHeadsetPluggedIn:(RCTPromiseResolveBlock)resolve
+                      callerMemo:(NSString *)callerMemo
+ {
+     @try {
++        // Bravo patch (BS-CALL-IOSBT) — see the note on setSpeakerphoneOn:.
++        // PlayAndRecord WITHOUT .allowBluetooth makes HFP devices unavailable
++        // as a call route, so the session silently falls back to the built-in
++        // mic and speaker while a paired car kit can keep playing over A2DP —
++        // an open acoustic loop straight back to the far end. Every category
++        // set for a CALL must keep Bluetooth permitted; the caller's own
++        // options are preserved, this only ORs in what must never be dropped.
++        if ([audioCategory isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
++            options |= AVAudioSessionCategoryOptionAllowBluetooth
++                     | AVAudioSessionCategoryOptionAllowBluetoothA2DP;
++        }
+         if (options != 0) {
+             [_audioSession setCategory:audioCategory
+                            withOptions:options

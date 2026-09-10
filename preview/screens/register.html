@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure — Register</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary:   "#2563EB",
+          "bg-dark": "#0A0F1E",
+          surface:   "#0D1929",
+          border:    "#1E2D45",
+        },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .scroll-area { overflow-y: auto; scrollbar-width: none; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+  input::placeholder { color: #475569; }
+  input:focus { outline: none; border-color: #2563EB !important; box-shadow: 0 0 0 1px rgba(37,99,235,0.25); }
+
+  /* Step circles */
+  .step-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800; flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .step-circle.active {
+    background: #2563EB; color: #fff; border: 2px solid #2563EB;
+  }
+  .step-circle.done {
+    background: rgba(37,99,235,0.2); color: #60A5FA; border: 2px solid #2563EB;
+  }
+  .step-circle.pending {
+    background: transparent; color: #475569; border: 2px solid #1E2D45;
+  }
+  .step-line {
+    flex: 1; height: 2px; border-radius: 9999px;
+    transition: background 0.2s;
+  }
+
+  /* Field validation icons */
+  .field-valid   .val-icon::after { content: 'check_circle'; color: #22c55e; }
+  .field-invalid .val-icon::after { content: 'cancel';       color: #ef4444; }
+
+  /* CTA button */
+  .cta-btn {
+    background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 36px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius: 18px;
+    color: #fff; font-weight: 700; font-size: 15px;
+    padding: 17px 24px; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+  }
+  .cta-btn:disabled { opacity: 0.38; cursor: not-allowed; filter: none !important; }
+  .cta-btn:not(:disabled):hover  { filter: brightness(1.08); }
+  .cta-btn:not(:disabled):active { transform: scale(0.97); box-shadow: 0 5px 16px rgba(37,99,235,0.4); }
+</style>
+</head>
+<body class="bg-bg-dark font-display text-slate-100 h-screen">
+<div class="flex flex-col w-full h-full max-w-sm mx-auto">
+
+  <!-- Scrollable content -->
+  <div class="scroll-area flex-1 px-5 pt-4 pb-28">
+
+    <!-- Back button -->
+    <button onclick="goBack()" class="flex size-9 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors mb-4">
+      <span class="material-symbols-outlined text-slate-100 text-[18px]">arrow_back</span>
+    </button>
+
+    <!-- Step indicator -->
+    <div class="flex items-center gap-0 mb-6">
+      <div class="step-circle active" id="step1">1</div>
+      <div class="step-line" id="line1" style="background:#2563EB"></div>
+      <div class="step-circle pending" id="step2">2</div>
+      <div class="step-line" id="line2" style="background:#1E2D45"></div>
+      <div class="step-circle pending" id="step3">3</div>
+      <div class="step-line" id="line3" style="background:#1E2D45"></div>
+      <div class="step-circle pending" id="step4">4</div>
+    </div>
+
+    <!-- Header -->
+    <p class="text-[10px] font-bold tracking-[2.5px] uppercase text-blue-400 mb-2">Create Account</p>
+    <h1 class="text-[24px] font-extrabold leading-tight tracking-tight text-slate-100 mb-1">
+      Your Details
+    </h1>
+    <p class="text-slate-500 text-[12px] mb-5 leading-snug">All fields are end-to-end encrypted at rest.</p>
+
+    <!-- Full Legal Name -->
+    <div class="mb-3" id="field-name">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">
+        Full Legal Name
+      </label>
+      <div class="relative flex items-center">
+        <input
+          id="input-name"
+          type="text"
+          placeholder="Marcus J. Thornton"
+          oninput="validateName(this)"
+          class="w-full rounded-[12px] h-12 px-4 text-[14px] text-slate-100 font-medium pr-10"
+          style="background:#0D1929; border:1px solid #1E2D45;"
+        />
+        <span class="material-symbols-outlined val-icon absolute right-3 text-[18px] hidden" id="icon-name"></span>
+      </div>
+    </div>
+
+    <!-- Email Address -->
+    <div class="mb-3" id="field-email">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">
+        Email Address
+      </label>
+      <div class="relative flex items-center">
+        <input
+          id="input-email"
+          type="email"
+          placeholder="marcus@example.com"
+          oninput="validateEmail(this)"
+          class="w-full rounded-[12px] h-12 px-4 text-[14px] text-slate-100 font-medium pr-10"
+          style="background:#0D1929; border:1px solid #1E2D45;"
+        />
+        <span class="material-symbols-outlined val-icon absolute right-3 text-[18px] hidden" id="icon-email"></span>
+      </div>
+    </div>
+
+    <!-- Mobile Number -->
+    <div class="mb-3">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">
+        Mobile Number
+      </label>
+      <div class="flex gap-2">
+        <button onclick="toggleCountry()" class="flex items-center gap-1.5 h-12 px-3 rounded-[12px] shrink-0" style="background:#0D1929;border:1px solid #1E2D45">
+          <div class="w-5 h-3.5 rounded-sm bg-cover bg-center shrink-0" id="flag-img" style="background-image:url('https://flagcdn.com/w40/ae.png')"></div>
+          <span class="text-slate-100 text-[13px] font-semibold" id="dial-code">+971</span>
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">expand_more</span>
+        </button>
+        <div class="relative flex-1 flex items-center">
+          <input
+            id="input-phone"
+            type="tel"
+            placeholder="50 123 4567"
+            oninput="validatePhone(this)"
+            class="w-full rounded-[12px] h-12 px-4 text-[14px] text-slate-100 font-medium pr-10"
+            style="background:#0D1929; border:1px solid #1E2D45;"
+          />
+          <span class="material-symbols-outlined val-icon absolute right-3 text-[18px] hidden" id="icon-phone"></span>
+        </div>
+      </div>
+      <!-- Country picker -->
+      <div id="country-picker" class="hidden mt-1 rounded-[12px] overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45;max-height:180px;overflow-y:auto;">
+        <div id="country-list"></div>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-2" id="field-pw">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">
+        Password
+      </label>
+      <div class="flex">
+        <input
+          id="pw-input"
+          type="password"
+          placeholder="Enter password..."
+          oninput="updateStrength(this.value); validatePw()"
+          class="flex-1 rounded-l-[12px] h-12 px-4 text-[14px] text-slate-100 font-medium"
+          style="background:#0D1929; border:1px solid #1E2D45; border-right:none;"
+        />
+        <button onclick="togglePw('pw-input','eye1')" class="h-12 w-11 rounded-r-[12px] flex items-center justify-center" style="background:#0D1929; border:1px solid #1E2D45; border-left:none;">
+          <span id="eye1" class="material-symbols-outlined text-slate-500 text-[17px]">visibility</span>
+        </button>
+      </div>
+      <!-- Strength bars -->
+      <div class="flex items-center gap-2 mt-2">
+        <span class="text-[9px] font-bold tracking-[1.5px] uppercase text-slate-500 shrink-0">Strength</span>
+        <div class="flex gap-1 flex-1">
+          <div id="bar1" class="h-[3px] flex-1 rounded-full" style="background:#1E2D45"></div>
+          <div id="bar2" class="h-[3px] flex-1 rounded-full" style="background:#1E2D45"></div>
+          <div id="bar3" class="h-[3px] flex-1 rounded-full" style="background:#1E2D45"></div>
+          <div id="bar4" class="h-[3px] flex-1 rounded-full" style="background:#1E2D45"></div>
+        </div>
+        <span id="strength-label" class="text-[10px] font-extrabold tracking-[1px] shrink-0 text-slate-500"></span>
+      </div>
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="mb-5" id="field-cpw">
+      <label class="block text-[10px] font-bold tracking-[2px] uppercase text-blue-400 mb-1.5">
+        Confirm Password
+      </label>
+      <div class="flex">
+        <input
+          id="cpw-input"
+          type="password"
+          placeholder="Confirm password..."
+          oninput="validatePw()"
+          class="flex-1 rounded-l-[12px] h-12 px-4 text-[14px] text-slate-100 font-medium"
+          style="background:#0D1929; border:1px solid #1E2D45; border-right:none;"
+        />
+        <button onclick="togglePw('cpw-input','eye2')" class="h-12 w-11 rounded-r-[12px] flex items-center justify-center" style="background:#0D1929; border:1px solid #1E2D45; border-left:none;">
+          <span id="eye2" class="material-symbols-outlined text-slate-500 text-[17px]">visibility</span>
+        </button>
+      </div>
+      <p id="pw-match-msg" class="text-[11px] mt-1 hidden"></p>
+    </div>
+
+  </div><!-- end scroll-area -->
+
+</div><!-- end outer -->
+
+<!-- Fixed footer CTA -->
+<div class="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-4" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button id="cta-btn" onclick="goToVerify()" class="cta-btn" disabled>
+    Continue
+    <span class="material-symbols-outlined" style="font-size:19px">arrow_forward</span>
+  </button>
+  <p class="text-center text-slate-600 text-[11px] mt-2.5">
+    By continuing you agree to the
+    <button class="text-blue-500 font-semibold hover:underline">Terms of Service</button>
+  </p>
+</div>
+
+<script>
+  /* ── Strength ── */
+  const S_COLORS = { 1:'#FF3B3B', 2:'#FFB800', 3:'#60A5FA', 4:'#00C851' };
+  const S_LABELS = { 1:'WEAK',    2:'FAIR',    3:'GOOD',    4:'STRONG' };
+
+  function getLevel(pw) {
+    if (!pw) return 0;
+    if (pw.length < 6) return 1;
+    if (pw.length < 10) return 2;
+    return (/[A-Z]/.test(pw) && /[^a-zA-Z0-9]/.test(pw)) ? 4 : 3;
+  }
+
+  function updateStrength(pw) {
+    const level = getLevel(pw);
+    const bars = ['bar1','bar2','bar3','bar4'].map(id => document.getElementById(id));
+    bars.forEach((b, i) => b.style.background = i < level ? S_COLORS[level] : '#1E2D45');
+    const lbl = document.getElementById('strength-label');
+    lbl.textContent = level ? S_LABELS[level] : '';
+    lbl.style.color = level ? S_COLORS[level] : '#475569';
+  }
+
+  function togglePw(inputId, iconId) {
+    const inp = document.getElementById(inputId);
+    const ico = document.getElementById(iconId);
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    ico.textContent = show ? 'visibility_off' : 'visibility';
+  }
+
+  /* ── Validation ── */
+  let valid = { name: false, email: false, phone: false, pw: false };
+
+  function setIcon(id, ok) {
+    const el = document.getElementById('icon-' + id);
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.textContent = ok ? 'check_circle' : 'cancel';
+    el.style.color  = ok ? '#22c55e' : '#ef4444';
+  }
+
+  function validateName(inp) {
+    valid.name = inp.value.trim().split(' ').length >= 2 && inp.value.trim().length >= 4;
+    setIcon('name', valid.name);
+    checkAll();
+  }
+
+  function validateEmail(inp) {
+    valid.email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
+    setIcon('email', valid.email);
+    checkAll();
+  }
+
+  function validatePhone(inp) {
+    valid.phone = inp.value.replace(/\D/g,'').length >= 7;
+    setIcon('phone', valid.phone);
+    checkAll();
+  }
+
+  function validatePw() {
+    const pw  = document.getElementById('pw-input').value;
+    const cpw = document.getElementById('cpw-input').value;
+    const msg = document.getElementById('pw-match-msg');
+    const pwOk  = getLevel(pw) >= 3;
+    const match = pw === cpw && cpw.length > 0;
+    valid.pw = pwOk && match;
+
+    if (cpw.length > 0) {
+      msg.classList.remove('hidden');
+      msg.textContent = match ? 'Passwords match' : 'Passwords do not match';
+      msg.style.color = match ? '#22c55e' : '#ef4444';
+    } else {
+      msg.classList.add('hidden');
+    }
+    checkAll();
+  }
+
+  function checkAll() {
+    const ok = valid.name && valid.email && valid.phone && valid.pw;
+    document.getElementById('cta-btn').disabled = !ok;
+  }
+
+  /* ── Navigation ── */
+  function goToVerify() {
+    // Store registration data
+    sessionStorage.setItem('authFlow', 'register');
+    sessionStorage.setItem('reg_name',  document.getElementById('input-name').value);
+    sessionStorage.setItem('reg_email', document.getElementById('input-email').value);
+    sessionStorage.setItem('reg_phone', document.getElementById('dial-code').textContent + ' ' + document.getElementById('input-phone').value);
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/otp.html', document.createElement('div'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/onboarding.html', document.createElement('div'));
+    }
+  }
+
+  /* ── Country picker ── */
+  const countries = [
+    { name:'UAE',          code:'ae', dial:'+971' },
+    { name:'Saudi Arabia', code:'sa', dial:'+966' },
+    { name:'Qatar',        code:'qa', dial:'+974' },
+    { name:'Kuwait',       code:'kw', dial:'+965' },
+    { name:'Bahrain',      code:'bh', dial:'+973' },
+    { name:'UK',           code:'gb', dial:'+44'  },
+    { name:'USA',          code:'us', dial:'+1'   },
+    { name:'India',        code:'in', dial:'+91'  },
+    { name:'Pakistan',     code:'pk', dial:'+92'  },
+    { name:'South Africa', code:'za', dial:'+27'  },
+  ];
+
+  const list = document.getElementById('country-list');
+  countries.forEach(c => {
+    const row = document.createElement('button');
+    row.className = 'w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors';
+    row.innerHTML = `
+      <div class="w-5 h-3.5 rounded-sm bg-cover bg-center shrink-0" style="background-image:url('https://flagcdn.com/w40/${c.code}.png')"></div>
+      <span class="text-[13px] text-slate-300 flex-1 text-left">${c.name}</span>
+      <span class="text-[13px] font-semibold text-slate-500">${c.dial}</span>`;
+    row.onclick = () => selectCountry(c);
+    list.appendChild(row);
+  });
+
+  function toggleCountry() {
+    document.getElementById('country-picker').classList.toggle('hidden');
+  }
+  function selectCountry(c) {
+    document.getElementById('flag-img').style.backgroundImage = `url('https://flagcdn.com/w40/${c.code}.png')`;
+    document.getElementById('dial-code').textContent = c.dial;
+    document.getElementById('country-picker').classList.add('hidden');
+  }
+</script>
+</body>
+</html>

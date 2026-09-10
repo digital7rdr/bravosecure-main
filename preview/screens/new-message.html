@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure Lite — New Message</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: { primary:"#2563EB","bg-dark":"#0A0F1E", surface:"#0D1929", border:"#1E2D45" },
+      fontFamily: { display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  * { scrollbar-width:none; }
+  *::-webkit-scrollbar { display:none; }
+
+  .contact-row {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 16px; cursor:pointer;
+    transition:background 0.15s;
+    border-bottom:1px solid rgba(30,45,69,0.5);
+  }
+  .contact-row:active { background:rgba(37,99,235,0.06); }
+
+  .section-label {
+    font-size:9px; font-weight:800; letter-spacing:3px;
+    text-transform:uppercase; color:#475569;
+    padding:12px 16px 6px;
+  }
+
+  .invite-btn {
+    font-size:10px; font-weight:800; letter-spacing:1px;
+    text-transform:uppercase; color:#2563EB;
+    padding:5px 12px; border-radius:20px; flex-shrink:0;
+    border:1px solid rgba(37,99,235,0.35);
+    background:rgba(37,99,235,0.08);
+    transition:background 0.15s;
+  }
+  .invite-btn:active { background:rgba(37,99,235,0.18); }
+
+  /* ── Profile picture avatar ── */
+  .avatar-wrap {
+    position:relative; flex-shrink:0;
+    width:44px; height:44px;
+  }
+  .avatar-img {
+    width:44px; height:44px; border-radius:50%;
+    object-fit:cover;
+    border:2px solid transparent;
+    background-clip:padding-box;
+  }
+  .avatar-ring {
+    position:absolute; inset:-2px;
+    border-radius:50%;
+    border:2px solid var(--ring-color, #334155);
+    pointer-events:none;
+  }
+  .avatar-fallback {
+    display:none;
+    width:44px; height:44px; border-radius:50%;
+    align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; color:#fff;
+  }
+  .avatar-img.error-hide { display:none; }
+  .avatar-img.error-hide + .avatar-fallback { display:flex; }
+
+  /* Status dot */
+  .status-dot {
+    position:absolute; bottom:0; right:0;
+    width:12px; height:12px; border-radius:50%;
+    border:2px solid #0A0F1E;
+  }
+
+  /* Non-Bravo: greyscale photo */
+  .avatar-img.dimmed { filter:grayscale(1) brightness(0.55); }
+
+  /* Verified tick */
+  .verified { font-size:12px; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 px-4 pt-10 pb-3 flex items-center gap-3 border-b" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="nav('messenger-home.html')" class="size-8 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors flex-shrink-0">
+    <span class="material-symbols-outlined text-slate-100 text-[20px]">arrow_back</span>
+  </button>
+  <h1 class="text-[13px] font-extrabold uppercase tracking-[3px] text-slate-100 flex-1">New Message</h1>
+  <!-- Profile pic legend -->
+  <div class="flex items-center gap-1 px-2.5 py-1 rounded-full" style="background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.2);">
+    <span class="material-symbols-outlined filled text-blue-400" style="font-size:13px;">account_circle</span>
+    <span class="text-[9px] font-bold tracking-widest uppercase text-blue-400">Profiles</span>
+  </div>
+</header>
+
+<!-- Search -->
+<div class="shrink-0 px-4 py-3" style="border-bottom:1px solid #1E2D45;">
+  <div class="flex items-center gap-2 h-10 rounded-xl px-3" style="background:#0D1929; border:1px solid #1E2D45;">
+    <span class="material-symbols-outlined text-slate-600 text-[17px]">search</span>
+    <span class="text-[11px] font-bold tracking-[2px] uppercase text-slate-600">Search Name or Number...</span>
+  </div>
+</div>
+
+<!-- Scrollable list -->
+<div class="flex-1 overflow-y-auto">
+
+  <!-- New Group shortcut -->
+  <div class="contact-row" onclick="void(0)" style="border-bottom:1px solid #1E2D45;">
+    <div class="size-11 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.25);">
+      <span class="material-symbols-outlined text-blue-400 text-[20px]">group_add</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-blue-400">New Group</p>
+      <p class="text-[11px] text-slate-500 mt-0.5">Create an encrypted group chat</p>
+    </div>
+    <span class="material-symbols-outlined text-slate-600 text-[18px]">chevron_right</span>
+  </div>
+
+  <!-- ── BRAVO CONTACTS ── -->
+  <div class="section-label">Bravo Contacts</div>
+
+  <!-- Marcus Thornton — online -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#7B5EA7;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=3" alt="MT"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#7B5EA7;">MT</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#22c55e;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5">
+        <p class="text-[13px] font-bold truncate">Marcus Thornton</p>
+        <span class="material-symbols-outlined filled verified text-green-500">verified_user</span>
+      </div>
+      <p class="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style="color:#22c55e;">Online</p>
+    </div>
+  </div>
+
+  <!-- Sarah Al-Nour — online -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#0E7490;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=47" alt="SA"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#0E7490;">SA</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#22c55e;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5">
+        <p class="text-[13px] font-bold truncate">Sarah Al-Nour</p>
+        <span class="material-symbols-outlined filled verified text-green-500">verified_user</span>
+      </div>
+      <p class="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style="color:#22c55e;">Online</p>
+    </div>
+  </div>
+
+  <!-- Khalid Al-Mansouri — away -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#b45309;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=12" alt="KM"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#334155;">KM</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#f59e0b;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5">
+        <p class="text-[13px] font-bold truncate">Khalid Al-Mansouri</p>
+        <span class="material-symbols-outlined filled verified text-green-500">verified_user</span>
+      </div>
+      <p class="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style="color:#f59e0b;">Away</p>
+    </div>
+  </div>
+
+  <!-- Tariq Osei — offline -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#334155;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=65" alt="TO"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#1E2D45;">TO</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#475569;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold truncate">Tariq Osei</p>
+      <p class="text-[10px] text-slate-500 mt-0.5">Last seen 2h ago</p>
+    </div>
+  </div>
+
+  <!-- Nadia Volkov — offline -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#4C1D95;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=56" alt="NV"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#4C1D95;">NV</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#475569;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold truncate">Nadia Volkov</p>
+      <p class="text-[10px] text-slate-500 mt-0.5">Last seen yesterday</p>
+    </div>
+  </div>
+
+  <!-- Amir Hassan — online -->
+  <div class="contact-row" onclick="nav('chat.html')">
+    <div class="avatar-wrap" style="--ring-color:#065f46;">
+      <img class="avatar-img" src="https://i.pravatar.cc/88?img=7" alt="AH"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#065f46;">AH</div>
+      <div class="avatar-ring"></div>
+      <span class="status-dot" style="background:#22c55e;"></span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-1.5">
+        <p class="text-[13px] font-bold truncate">Amir Hassan</p>
+        <span class="material-symbols-outlined filled verified text-green-500">verified_user</span>
+      </div>
+      <p class="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style="color:#22c55e;">Online</p>
+    </div>
+  </div>
+
+  <!-- ── NOT ON BRAVO ── -->
+  <div class="section-label" style="padding-top:16px;">Not on Bravo</div>
+
+  <!-- James Hartley -->
+  <div class="contact-row">
+    <div class="avatar-wrap" style="--ring-color:#1E2D45;">
+      <img class="avatar-img dimmed" src="https://i.pravatar.cc/88?img=33" alt="JH"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#0D1929; color:#475569; border:1px solid #1E2D45;">JH</div>
+      <div class="avatar-ring"></div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-400 truncate">James Hartley</p>
+      <p class="text-[10px] text-slate-600 mt-0.5">+44 7700 900123</p>
+    </div>
+    <button class="invite-btn">Invite</button>
+  </div>
+
+  <!-- Amira Hassan -->
+  <div class="contact-row">
+    <div class="avatar-wrap" style="--ring-color:#1E2D45;">
+      <img class="avatar-img dimmed" src="https://i.pravatar.cc/88?img=48" alt="AH"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#0D1929; color:#475569; border:1px solid #1E2D45;">AH</div>
+      <div class="avatar-ring"></div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-400 truncate">Amira Hassan</p>
+      <p class="text-[10px] text-slate-600 mt-0.5">+971 50 123 4567</p>
+    </div>
+    <button class="invite-btn">Invite</button>
+  </div>
+
+  <!-- Daniel Park -->
+  <div class="contact-row">
+    <div class="avatar-wrap" style="--ring-color:#1E2D45;">
+      <img class="avatar-img dimmed" src="https://i.pravatar.cc/88?img=59" alt="DP"
+           onerror="this.classList.add('error-hide')"/>
+      <div class="avatar-fallback" style="background:#0D1929; color:#475569; border:1px solid #1E2D45;">DP</div>
+      <div class="avatar-ring"></div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-400 truncate">Daniel Park</p>
+      <p class="text-[10px] text-slate-600 mt-0.5">+1 212 555 0199</p>
+    </div>
+    <button class="invite-btn">Invite</button>
+  </div>
+
+  <div class="h-10"></div>
+</div>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+</script>
+</body>
+</html>

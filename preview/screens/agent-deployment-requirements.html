@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .step-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #1E2D45;position:relative;cursor:pointer;}
+  .step-row:last-child{border-bottom:none;}
+  .step-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+  .step-row.done .step-icon-wrap{background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);}
+  .step-row:not(.done) .step-icon-wrap{background:rgba(30,45,69,0.8);border:1px solid #1E2D45;}
+
+  .req-tag{font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.25);}
+  @keyframes popIn{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
+  .pop-in{animation:popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+  .step-circle{transition:color 0.2s;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Deployment Requirements</h1>
+  <div class="w-9"></div>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 pt-2 space-y-4">
+
+  <!-- Info notice -->
+  <div class="flex items-start gap-2.5 rounded-xl px-3.5 py-3" style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2)">
+    <span class="material-symbols-outlined filled text-amber-400 shrink-0 mt-0.5" style="font-size:15px">warning</span>
+    <p class="text-[11px] text-slate-400 leading-relaxed">All new partners must complete in-person onboarding at a Bravo office before receiving any booking assignments.</p>
+  </div>
+
+  <!-- Activation Steps -->
+  <div class="rounded-2xl px-4 py-2" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase pt-2 pb-1">Activation Steps</p>
+
+    <div id="step-dress" class="step-row done" onclick="toggleStep('dress')">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">checkroom</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <p class="text-[13px] font-bold text-slate-200">Dress Inspection</p>
+          <span class="req-tag">REQ</span>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-snug">Attend Bravo office in required dress code. Ops team approves presentation standards.</p>
+      </div>
+      <span data-circle class="material-symbols-outlined filled step-circle text-emerald-400 shrink-0 mt-0.5" style="font-size:24px">check_circle</span>
+    </div>
+
+    <div id="step-vehicle" class="step-row done" onclick="toggleStep('vehicle')">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">directions_car</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <p class="text-[13px] font-bold text-slate-200">Vehicle Collection</p>
+          <span class="req-tag">REQ</span>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-snug">Collect Bravo-assigned vehicle from depot. Sign vehicle receipt and condition report.</p>
+      </div>
+      <span data-circle class="material-symbols-outlined filled step-circle text-emerald-400 shrink-0 mt-0.5" style="font-size:24px">check_circle</span>
+    </div>
+
+    <!-- Vehicle Photo Upload -->
+    <div id="step-photo" class="step-row" onclick="triggerPhotoUpload()">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">photo_camera</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <p class="text-[13px] font-bold text-slate-400" id="photo-title">Vehicle Photo</p>
+          <span class="req-tag">REQ</span>
+        </div>
+        <p class="text-[11px] text-slate-600 leading-snug">Take a clear photo of your assigned vehicle (front 3/4 angle) for identity verification.</p>
+        <!-- Upload zone -->
+        <div id="photo-upload-zone" class="mt-2.5 rounded-lg flex flex-col items-center justify-center gap-1.5" style="height:74px;border:1.5px dashed #1E2D45;background:#0A0F1E;">
+          <span class="material-symbols-outlined text-slate-600" style="font-size:22px">add_a_photo</span>
+          <p class="text-[9px] font-bold text-slate-600 tracking-wider">TAP TO CAPTURE OR UPLOAD</p>
+        </div>
+        <!-- Thumbnail preview (shown after upload) -->
+        <div id="photo-thumb-wrap" class="hidden mt-2.5 rounded-lg overflow-hidden" style="height:74px;border:1px solid rgba(37,99,235,0.35);position:relative;">
+          <img id="photo-thumb" src="" alt="Vehicle" style="width:100%;height:100%;object-fit:cover;display:block;"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,0.65));pointer-events:none;"></div>
+          <div style="position:absolute;bottom:5px;left:8px;font-size:8px;font-weight:800;letter-spacing:1.5px;color:#4ade80;">✓ UPLOADED &amp; VERIFIED</div>
+          <button onclick="event.stopPropagation();retakePhoto()" style="position:absolute;top:5px;right:6px;font-size:8px;font-weight:700;letter-spacing:0.5px;color:rgba(255,255,255,0.7);padding:2px 7px;border-radius:4px;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.18);">RETAKE</button>
+        </div>
+      </div>
+      <span data-circle class="material-symbols-outlined step-circle text-slate-700 shrink-0 mt-0.5" style="font-size:24px">radio_button_unchecked</span>
+    </div>
+    <input type="file" id="vehicle-photo-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoUpload(event)"/>
+
+    <div id="step-equipment" class="step-row" onclick="toggleStep('equipment')">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">hardware</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-400 mb-0.5">Equipment Check</p>
+        <p class="text-[11px] text-slate-600 leading-snug">Verify: comms kit, first aid, PPE, tracking device. Signed off by Ops supervisor.</p>
+      </div>
+      <span data-circle class="material-symbols-outlined step-circle text-slate-700 shrink-0 mt-0.5" style="font-size:24px">radio_button_unchecked</span>
+    </div>
+
+    <div id="step-device" class="step-row" onclick="toggleStep('device')">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">phone_android</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-400 mb-0.5">Device Setup</p>
+        <p class="text-[11px] text-slate-600 leading-snug">Bravo Ops app installed and agent ID linked to vehicle tracking.</p>
+      </div>
+      <span data-circle class="material-symbols-outlined step-circle text-slate-700 shrink-0 mt-0.5" style="font-size:24px">radio_button_unchecked</span>
+    </div>
+
+    <div id="step-briefing" class="step-row" onclick="toggleStep('briefing')">
+      <div class="step-icon-wrap">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">groups</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-400 mb-0.5">Ops Briefing</p>
+        <p class="text-[11px] text-slate-600 leading-snug">Mandatory briefing: client conduct standards, emergency protocols.</p>
+      </div>
+      <span data-circle class="material-symbols-outlined step-circle text-slate-700 shrink-0 mt-0.5" style="font-size:24px">radio_button_unchecked</span>
+    </div>
+
+  </div>
+
+  <!-- Deployment Token -->
+  <div class="rounded-2xl p-4" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase mb-3">Bravo Deployment Token</p>
+
+    <div id="token-locked" class="flex flex-col items-center py-4">
+      <div class="size-20 rounded-2xl flex items-center justify-center mb-3" style="background:#0A0F1E;border:2px dashed #1E2D45">
+        <span class="material-symbols-outlined text-slate-700" style="font-size:36px">qr_code_2</span>
+      </div>
+      <p class="text-[11px] text-slate-600 text-center">Issued after all steps complete</p>
+      <p class="text-[10px] text-slate-700 text-center mt-0.5">Activates job matching</p>
+    </div>
+
+    <div id="token-unlocked" class="hidden flex flex-col items-center py-4">
+      <div class="size-20 rounded-2xl flex items-center justify-center mb-3" style="background:rgba(37,99,235,0.08);border:2px solid rgba(37,99,235,0.35)">
+        <!-- QR pattern -->
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <rect x="2" y="2" width="22" height="22" rx="3" fill="none" stroke="#2563EB" stroke-width="2"/>
+          <rect x="8" y="8" width="10" height="10" rx="1" fill="#2563EB"/>
+          <rect x="32" y="2" width="22" height="22" rx="3" fill="none" stroke="#2563EB" stroke-width="2"/>
+          <rect x="38" y="8" width="10" height="10" rx="1" fill="#2563EB"/>
+          <rect x="2" y="32" width="22" height="22" rx="3" fill="none" stroke="#2563EB" stroke-width="2"/>
+          <rect x="8" y="38" width="10" height="10" rx="1" fill="#2563EB"/>
+          <rect x="32" y="32" width="4" height="4" fill="#93c5fd"/>
+          <rect x="38" y="32" width="4" height="4" fill="#93c5fd"/>
+          <rect x="44" y="32" width="4" height="4" fill="#93c5fd"/>
+          <rect x="50" y="32" width="4" height="4" fill="#93c5fd"/>
+          <rect x="32" y="38" width="4" height="4" fill="#93c5fd"/>
+          <rect x="44" y="38" width="4" height="4" fill="#93c5fd"/>
+          <rect x="32" y="44" width="4" height="4" fill="#93c5fd"/>
+          <rect x="38" y="44" width="4" height="4" fill="#93c5fd"/>
+          <rect x="50" y="44" width="4" height="4" fill="#93c5fd"/>
+          <rect x="32" y="50" width="4" height="4" fill="#93c5fd"/>
+          <rect x="44" y="50" width="4" height="4" fill="#93c5fd"/>
+        </svg>
+      </div>
+      <p class="text-[12px] font-bold text-violet-300">BRV-AG-2024-4157</p>
+      <p class="text-[10px] text-slate-500 mt-0.5">Token active · Job matching enabled</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button id="deploy-btn" onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem;opacity:0.35;pointer-events:none">
+    GO TO DASHBOARD
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  const steps={dress:true,vehicle:true,photo:false,equipment:false,device:false,briefing:false};
+
+  function toggleStep(id){
+    steps[id]=!steps[id];
+    const row=document.getElementById('step-'+id);
+    const circle=row.querySelector('[data-circle]');
+    const iconWrap=row.querySelector('.step-icon-wrap');
+    const leftIcon=iconWrap.querySelector('.material-symbols-outlined');
+    const title=row.querySelector('.flex-1 p:first-child')||row.querySelector('.flex-1 p');
+
+    // trigger pop animation by removing then re-adding
+    circle.classList.remove('pop-in');
+    void circle.offsetWidth; // reflow
+
+    if(steps[id]){
+      row.classList.add('done');
+      circle.textContent='check_circle';
+      circle.style.cssText='font-size:24px;font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;color:#4ade80;flex-shrink:0;margin-top:2px;';
+      circle.classList.add('pop-in');
+      if(title) title.style.color='#e2e8f0';
+      leftIcon.style.color='#2563EB'; leftIcon.classList.remove('text-slate-500');
+      iconWrap.style.background='rgba(37,99,235,0.12)';
+      iconWrap.style.border='1px solid rgba(37,99,235,0.25)';
+    } else {
+      row.classList.remove('done');
+      circle.textContent='radio_button_unchecked';
+      circle.style.cssText='font-size:24px;font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24;color:#334155;flex-shrink:0;margin-top:2px;';
+      if(title) title.style.color='#94a3b8';
+      leftIcon.style.color=''; leftIcon.classList.add('text-slate-500');
+      iconWrap.style.background='rgba(30,45,69,0.8)';
+      iconWrap.style.border='1px solid #1E2D45';
+    }
+    checkAll();
+  }
+
+  function checkAll(){
+    const allDone=Object.values(steps).every(Boolean);
+    const btn=document.getElementById('deploy-btn');
+    btn.style.opacity=allDone?'1':'0.35';
+    btn.style.pointerEvents=allDone?'auto':'none';
+    document.getElementById('token-locked').style.display=allDone?'none':'flex';
+    document.getElementById('token-unlocked').style.display=allDone?'flex':'none';
+    document.getElementById('token-unlocked').style.flexDirection='column';
+    document.getElementById('token-unlocked').style.alignItems='center';
+  }
+
+  function triggerPhotoUpload(){
+    if(steps.photo) return;
+    document.getElementById('vehicle-photo-input').click();
+  }
+
+  function handlePhotoUpload(event){
+    const file=event.target.files[0];
+    if(!file) return;
+    const url=URL.createObjectURL(file);
+    document.getElementById('photo-thumb').src=url;
+    document.getElementById('photo-upload-zone').style.display='none';
+    document.getElementById('photo-thumb-wrap').classList.remove('hidden');
+    steps.photo=true;
+    const row=document.getElementById('step-photo');
+    const circle=row.querySelector('[data-circle]');
+    const iconWrap=row.querySelector('.step-icon-wrap');
+    const leftIcon=iconWrap.querySelector('.material-symbols-outlined');
+    const title=document.getElementById('photo-title');
+    circle.classList.remove('pop-in');
+    void circle.offsetWidth;
+    row.classList.add('done');
+    circle.textContent='check_circle';
+    circle.style.cssText='font-size:24px;font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;color:#4ade80;flex-shrink:0;margin-top:2px;';
+    circle.classList.add('pop-in');
+    title.style.color='#e2e8f0';
+    leftIcon.style.color='#2563EB'; leftIcon.classList.remove('text-slate-500');
+    iconWrap.style.background='rgba(37,99,235,0.12)';
+    iconWrap.style.border='1px solid rgba(37,99,235,0.25)';
+    checkAll();
+  }
+
+  function retakePhoto(){
+    steps.photo=false;
+    document.getElementById('vehicle-photo-input').value='';
+    document.getElementById('photo-upload-zone').style.display='flex';
+    document.getElementById('photo-thumb-wrap').classList.add('hidden');
+    const row=document.getElementById('step-photo');
+    const circle=row.querySelector('[data-circle]');
+    const iconWrap=row.querySelector('.step-icon-wrap');
+    const leftIcon=iconWrap.querySelector('.material-symbols-outlined');
+    row.classList.remove('done');
+    circle.textContent='radio_button_unchecked';
+    circle.style.cssText='font-size:24px;font-variation-settings:"FILL" 0,"wght" 400,"GRAD" 0,"opsz" 24;color:#334155;flex-shrink:0;margin-top:2px;';
+    document.getElementById('photo-title').style.color='#94a3b8';
+    leftIcon.style.color=''; leftIcon.classList.add('text-slate-500');
+    iconWrap.style.background='rgba(30,45,69,0.8)';
+    iconWrap.style.border='1px solid #1E2D45';
+    checkAll();
+    setTimeout(()=>document.getElementById('vehicle-photo-input').click(), 80);
+  }
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('agent-admin-approval.html');}
+  function goNext(){nav('agent-dashboard.html');}
+
+  checkAll();
+</script>
+</body></html>

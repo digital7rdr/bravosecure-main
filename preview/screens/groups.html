@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Messenger — Groups</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ primary:"#2563EB","bg-dark":"#0A0F1E", surface:"#0D1929", border:"#1E2D45" },
+      fontFamily:{ display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  * { scrollbar-width:none; }
+  *::-webkit-scrollbar { display:none; }
+
+  .group-row {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; cursor:pointer;
+    border-bottom:1px solid #1E2D45;
+    transition:background 0.15s;
+  }
+  .group-row:active { background:rgba(37,99,235,0.06); }
+
+  .section-label {
+    font-size:9px; font-weight:800; letter-spacing:3px;
+    text-transform:uppercase; color:#475569;
+    padding:12px 16px 6px;
+  }
+
+  .unread-badge {
+    min-width:18px; height:18px; border-radius:9px;
+    background:#2563EB; color:#fff;
+    font-size:10px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+    padding:0 5px; flex-shrink:0;
+  }
+
+  .nav-tab {
+    display:flex; flex-direction:column; align-items:center;
+    gap:3px; flex:1; padding:6px 0; cursor:pointer;
+    color:#475569; transition:color 0.15s;
+    font-size:9px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  }
+  .nav-tab.active { color:#2563EB; }
+  .nav-tab .material-symbols-outlined { font-size:22px; }
+
+  /* Active mission dot */
+  .mission-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:#ef4444; flex-shrink:0;
+    box-shadow:0 0 6px rgba(239,68,68,0.6);
+  }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 px-4 pt-10 pb-3 border-b flex items-center justify-between" style="background:#0A0F1E; border-color:#1E2D45;">
+  <h1 class="text-[17px] font-extrabold uppercase tracking-[3px] text-slate-100">Groups</h1>
+  <button onclick="void(0)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors hover:bg-blue-500/10" style="border:1px solid rgba(37,99,235,0.35); background:rgba(37,99,235,0.08);">
+    <span class="material-symbols-outlined text-blue-400" style="font-size:14px;">add</span>
+    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-400">New Group</span>
+  </button>
+</header>
+
+<!-- List -->
+<div class="flex-1 overflow-y-auto">
+
+  <!-- MISSION GROUPS -->
+  <div class="section-label">Mission Groups</div>
+
+  <!-- Bravo Ops — Mission 4821 -->
+  <div class="group-row" onclick="nav('group-info.html')">
+    <div class="relative flex-shrink-0">
+      <div class="size-12 rounded-[14px] flex items-center justify-center font-extrabold text-[11px] text-white" style="background:linear-gradient(135deg,#1d4ed8,#4F46E5);">
+        <span class="material-symbols-outlined filled text-white" style="font-size:22px;">shield</span>
+      </div>
+      <!-- Active mission dot -->
+      <div class="mission-dot absolute -top-1 -right-1"></div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-[13px] font-bold truncate">Bravo Ops — Mission 4821</span>
+        <span class="text-[10px] text-slate-500 shrink-0 ml-2">08:42</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-[11px] text-slate-400 truncate">CPO-44: Vehicle en route</span>
+        </div>
+        <span class="text-[10px] text-slate-600 shrink-0 ml-2">5 members</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEOM Riyadh — Advance Team -->
+  <div class="group-row" onclick="nav('group-info.html')">
+    <div class="relative flex-shrink-0">
+      <div class="size-12 rounded-[14px] flex items-center justify-center font-extrabold text-[11px] text-white" style="background:linear-gradient(135deg,#065f46,#064e3b);">
+        <span class="material-symbols-outlined filled text-green-300" style="font-size:22px;">location_on</span>
+      </div>
+      <div class="mission-dot absolute -top-1 -right-1"></div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-[13px] font-bold truncate">NEOM Riyadh — Advance Team</span>
+        <span class="text-[10px] text-slate-500 shrink-0 ml-2">08:11</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] text-slate-400 truncate">Route sweep complete</span>
+        <span class="text-[10px] text-slate-600 shrink-0 ml-2">4 members</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERAL GROUPS -->
+  <div class="section-label" style="padding-top:16px;">General Groups</div>
+
+  <!-- Digital7 — Leadership -->
+  <div class="group-row" onclick="nav('group-info.html')">
+    <div class="size-12 rounded-[14px] flex items-center justify-center font-extrabold text-[13px] text-white flex-shrink-0" style="background:linear-gradient(135deg,#7B5EA7,#7C3AED);">D7</div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-[13px] font-bold truncate">Digital7 — Leadership</span>
+        <span class="text-[10px] text-slate-500 shrink-0 ml-2">06:42</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] text-slate-400 truncate">Q3-board deck review — Mon</span>
+        <div class="unread-badge ml-2">2</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Network UAE -->
+  <div class="group-row" onclick="nav('group-info.html')">
+    <div class="size-12 rounded-[14px] flex items-center justify-center font-extrabold text-[11px] text-white flex-shrink-0" style="background:linear-gradient(135deg,#0c4a6e,#075985);">
+      <span class="material-symbols-outlined filled text-sky-300" style="font-size:22px;">public</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-[13px] font-bold truncate">Agent Network UAE</span>
+        <span class="text-[10px] text-slate-500 shrink-0 ml-2">Yesterday</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 truncate">Your availability confirmed Fri</span>
+        <span class="material-symbols-outlined filled text-[14px] ml-2" style="color:#2563EB;">done_all</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bravo Intel Alerts -->
+  <div class="group-row" onclick="nav('group-info.html')">
+    <div class="size-12 rounded-[14px] flex items-center justify-center font-extrabold text-[11px] text-white flex-shrink-0" style="background:linear-gradient(135deg,#1d4ed8,#2563EB);">
+      <span class="material-symbols-outlined filled text-white" style="font-size:22px;">bolt</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-0.5">
+        <span class="text-[13px] font-bold truncate">Bravo Intel Alerts</span>
+        <span class="text-[10px] text-slate-500 shrink-0 ml-2">Sunday</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 truncate">[Auto] Risk update — NEOM</span>
+        <div class="unread-badge ml-2">7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h-24"></div>
+</div>
+
+<!-- FAB -->
+<div class="absolute right-5 bottom-[72px] z-40">
+  <button onclick="void(0)" class="flex items-center justify-center rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95"
+    style="width:52px;height:52px;background:#2563EB;box-shadow:0 8px 24px rgba(37,99,235,0.5);">
+    <span class="material-symbols-outlined filled text-white text-[22px]">group_add</span>
+  </button>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="shrink-0 flex items-center border-t" style="background:#0A0F1E; border-color:#1E2D45; padding-bottom:env(safe-area-inset-bottom,16px);">
+  <button class="nav-tab" onclick="nav('messenger-home.html')">
+    <span class="material-symbols-outlined">chat_bubble</span>Chats
+  </button>
+  <button class="nav-tab active">
+    <span class="material-symbols-outlined filled">group</span>Groups
+  </button>
+  <button class="nav-tab" onclick="nav('calls-log.html')">
+    <span class="material-symbols-outlined">call</span>Calls
+  </button>
+  <button class="nav-tab" onclick="nav('files.html')">
+    <span class="material-symbols-outlined">folder</span>Files
+  </button>
+  <button class="nav-tab" onclick="nav('news-article.html')">
+    <span class="material-symbols-outlined">newspaper</span>News
+  </button>
+</nav>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+</script>
+</body>
+</html>

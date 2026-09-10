@@ -1,0 +1,21 @@
+<resources>
+  <color name="splashscreen_background">#07090D</color>
+  <color name="iconBackground">#0f1f3d</color>
+  <color name="colorPrimary">#023c69</color>
+  <color name="colorPrimaryDark">#0A0A0A</color>
+  <!-- B-66: notification accent — tints the monochrome small icon (obsidian
+       design-system cobalt). Referenced by the FCM default_notification_color
+       meta-data; notifee paths pass the same value from JS. -->
+  <color name="notificationAccent">#5B8DEF</color>
+  <!-- B-646 r3 — the native date/time dialogs (see BravoPickerDialog in styles.xml).
+       Same tokens the JS surface uses: obsidian card, cobalt accent, platinum text. -->
+  <color name="pickerSurface">#0E1320</color>
+  <color name="pickerAccent">#5B8DEF</color>
+  <color name="pickerText">#F2F4F8</color>
+  <color name="pickerTextDim">#9EA8BE</color>
+  <!-- B-646 r4 — deep clock styling: a raised cobalt-navy header over the
+       obsidian sheet, and a slightly lifted dial face so the clock reads as a
+       card element rather than a flat hole. -->
+  <color name="pickerHeader">#16233F</color>
+  <color name="pickerDial">#131A2B</color>
+</resources>

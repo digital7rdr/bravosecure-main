@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"pro":"#6366F1","background-dark":"#0A0F1E"},fontFamily:{"display":["Manrope","sans-serif"]},borderRadius:{"DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px"}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .dot-prog{display:flex;gap:5px;align-items:center;}
+  .dp{width:6px;height:6px;border-radius:50%;background:#1E2D45;}
+  .dp.done{background:#6366F1;} .dp.act{background:#6366F1;width:18px;border-radius:3px;}
+  .tab-btn{flex:1;padding:7px 2px;border-radius:0.5rem;font-size:0.7rem;font-weight:700;letter-spacing:0.04em;transition:all 0.2s;cursor:pointer;}
+  .tab-btn.active{background:#6366F1;color:white;}
+  .tab-btn:not(.active){background:transparent;color:#64748b;}
+  .tab-panel{display:none;} .tab-panel.active{display:block;}
+
+  /* Live map */
+  @keyframes asset-move1{0%,100%{transform:translate(0,0)}50%{transform:translate(4px,-3px)}}
+  @keyframes asset-move2{0%,100%{transform:translate(0,0)}50%{transform:translate(-3px,4px)}}
+  @keyframes asset-move3{0%,100%{transform:translate(0,0)}50%{transform:translate(5px,2px)}}
+  .a1{animation:asset-move1 3s ease-in-out infinite;}
+  .a2{animation:asset-move2 4s ease-in-out infinite;}
+  .a3{animation:asset-move3 3.5s ease-in-out infinite;}
+
+  @keyframes live-ring{0%{transform:scale(1);opacity:0.6}100%{transform:scale(2.5);opacity:0}}
+  .live-ring{animation:live-ring 1.8s ease-out infinite;}
+
+  /* Alert pulse */
+  @keyframes alert-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .alert-card{animation:alert-in 0.3s ease forwards;}
+
+  /* Timeline dot */
+  .tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .tl-line{width:1px;background:#1E2D45;flex:1;margin:3px auto;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-2 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-widest uppercase" style="color:#6366F1">Mission Monitoring</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5 px-2 py-1 rounded-full" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3)">
+      <span class="size-1.5 rounded-full bg-red-400 animate-pulse inline-block"></span>
+      <span class="text-[10px] font-bold text-red-400">LIVE</span>
+    </div>
+    <span class="text-[10px] font-bold px-2 py-1 rounded-full border" style="color:#6366F1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)">STEP 7/10</span>
+  </div>
+</header>
+
+<div class="px-5 pb-2">
+  <div class="dot-prog">
+    <div class="dp done"></div><div class="dp done"></div><div class="dp done"></div><div class="dp done"></div><div class="dp done"></div><div class="dp done"></div>
+    <div class="dp act"></div>
+    <div class="dp"></div><div class="dp"></div><div class="dp"></div>
+  </div>
+</div>
+
+<!-- Assets tracked badge -->
+<div class="px-4 pb-2 flex items-center gap-2">
+  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25)">
+    <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+    <span class="text-[10px] font-bold text-emerald-400">3 ASSETS TRACKED</span>
+  </div>
+</div>
+
+<!-- Live Map -->
+<div class="mx-4 mb-2 rounded-xl overflow-hidden relative" style="height:160px;background:#06101e;border:1px solid #1E2D45">
+  <!-- Grid -->
+  <svg width="100%" height="100%" style="position:absolute;inset:0;opacity:0.12">
+    <defs><pattern id="g" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#6366F1" stroke-width="0.5"/></pattern></defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+  </svg>
+  <!-- Route polyline -->
+  <svg width="100%" height="100%" style="position:absolute;inset:0">
+    <polyline points="40,130 90,95 160,75 230,60 280,80 320,55" fill="none" stroke="#6366F1" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>
+    <!-- Destination marker -->
+    <circle cx="320" cy="55" r="6" fill="none" stroke="#6366F1" stroke-width="1.5" opacity="0.7"/>
+    <circle cx="320" cy="55" r="2.5" fill="#6366F1"/>
+    <text x="325" y="48" fill="#a5b4fc" font-size="8" font-family="Manrope" font-weight="700">NEOM HQ</text>
+    <!-- Zone labels -->
+    <text x="50" y="145" fill="#334155" font-size="8" font-family="Manrope">DXB</text>
+    <text x="140" y="90" fill="#334155" font-size="8" font-family="Manrope">ABU DHABI</text>
+  </svg>
+  <!-- Asset 1 — Primary Vehicle -->
+  <div class="a1 absolute" style="left:150px;top:68px">
+    <div style="position:relative">
+      <div class="live-ring absolute" style="width:16px;height:16px;border:2px solid #6366F1;border-radius:50%;top:-4px;left:-4px"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#6366F1;border:2px solid white"></div>
+    </div>
+  </div>
+  <!-- Asset 2 — Support -->
+  <div class="a2 absolute" style="left:120px;top:82px">
+    <div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;border:1.5px solid white"></div>
+  </div>
+  <!-- Asset 3 — Advance CPO -->
+  <div class="a3 absolute" style="left:200px;top:62px">
+    <div style="width:7px;height:7px;border-radius:50%;background:#22c55e;border:1.5px solid white"></div>
+  </div>
+  <!-- Status banner -->
+  <div class="absolute bottom-2 left-2 right-2 py-1.5 px-3 rounded-lg flex items-center gap-2" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3)">
+    <span class="size-1.5 rounded-full bg-emerald-400 inline-block"></span>
+    <span class="text-[10px] font-bold text-emerald-400">ALL SECURE · HAKIM ENTER HQ</span>
+  </div>
+  <!-- Legend -->
+  <div class="absolute top-2 right-2 flex flex-col gap-1">
+    <div class="flex items-center gap-1"><div style="width:6px;height:6px;border-radius:50%;background:#6366F1"></div><span style="font-size:7px;color:#64748b;font-family:Manrope">Primary</span></div>
+    <div class="flex items-center gap-1"><div style="width:6px;height:6px;border-radius:50%;background:#f59e0b"></div><span style="font-size:7px;color:#64748b;font-family:Manrope">Support</span></div>
+    <div class="flex items-center gap-1"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e"></div><span style="font-size:7px;color:#64748b;font-family:Manrope">Advance</span></div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="px-4 pb-2">
+  <div class="flex p-1 rounded-xl gap-1" style="background:#0D1929;border:1px solid #1E2D45">
+    <button class="tab-btn active" id="tab-assets" onclick="switchTab('assets')">ASSETS</button>
+    <button class="tab-btn" id="tab-intel" onclick="switchTab('intel')">INTEL</button>
+    <button class="tab-btn" id="tab-comms" onclick="switchTab('comms')">COMMS</button>
+  </div>
+</div>
+
+<main class="flex-1 px-4 pb-28 overflow-y-auto">
+
+  <!-- Assets -->
+  <div class="tab-panel active space-y-2" id="panel-assets">
+    <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#0D1929;border:1px solid rgba(99,102,241,0.25)">
+      <div class="size-2 rounded-full bg-indigo-400 shrink-0 animate-pulse"></div>
+      <div class="flex-1">
+        <p class="text-xs font-bold">Primary Vehicle</p>
+        <p class="text-[10px] text-slate-500">CPO Petrova · Principal Car</p>
+      </div>
+      <span class="text-[10px] font-bold text-emerald-400">All units secured</span>
+    </div>
+    <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#0D1929;border:1px solid rgba(245,158,11,0.2)">
+      <div class="size-2 rounded-full bg-amber-400 shrink-0 animate-pulse"></div>
+      <div class="flex-1">
+        <p class="text-xs font-bold">Support Vehicle</p>
+        <p class="text-[10px] text-slate-500">CPO Al-Rashidi · Escort</p>
+      </div>
+      <span class="text-[10px] font-bold text-amber-400">On route</span>
+    </div>
+    <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#0D1929;border:1px solid rgba(34,197,94,0.2)">
+      <div class="size-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></div>
+      <div class="flex-1">
+        <p class="text-xs font-bold">Advance CPO</p>
+        <p class="text-[10px] text-slate-500">M. Okonkwo · On-site NEOM today</p>
+      </div>
+      <span class="text-[10px] font-bold text-emerald-400">On site</span>
+    </div>
+    <!-- Mission Log -->
+    <p class="text-[10px] font-bold tracking-widest uppercase text-slate-500 pt-1">Mission Log</p>
+    <div style="background:#0D1929;border:1px solid #1E2D45;border-radius:1rem;padding:12px">
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="tl-dot bg-emerald-400"></div>
+          <div class="tl-line" style="height:28px"></div>
+          <div class="tl-dot" style="background:#6366F1"></div>
+          <div class="tl-line" style="height:28px"></div>
+          <div class="tl-dot bg-amber-400"></div>
+        </div>
+        <div class="space-y-4 flex-1">
+          <div><p class="text-[11px] font-bold text-slate-200">Departure DXB · Team secured</p><p class="text-[10px] text-slate-600">08:14</p></div>
+          <div><p class="text-[11px] font-bold text-slate-200">Route clear · No threats detected</p><p class="text-[10px] text-slate-600">09:41</p></div>
+          <div><p class="text-[11px] font-bold text-amber-300">Approaching NEOM HQ lobby</p><p class="text-[10px] text-slate-600">Now</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intel -->
+  <div class="tab-panel space-y-2" id="panel-intel">
+    <div class="alert-card p-3 rounded-xl" style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.25)">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled text-red-400 text-sm">warning</span>
+        <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider">HIGH PRIORITY ALERT</span>
+        <span class="ml-auto text-[10px] text-slate-600">08:59</span>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">Elevated threat signal near NEOM sector B — Ops room notified. Route alternate pre-loaded.</p>
+    </div>
+    <div class="p-3 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled text-indigo-400 text-sm">info</span>
+        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Route Update</span>
+        <span class="ml-auto text-[10px] text-slate-600">09:12</span>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">Alternate route via Highway 10 activated. ETA updated to 10:15.</p>
+    </div>
+    <div class="p-3 rounded-xl" style="background:#0D1929;border:1px solid rgba(34,197,94,0.2)">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled text-emerald-400 text-sm">check_circle</span>
+        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">All Clear</span>
+        <span class="ml-auto text-[10px] text-slate-600">09:38</span>
+      </div>
+      <p class="text-xs text-slate-400">Area secured. Advance CPO confirms safe entry zone.</p>
+    </div>
+  </div>
+
+  <!-- Comms -->
+  <div class="tab-panel space-y-2" id="panel-comms">
+    <div class="p-3 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined filled text-indigo-400 text-sm">lock</span>
+        <span class="text-xs font-bold text-slate-300">Encrypted Channel — Active</span>
+        <span class="size-1.5 rounded-full bg-emerald-400 ml-auto animate-pulse inline-block"></span>
+      </div>
+      <div class="space-y-2">
+        <div class="text-right"><div class="inline-block px-3 py-2 rounded-xl rounded-tr-sm text-xs text-white max-w-[80%]" style="background:#6366F1">All units in position. Ready to proceed.</div><p class="text-[9px] text-slate-600 mt-0.5">08:59 · CPO Al-Rashidi</p></div>
+        <div class="text-left"><div class="inline-block px-3 py-2 rounded-xl rounded-tl-sm text-xs text-slate-200 max-w-[80%]" style="background:#1E2D45">Confirmed. Advance cleared. Proceed to entry.</div><p class="text-[9px] text-slate-600 mt-0.5">09:01 · Ops Room</p></div>
+        <div class="text-right"><div class="inline-block px-3 py-2 rounded-xl rounded-tr-sm text-xs text-white max-w-[80%]" style="background:#6366F1">Principal secured. On site.</div><p class="text-[9px] text-slate-600 mt-0.5">09:41 · CPO Petrova</p></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2 space-y-2" style="background:linear-gradient(to top,#0A0F1E 80%,transparent)">
+  <button onclick="goNext()" class="w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all" style="background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2)">
+    <span class="material-symbols-outlined" style="font-size:15px">history</span> VIEW ACTIVITY HISTORY
+  </button>
+  <button onclick="triggerEmergency()" class="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]" style="background:linear-gradient(135deg,#dc2626,#b91c1c);box-shadow:0 4px 20px rgba(220,38,38,0.45);color:white;letter-spacing:0.06em">
+    <span class="material-symbols-outlined filled" style="font-size:18px">bolt</span> EMERGENCY ESCALATION
+  </button>
+</footer>
+
+<script>
+  function switchTab(t){
+    ['assets','intel','comms'].forEach(k=>{
+      document.getElementById('tab-'+k).classList.toggle('active',k===t);
+      document.getElementById('panel-'+k).classList.toggle('active',k===t);
+    });
+  }
+  function goBack(){if(window.parent&&window.parent.loadScreen){const n=window.parent.document.querySelector('[onclick*="bravo-pro-assigned-team"]')||window.parent.document.querySelector('.nav-item.active');window.parent.loadScreen('screens/bravo-pro-assigned-team.html',n||document.createElement('div'));}}
+  function goNext(){if(window.parent&&window.parent.loadScreen){const n=window.parent.document.querySelector('[onclick*="bravo-pro-activity"]')||window.parent.document.querySelector('.nav-item.active');window.parent.loadScreen('screens/bravo-pro-activity-history.html',n||document.createElement('div'));}}
+  function triggerEmergency(){
+    const btn=document.querySelector('[onclick="triggerEmergency()"]');
+    const orig=btn.innerHTML;
+    btn.innerHTML='<span class="material-symbols-outlined filled" style="font-size:18px">warning</span> ESCALATING TO OPS DIRECTOR...';
+    btn.style.background='linear-gradient(135deg,#7f1d1d,#991b1b)';
+    btn.disabled=true;
+    setTimeout(()=>{
+      btn.innerHTML='<span class="material-symbols-outlined filled" style="font-size:18px">check_circle</span> OPS DIRECTOR NOTIFIED';
+      btn.style.background='linear-gradient(135deg,#14532d,#166534)';
+    },2000);
+  }
+</script>
+</body></html>

@@ -1,0 +1,49 @@
+# ──────────────────────────────────────────────────────────────────────
+# bravo-messenger.service
+#
+# Mirrors bravo-auth.service for the messenger-service container.
+# See infra/systemd/bravo-auth.service for design notes.
+#
+# Phase 5.1 note: this service subscribes to the Redis `mission:events`
+# channel that auth-service publishes to. /etc/bravo/messenger.env MUST
+# carry the same REDIS_URL as /etc/bravo/auth.env for cross-process
+# pub/sub to work; otherwise mission lifecycle frames won't reach
+# subscribed sockets.
+#
+# Install via:
+#   sudo cp infra/systemd/bravo-messenger.service /etc/systemd/system/
+#   sudo touch /etc/bravo/messenger.image
+#   sudo cp infra/env/messenger.env.example /etc/bravo/messenger.env
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now bravo-messenger.service
+# ──────────────────────────────────────────────────────────────────────
+[Unit]
+Description=Bravo Secure — messenger-service (Docker)
+Documentation=https://github.com/<org>/bravo-secure/blob/main/DEPLOY_PLAN.md
+After=docker.service network-online.target
+Wants=docker.service network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+TimeoutStartSec=120s
+StandardOutput=journal
+StandardError=journal
+
+ExecStartPre=-/usr/bin/docker rm -f bravo-messenger
+ExecStartPre=/bin/bash -c '/usr/bin/docker pull "$(cat /etc/bravo/messenger.image)"'
+
+ExecStart=/bin/bash -c '/usr/bin/docker run --rm \
+  --name bravo-messenger \
+  --network host \
+  --env-file /etc/bravo/messenger.env \
+  "$(cat /etc/bravo/messenger.image)"'
+
+ExecStop=/usr/bin/docker stop -t 15 bravo-messenger
+
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Install]
+WantedBy=multi-user.target

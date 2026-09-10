@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "preserve",
+    "lib": ["esnext"],
+    "jsx": "react-native",
+    "strict": true,
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@screens/*": ["src/screens/*"],
+      "@components/*": ["src/components/*"],
+      "@navigation/*": ["src/navigation/*"],
+      "@services/*": ["src/services/*"],
+      "@store/*": ["src/store/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@utils/*": ["src/utils/*"],
+      "@theme/*": ["src/theme/*"],
+      "@appTypes/*": ["src/types/*"],
+      "@modules/*": ["src/modules/*"],
+      "@bravo/messenger-core": ["packages/messenger-core/src"],
+      "@bravo/messenger-core/*": ["packages/messenger-core/src/*"]
+    }
+  },
+  "include": [
+    "src",
+    "packages/messenger-core/src",
+    "packages/messenger-core/__tests__",
+    "index.js",
+    "App.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
+}

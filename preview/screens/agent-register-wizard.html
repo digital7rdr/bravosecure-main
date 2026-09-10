@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .step-tab{flex:1;padding:8px 2px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.08em;border-bottom:2px solid transparent;color:#475569;cursor:pointer;transition:all 0.2s;}
+  .step-tab.done{color:#2563EB;border-bottom-color:rgba(37,99,235,0.3);}
+  .step-tab.active{color:#2563EB;border-bottom-color:#2563EB;}
+
+  .step-panel{display:none;} .step-panel.active{display:block;}
+
+  .field-label{font-size:10px;font-weight:700;letter-spacing:0.1em;color:#64748b;text-transform:uppercase;margin-bottom:5px;}
+  .field-input{width:100%;background:#0D1929 !important;border:1px solid #1E2D45;border-radius:10px;padding:11px 14px;font-size:13px;color:#e2e8f0 !important;font-family:'Manrope',sans-serif;outline:none;transition:border-color 0.15s;-webkit-appearance:none;appearance:none;}
+  .field-input:focus{border-color:rgba(37,99,235,0.5);}
+  .field-input:-webkit-autofill,.field-input:-webkit-autofill:focus{-webkit-box-shadow:0 0 0 1000px #0D1929 inset !important;-webkit-text-fill-color:#e2e8f0 !important;}
+
+  .cert-check{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #1E2D45;background:#0D1929;cursor:pointer;}
+  .cert-check input[type=checkbox]{width:16px;height:16px;accent-color:#2563EB;flex-shrink:0;}
+
+  .review-row{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1E2D45;font-size:12px;}
+  .review-row:last-child{border-bottom:none;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Agent Registration</h1>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full" style="color:#2563EB;border:1px solid rgba(37,99,235,0.3);background:rgba(37,99,235,0.08)">STEP 2/6</span>
+</header>
+
+<!-- Step tabs -->
+<div class="flex border-b shrink-0" style="border-color:#1E2D45">
+  <div id="tab-personal" class="step-tab active" onclick="goToStep(0)">PERSONAL</div>
+  <div id="tab-contact" class="step-tab" onclick="goToStep(1)">CONTACT</div>
+  <div id="tab-credentials" class="step-tab" onclick="goToStep(2)">CREDENTIALS</div>
+  <div id="tab-review" class="step-tab" onclick="goToStep(3)">REVIEW</div>
+</div>
+
+<div class="flex-1 overflow-y-auto px-4 pb-32 pt-4 space-y-4">
+
+  <!-- PERSONAL -->
+  <div id="panel-personal" class="step-panel active space-y-4">
+    <div><p class="field-label">Full Legal Name</p><input class="field-input" type="text" value="James A. Whitfield" placeholder="As on passport"/></div>
+    <div><p class="field-label">Date of Birth</p><input class="field-input" type="text" value="14 / 03 / 1988" placeholder="DD / MM / YYYY"/></div>
+    <div><p class="field-label">Nationality</p><input class="field-input" type="text" value="British" placeholder="Country of citizenship"/></div>
+    <div><p class="field-label">National ID / Passport No.</p><input class="field-input" type="text" value="GB-739-4157" placeholder="Passport or national ID"/></div>
+    <div>
+      <p class="field-label">Gender</p>
+      <div class="flex gap-2">
+        <button id="g-male" onclick="selectGender('male')" class="flex-1 py-2.5 rounded-xl text-[12px] font-bold transition-all" style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.4);color:#93c5fd">Male</button>
+        <button id="g-female" onclick="selectGender('female')" class="flex-1 py-2.5 rounded-xl text-[12px] font-bold transition-all" style="background:#0D1929;border:1px solid #1E2D45;color:#475569">Female</button>
+        <button id="g-other" onclick="selectGender('other')" class="flex-1 py-2.5 rounded-xl text-[12px] font-bold transition-all" style="background:#0D1929;border:1px solid #1E2D45;color:#475569">Other</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div id="panel-contact" class="step-panel space-y-4">
+    <div><p class="field-label">Mobile Number</p><input class="field-input" type="tel" value="+44 7911 234567" placeholder="+971 5X XXX XXXX"/></div>
+    <div><p class="field-label">Email Address</p><input class="field-input" type="email" value="james.whitfield@digital7.com" placeholder="your@email.com"/></div>
+    <div><p class="field-label">Country of Residence</p><input class="field-input" type="text" value="United Kingdom" placeholder="Current country"/></div>
+    <div><p class="field-label">City</p><input class="field-input" type="text" value="London" placeholder="Current city"/></div>
+    <div><p class="field-label">Emergency Contact Name</p><input class="field-input" type="text" value="Sarah Whitfield" placeholder="Full name"/></div>
+    <div><p class="field-label">Emergency Contact Number</p><input class="field-input" type="tel" value="+44 7911 987654" placeholder="+X XXX XXX XXXX"/></div>
+  </div>
+
+  <!-- CREDENTIALS -->
+  <div id="panel-credentials" class="step-panel space-y-4">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase">Professional Credentials</p>
+    <div><p class="field-label">Primary Certification</p><input class="field-input" type="text" value="SIA Close Protection Licence"/></div>
+    <div><p class="field-label">Licence Number</p><input class="field-input" type="text" value="SIA-2024-CP—"/></div>
+    <div><p class="field-label">Licence Expiry</p><input class="field-input" type="text" value="15 / 04 / 2027"/></div>
+    <div><p class="field-label">Issuing Authority</p><input class="field-input" type="text" value="UK Security Industry Authority"/></div>
+    <div>
+      <p class="field-label">Additional Certifications</p>
+      <div class="space-y-2">
+        <label class="cert-check"><input type="checkbox" checked/><span class="text-[13px] text-slate-300">First Aid / Trauma Care</span></label>
+        <label class="cert-check"><input type="checkbox" checked/><span class="text-[13px] text-slate-300">Firearms Certified</span></label>
+        <label class="cert-check"><input type="checkbox" checked/><span class="text-[13px] text-slate-300">Defensive Driving — Level 3</span></label>
+        <label class="cert-check"><input type="checkbox"/><span class="text-[13px] text-slate-300">Counter-Surveillance</span></label>
+        <label class="cert-check"><input type="checkbox"/><span class="text-[13px] text-slate-300">Close Circuit (CCTV) Operations</span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div id="panel-review" class="step-panel space-y-4">
+    <div class="rounded-2xl p-4" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-[10px] font-bold tracking-[0.12em] mb-3" style="color:#2563EB">PERSONAL</p>
+      <div class="review-row"><span class="text-slate-500">Full Name</span><span class="text-slate-200 font-semibold">James A. Whitfield</span></div>
+      <div class="review-row"><span class="text-slate-500">DOB</span><span class="text-slate-200 font-semibold">14/03/1988</span></div>
+      <div class="review-row"><span class="text-slate-500">Nationality</span><span class="text-slate-200 font-semibold">British</span></div>
+      <div class="review-row"><span class="text-slate-500">Passport</span><span class="text-slate-200 font-semibold">GB-739-4157</span></div>
+    </div>
+    <div class="rounded-2xl p-4" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-[10px] font-bold tracking-[0.12em] mb-3" style="color:#2563EB">CONTACT</p>
+      <div class="review-row"><span class="text-slate-500">Mobile</span><span class="text-slate-200 font-semibold">+44 7911 234567</span></div>
+      <div class="review-row"><span class="text-slate-500">Email</span><span class="text-slate-200 font-semibold text-xs">james.whitfield@digital7.com</span></div>
+      <div class="review-row"><span class="text-slate-500">Location</span><span class="text-slate-200 font-semibold">London, UK</span></div>
+    </div>
+    <div class="rounded-2xl p-4" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-[10px] font-bold tracking-[0.12em] mb-3" style="color:#2563EB">CREDENTIALS</p>
+      <div class="review-row"><span class="text-slate-500">Licence</span><span class="text-slate-200 font-semibold text-xs">SIA Close Protection</span></div>
+      <div class="review-row"><span class="text-slate-500">Expiry</span><span class="text-slate-200 font-semibold">15/04/2027</span></div>
+      <div class="review-row"><span class="text-slate-500">Certs</span><span class="text-slate-200 font-semibold text-xs">First Aid, Firearms, Driving L3</span></div>
+    </div>
+    <label class="flex items-start gap-3 cursor-pointer">
+      <input type="checkbox" id="tc-check" style="accent-color:#2563EB;width:18px;height:18px;flex-shrink:0;margin-top:1px" onchange="updateSubmitBtn()"/>
+      <span class="text-[12px] text-slate-400 leading-relaxed">I confirm all information is accurate and agree to the <span style="color:#2563EB" class="font-semibold">Terms & Conditions</span> and Bravo partner agreement.</span>
+    </label>
+  </div>
+
+</div>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button id="next-btn" onclick="nextStep()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem">
+    NEXT: CONTACT
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  let currentStep=0;
+  const btnLabels=['NEXT: CONTACT','NEXT: CREDENTIALS','NEXT: REVIEW','SUBMIT APPLICATION'];
+
+  function goToStep(n){
+    ['personal','contact','credentials','review'].forEach((s,i)=>{
+      document.getElementById('panel-'+s).classList.toggle('active',i===n);
+      const tab=document.getElementById('tab-'+s);
+      tab.classList.remove('active','done');
+      if(i===n) tab.classList.add('active');
+      else if(i<n) tab.classList.add('done');
+    });
+    currentStep=n;
+    const btn=document.getElementById('next-btn');
+    if(n===3){
+      btn.textContent='SUBMIT APPLICATION';
+      const tc=document.getElementById('tc-check');
+      btn.style.opacity=tc.checked?'1':'0.4';
+      btn.style.pointerEvents=tc.checked?'auto':'none';
+    } else {
+      btn.innerHTML=btnLabels[n]+' <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>';
+      btn.style.opacity='1'; btn.style.pointerEvents='auto';
+    }
+  }
+  function nextStep(){ if(currentStep<3) goToStep(currentStep+1); else nav('agent-kyc.html'); }
+  function updateSubmitBtn(){
+    if(currentStep!==3)return;
+    const tc=document.getElementById('tc-check');
+    const btn=document.getElementById('next-btn');
+    btn.style.opacity=tc.checked?'1':'0.4';
+    btn.style.pointerEvents=tc.checked?'auto':'none';
+  }
+  function selectGender(g){
+    ['male','female','other'].forEach(x=>{
+      const b=document.getElementById('g-'+x);
+      const a=x===g;
+      b.style.background=a?'rgba(37,99,235,0.12)':'#0D1929';
+      b.style.borderColor=a?'rgba(37,99,235,0.4)':'#1E2D45';
+      b.style.color=a?'#93c5fd':'#475569';
+    });
+  }
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('agent-type-select.html');}
+</script>
+</body></html>

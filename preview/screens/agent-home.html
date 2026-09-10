@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "primary":"#2563EB","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .fu1{animation:fade-up 0.35s ease 0.05s both;}
+  .fu2{animation:fade-up 0.35s ease 0.12s both;}
+  .fu3{animation:fade-up 0.35s ease 0.19s both;}
+  .fu4{animation:fade-up 0.35s ease 0.26s both;}
+  .fu5{animation:fade-up 0.35s ease 0.33s both;}
+  .fu6{animation:fade-up 0.35s ease 0.40s both;}
+
+  @keyframes shimmer { from{background-position:-200% 0} to{background-position:200% 0} }
+  .shimmer-bar {
+    background:linear-gradient(90deg,rgba(37,99,235,0.3) 0%,rgba(37,99,235,0.7) 40%,rgba(167,139,250,0.8) 50%,rgba(37,99,235,0.7) 60%,rgba(37,99,235,0.3) 100%);
+    background-size:200% 100%;
+    animation:shimmer 2.5s ease-in-out infinite;
+  }
+
+  /* Premium button base */
+  .btn-p { box-shadow:inset 0 1px 0 rgba(255,255,255,0.13),0 3px 12px rgba(37,99,235,0.28),0 1px 2px rgba(0,0,0,0.3) !important; }
+  .btn-glass { background:rgba(255,255,255,0.04) !important; border:1px solid rgba(255,255,255,0.09) !important; }
+
+  /* Mission progress bar */
+  @keyframes progress { from{width:0} to{width:68%} }
+  .mission-bar { animation:progress 1.2s ease 0.5s both; }
+
+  /* Notification dot */
+  .notif-dot { position:absolute; top:6px; right:6px; width:8px; height:8px; background:#ef4444; border-radius:50%; border:1.5px solid #0A0F1E; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-5 pt-[50px] pb-4 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <!-- Avatar -->
+    <div class="relative">
+      <div class="size-12 rounded-full flex items-center justify-center font-bold text-base" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);color:white">MJ</div>
+      <span class="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-400 border-2 border-[#0A0F1E]"></span>
+    </div>
+    <div>
+      <p class="text-[11px] text-slate-500 font-semibold">Good morning</p>
+      <h1 class="text-base font-extrabold text-slate-100 leading-tight">Marcus Johnson</h1>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <!-- Status badge -->
+    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3)">
+      <span class="size-1.5 rounded-full bg-emerald-400 pulse-dot inline-block"></span>
+      <span class="text-[11px] font-bold text-emerald-400">LIVE</span>
+    </div>
+    <!-- Notifications -->
+    <div class="relative">
+      <button class="size-9 flex items-center justify-center rounded-full" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:20px">notifications</span>
+      </button>
+      <span class="notif-dot"></span>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 overflow-y-auto px-5 pb-28 space-y-5">
+
+  <!-- Today's stats -->
+  <div class="fu1 grid grid-cols-3 gap-3">
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-base font-extrabold" style="color:#D4AF37">950 cr</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Today Earned</p>
+    </div>
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-base font-extrabold text-purple-400">3</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Jobs Done</p>
+    </div>
+    <div class="p-2.5 rounded-xl text-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <p class="text-base font-extrabold text-amber-400">4.9★</p>
+      <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-0.5">Rating</p>
+    </div>
+  </div>
+
+  <!-- Active mission card -->
+  <div class="fu2 rounded-2xl overflow-hidden" style="background:#0D1929;border:1px solid rgba(37,99,235,0.35);box-shadow:0 0 24px rgba(37,99,235,0.08)">
+    <!-- Top gradient band -->
+    <div class="h-0.5 shimmer-bar w-full"></div>
+    <div class="p-3.5">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="size-2 rounded-full bg-red-400 pulse-dot"></div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-red-400">Active Mission</span>
+        </div>
+        <span class="text-[10px] text-slate-500 font-semibold">BR-8829</span>
+      </div>
+      <h3 class="text-sm font-bold text-slate-100 mb-1">VIP Airport Transfer</h3>
+      <div class="flex items-center gap-1 mb-3">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:13px">location_on</span>
+        <p class="text-xs text-slate-500">DXB Terminal 3 → DIFC Tower</p>
+      </div>
+      <!-- Progress bar -->
+      <div class="mb-3">
+        <div class="flex justify-between mb-1">
+          <span class="text-[10px] text-slate-500">En route</span>
+          <span class="text-[10px] font-bold" style="color:#60A5FA">68%</span>
+        </div>
+        <div class="h-1.5 rounded-full" style="background:#1E2D45">
+          <div class="mission-bar h-1.5 rounded-full" style="background:linear-gradient(90deg,#2563EB,#93c5fd)"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-slate-500" style="font-size:14px">schedule</span>
+            <span class="text-xs text-slate-400">ETA 14 min</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-slate-500" style="font-size:14px">payments</span>
+            <span class="text-xs font-bold" style="color:#D4AF37">950 credits</span>
+          </div>
+        </div>
+        <button onclick="goJobDetail()" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all" style="background:rgba(37,99,235,0.2);color:#93c5fd;border:1px solid rgba(37,99,235,0.4)">
+          View Detail
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming jobs -->
+  <div class="fu3">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Upcoming Jobs</p>
+      <button onclick="goMarketplace()" class="text-[11px] font-bold" style="color:#60A5FA">View all</button>
+    </div>
+    <div class="space-y-2.5">
+
+      <!-- Upcoming 1 -->
+      <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.25)">
+          <span class="material-symbols-outlined filled" style="font-size:20px;color:#D4AF37">shield_person</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100 truncate">Executive Close Protection</p>
+          <p class="text-xs text-slate-500">22 Mar · Downtown Dubai · 3 days</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-sm font-bold" style="color:#D4AF37">4,500 cr</p>
+        </div>
+      </div>
+
+      <!-- Upcoming 2 -->
+      <div class="flex items-center gap-3 p-3 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25)">
+          <span class="material-symbols-outlined filled" style="font-size:20px;color:#a5b4fc">apartment</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-100 truncate">Corporate Gala Security</p>
+          <p class="text-xs text-slate-500">20 Mar · Burj Al Arab · 6h</p>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-sm font-bold" style="color:#D4AF37">1,800 cr</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="fu4">
+    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">Quick Actions</p>
+    <div class="grid grid-cols-4 gap-2">
+      <button onclick="goMarketplace()" class="flex flex-col items-center gap-1 p-2.5 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#93c5fd">work</span>
+        <span class="text-[10px] text-slate-400 font-semibold">Jobs</span>
+      </button>
+      <button onclick="goSchedule()" class="flex flex-col items-center gap-1 p-2.5 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#60a5fa">calendar_month</span>
+        <span class="text-[10px] text-slate-400 font-semibold">Schedule</span>
+      </button>
+      <button onclick="goEarnings()" class="flex flex-col items-center gap-1 p-2.5 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#D4AF37">payments</span>
+        <span class="text-[10px] text-slate-400 font-semibold">Earnings</span>
+      </button>
+      <button class="flex flex-col items-center gap-1 p-2.5 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#2dd4bf">headset_mic</span>
+        <span class="text-[10px] text-slate-400 font-semibold">Support</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="fu5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Recent Activity</p>
+    </div>
+    <div class="rounded-xl overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45">
+
+      <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.12)">
+          <span class="material-symbols-outlined filled text-emerald-400" style="font-size:16px">check_circle</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-200">Transfer completed</p>
+          <p class="text-[10px] text-slate-500">DIFC → Hotel Intercontinental</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-bold text-emerald-400">+750 cr</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.12)">
+          <span class="material-symbols-outlined filled text-emerald-400" style="font-size:16px">check_circle</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-200">Time slot — Event security</p>
+          <p class="text-[10px] text-slate-500">Palm Jumeirah Conference</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-bold text-emerald-400">+1,200 cr</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3">
+        <div class="size-8 rounded-full flex items-center justify-center shrink-0" style="background:rgba(248,113,113,0.1)">
+          <span class="material-symbols-outlined filled text-red-400" style="font-size:16px">star</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-200">New 5★ review received</p>
+          <p class="text-[10px] text-slate-500">"Professional and punctual..."</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs font-bold text-amber-400">5.0★</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Weekly earnings summary -->
+  <div class="fu6 p-4 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-bold text-slate-300">This Week</p>
+      <button onclick="goEarnings()" class="text-[11px] font-bold" style="color:#60A5FA">Full report</button>
+    </div>
+    <div class="flex items-end gap-1.5 h-14 mb-2">
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.35);height:60%"></div>
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.35);height:40%"></div>
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.7);height:85%"></div>
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.35);height:50%"></div>
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.9);height:95%"></div>
+      <div class="flex-1 rounded-t-sm" style="background:rgba(37,99,235,0.35);height:30%"></div>
+      <div class="flex-1 rounded-t-sm shimmer-bar rounded-t-sm" style="height:68%"></div>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Mon</span>
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Tue</span>
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Wed</span>
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Thu</span>
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Fri</span>
+      <span class="text-[9px] text-slate-600 font-bold uppercase">Sat</span>
+      <span class="text-[9px] text-purple-400 font-bold uppercase">Today</span>
+    </div>
+    <div class="mt-3 pt-3 flex items-center justify-between" style="border-top:1px solid #1E2D45">
+      <div>
+        <p class="text-[10px] text-slate-500">Week total</p>
+        <p class="text-lg font-extrabold" style="color:#D4AF37">8,350 credits</p>
+      </div>
+      <div class="flex items-center gap-1 px-2.5 py-1 rounded-full" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25)">
+        <span class="material-symbols-outlined text-emerald-400" style="font-size:14px">trending_up</span>
+        <span class="text-xs font-bold text-emerald-400">+12%</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 w-full border-t px-6 pb-5 pt-2 flex justify-around items-center z-50" style="background:#0A0F1E;border-color:#1E2D45">
+  <button class="flex flex-col items-center gap-1" style="color:#2563EB">
+    <span class="material-symbols-outlined filled" style="font-size:22px;color:#2563EB">home</span>
+    <span class="text-[10px] font-bold">Home</span>
+  </button>
+  <button onclick="goMarketplace()" class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">work</span>
+    <span class="text-[10px] font-bold">Jobs</span>
+  </button>
+  <button onclick="goEarnings()" class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">payments</span>
+    <span class="text-[10px] font-bold">Earnings</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">person</span>
+    <span class="text-[10px] font-bold">Profile</span>
+  </button>
+</nav>
+
+<script>
+  function goMarketplace() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="job-marketplace"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/job-marketplace.html', nav||document.createElement('div'));
+    }
+  }
+  function goEarnings() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="earnings"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/earnings.html', nav||document.createElement('div'));
+    }
+  }
+  function goSchedule() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="agent-schedule"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-schedule.html', nav||document.createElement('div'));
+    }
+  }
+  function goJobDetail() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="job-detail"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/job-detail.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

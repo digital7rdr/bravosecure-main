@@ -1,0 +1,11 @@
+{
+  "name": "@bravo/messenger-core",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@privacyresearch/libsignal-protocol-typescript": "^0.0.16",
+    "@noble/hashes": "^2.2.0"
+  }
+}

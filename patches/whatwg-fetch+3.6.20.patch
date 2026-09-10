@@ -1,0 +1,42 @@
+diff --git a/node_modules/whatwg-fetch/dist/fetch.umd.js b/node_modules/whatwg-fetch/dist/fetch.umd.js
+index 7a0d852..8c73f60 100644
+--- a/node_modules/whatwg-fetch/dist/fetch.umd.js
++++ b/node_modules/whatwg-fetch/dist/fetch.umd.js
+@@ -555,6 +555,17 @@
+         } else {
+           options.status = xhr.status;
+         }
++        // Bravo patch (B-359): an out-of-range status (0 = dead connection,
++        // blocked redirect) must reject like any network error. Unpatched,
++        // `new Response(body, {status: 0})` throws a RangeError inside this
++        // async callback — uncatchable by the fetch caller — and kills the
++        // whole app (FATAL EXCEPTION mqt_v_native, 2026-08-01).
++        if (options.status < 200 || options.status > 599) {
++          setTimeout(function() {
++            reject(new TypeError('Network request failed: status ' + xhr.status));
++          }, 0);
++          return;
++        }
+         options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL');
+         var body = 'response' in xhr ? xhr.response : xhr.responseText;
+         setTimeout(function() {
+diff --git a/node_modules/whatwg-fetch/fetch.js b/node_modules/whatwg-fetch/fetch.js
+index f39a983..e8c6b99 100644
+--- a/node_modules/whatwg-fetch/fetch.js
++++ b/node_modules/whatwg-fetch/fetch.js
+@@ -549,6 +549,15 @@ export function fetch(input, init) {
+       } else {
+         options.status = xhr.status;
+       }
++      // Bravo patch (B-359): reject out-of-range statuses like a network
++      // error instead of letting `new Response` throw an uncatchable
++      // RangeError that kills the app (see dist/fetch.umd.js).
++      if (options.status < 200 || options.status > 599) {
++        setTimeout(function() {
++          reject(new TypeError('Network request failed: status ' + xhr.status))
++        }, 0)
++        return
++      }
+       options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
+       var body = 'response' in xhr ? xhr.response : xhr.responseText
+       setTimeout(function() {

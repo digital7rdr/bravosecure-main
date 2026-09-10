@@ -1,0 +1,1859 @@
+openapi: 3.0.3
+info:
+  title: Bravo Secure — Auth Service
+  version: 0.1.0
+  description: |
+    Authentication, user profile, session, Signal pre-key, TOTP, biometric
+    and conversations REST surface for Bravo Secure.
+
+    ## Getting started as a tester
+
+    Follow these four steps and every protected endpoint will work from
+    SwaggerHub's **Try it out** button:
+
+    1. **Register.** Call `POST /auth/register` with a fresh `email`,
+       `password`, `displayName`, and an E.164 `phoneE164`
+       (e.g. `+15555550199`). Response is `{otpSentTo: "+15555550199"}`.
+       The OTP is stubbed on staging — no real SMS is sent.
+    2. **Verify registration.** Call `POST /auth/register/verify` with
+       the same body **plus** `code: "1234"` (any 4–8 digit string
+       passes on staging), a `deviceId` of your choice (e.g.
+       `swaggerhub-1`), and `platform: "android"`. You get back
+       `{accessToken, refreshToken, userId, ...}`.
+    3. **Authorize.** Click the green **Authorize** button at the top
+       of SwaggerHub, paste the `accessToken` into `BearerAuth`, and
+       click **Authorize**. SwaggerHub will attach
+       `Authorization: Bearer <accessToken>` to every subsequent call.
+    4. **Exercise the API.** `GET /auth/me`, `GET /users/me`,
+       `GET /conversations/mine`, etc. all now work. When the access
+       token expires (default 15 min) exchange the refresh token via
+       `POST /auth/refresh`.
+
+    curl variant:
+
+        curl -X POST https://auth.94-136-184-52.sslip.io/auth/register \
+          -H "Content-Type: application/json" \
+          -d '{"email":"tester@bravosecure.com","password":"StagingSmoke1!","displayName":"Tester","phoneE164":"+15555550199"}'
+        curl -X POST https://auth.94-136-184-52.sslip.io/auth/register/verify \
+          -H "Content-Type: application/json" \
+          -d '{"email":"tester@bravosecure.com","password":"StagingSmoke1!","displayName":"Tester","phoneE164":"+15555550199","code":"1234","deviceId":"swaggerhub-1","platform":"android"}'
+
+    **Staging host:** `https://auth.94-136-184-52.sslip.io` (Contabo VPS, India,
+    fronted by Caddy + Let's Encrypt).
+
+    OTP is bypassed on staging — any 4–8 digit numeric code passes at
+    `/auth/register/verify` and `/auth/verify`. Biometric attestation
+    is bypassed when `BIOMETRIC_DEV_BYPASS=true` is set on the server.
+  contact:
+    name: Bravo Secure
+    email: ranak@bravosecure.com
+
+servers:
+  - url: https://auth.94-136-184-52.sslip.io
+    description: Staging (Contabo VPS, TLS via Caddy)
+  - url: http://94.136.184.52:3001
+    description: Staging (direct HTTP — legacy, browser-blocked from HTTPS origins)
+  - url: http://127.0.0.1:3001
+    description: Local dev
+
+tags:
+  - name: Health
+  - name: Registration
+  - name: Session
+  - name: Profile
+  - name: Users
+  - name: Keys
+    description: Signal pre-key bundle
+  - name: TOTP
+  - name: Biometric
+  - name: Sender Cert
+  - name: Conversations
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok: {type: boolean, example: true}
+        ts: {type: string, format: date-time}
+      required: [ok, ts]
+
+    ValidationError:
+      type: object
+      properties:
+        statusCode: {type: integer, example: 400}
+        error: {type: string, example: Bad Request}
+        message:
+          type: array
+          items: {type: string}
+          example:
+            ['email must be an email', 'password must be longer than or equal to 8 characters']
+
+    UnauthorizedError:
+      type: object
+      properties:
+        statusCode: {type: integer, example: 401}
+        error: {type: string, example: Unauthorized}
+        message: {type: string, example: Unauthorized}
+
+    RateLimited:
+      type: object
+      properties:
+        statusCode: {type: integer, example: 429}
+        message: {type: string, example: 'ThrottlerException: Too Many Requests'}
+
+    RegisterBody:
+      type: object
+      required: [email, password, displayName, phoneE164]
+      properties:
+        email: {type: string, format: email, example: tester@bravosecure.com}
+        password: {type: string, minLength: 8, example: StagingSmoke1!}
+        displayName: {type: string, minLength: 1, maxLength: 120, example: Tester}
+        phoneE164: {type: string, pattern: '^\+\d{7,15}$', example: '+15555550199'}
+        role:
+          type: string
+          enum: [individual, corporate]
+          default: individual
+        subscriptionTier:
+          type: string
+          enum: [lite, pro]
+          default: lite
+
+    RegisterResponse:
+      type: object
+      properties:
+        otpSentTo: {type: string, example: '+15555550199'}
+      required: [otpSentTo]
+
+    RegisterVerifyBody:
+      allOf:
+        - $ref: '#/components/schemas/RegisterBody'
+        - type: object
+          required: [code, deviceId, platform]
+          properties:
+            code: {type: string, pattern: '^\d{4,8}$', example: '123456'}
+            deviceId: {type: string, minLength: 1, maxLength: 128, example: postman-device-1}
+            platform:
+              type: string
+              enum: [ios, android, web]
+              example: android
+
+    TokenBundle:
+      type: object
+      required: [accessToken, refreshToken, user]
+      description: |
+        Shape emitted by `/auth/register/verify`, `/auth/verify`,
+        `/auth/refresh`, and `/auth/totp/verify`. The user row is nested
+        under `user` (NOT flat) — mobile clients must read `.user.id`,
+        `.user.email`, etc. User row fields are snake_case as returned
+        by Postgres (no serializer transform on the backend today).
+      properties:
+        accessToken:
+          type: string
+          example: 'eyJhbGciOi...'
+          description: Short-lived JWT. Default lifetime 15 min (see `expiresIn`).
+        refreshToken:
+          type: string
+          example: 'opaque-refresh-token-32-char-min'
+          description: Opaque 32+ char token, 30-day dwell. Exchange for a new access token at `/auth/refresh`.
+        expiresIn:
+          type: integer
+          example: 900
+          description: Access-token lifetime in seconds.
+        user:
+          $ref: '#/components/schemas/AuthMeUser'
+
+    LoginBody:
+      type: object
+      description: Provide either `email` **or** `phoneE164`, plus `password`.
+      required: [password]
+      properties:
+        email: {type: string, format: email}
+        phoneE164: {type: string, pattern: '^\+\d{7,15}$'}
+        password: {type: string, minLength: 1}
+
+    LoginResponse:
+      type: object
+      description: |
+        Enumeration-safe shape. On bad credentials the service returns
+        `{userId: null, otpSentTo: null}` with a 200, so both fields are
+        nullable and neither is required.
+      properties:
+        userId: {type: string, format: uuid, nullable: true}
+        otpSentTo: {type: string, nullable: true}
+
+    VerifyBody:
+      type: object
+      required: [userId, code, deviceId, platform]
+      properties:
+        userId: {type: string, format: uuid}
+        code: {type: string, pattern: '^\d{4,8}$'}
+        deviceId: {type: string, minLength: 1, maxLength: 128}
+        platform: {type: string, enum: [ios, android, web]}
+
+    RefreshBody:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: {type: string, minLength: 32}
+
+    AccessRefresh:
+      type: object
+      properties:
+        accessToken: {type: string}
+        accessTokenExpiresIn: {type: integer, example: 900}
+
+    SessionDeleteBody:
+      type: object
+      required: [deviceId]
+      properties:
+        deviceId: {type: string}
+
+    Ok:
+      type: object
+      properties:
+        ok: {type: boolean, example: true}
+
+    AuthMeUser:
+      type: object
+      description: |
+        Inner `user` object returned by **auth-flow endpoints**:
+        `/auth/register/verify`, `/auth/verify`, `/auth/refresh`,
+        `/auth/totp/verify`, and `/auth/me`. Fields are **snake_case**
+        (raw Postgres row — no response serializer transform today).
+      required: [id, email, display_name, role, subscription_tier]
+      properties:
+        id: {type: string, format: uuid}
+        email: {type: string, format: email, nullable: true}
+        display_name: {type: string}
+        role: {type: string, enum: [individual, corporate, agent, ops]}
+        subscription_tier: {type: string, enum: [lite, pro]}
+        phone_e164:
+          {type: string, nullable: true, description: E.164 phone number, e.g. `+15555550199`.}
+
+    AuthMeResponse:
+      type: object
+      description: |
+        Wrapper shape returned by `/auth/me`. The user row is nested
+        under `user` — NOT a flat object at the root. Mobile clients
+        must read through `response.user.id`, etc.
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthMeUser'
+
+    UserProfile:
+      type: object
+      description: |
+        Flat **camelCase** profile returned by `/users/me` (GET + PATCH)
+        and `PATCH /users/me/privacy`. Intentionally a different shape
+        from `/auth/me` — this one includes `bio` and the privacy
+        toggles used by the profile / settings screens.
+      required: [id, displayName, lastSeenVisible, readReceiptsEnabled]
+      properties:
+        id: {type: string, format: uuid}
+        displayName: {type: string}
+        email: {type: string, format: email, nullable: true}
+        phoneE164: {type: string, nullable: true}
+        bio: {type: string, nullable: true}
+        avatarUrl: {type: string, nullable: true, format: uri}
+        lastSeenVisible: {type: boolean}
+        readReceiptsEnabled: {type: boolean}
+
+    UserPatchBody:
+      type: object
+      properties:
+        displayName: {type: string}
+        avatarUrl: {type: string, format: uri}
+        countryCode: {type: string}
+
+    PrivacyPatchBody:
+      type: object
+      description: |
+        Both flags are optional booleans — only provided flags are
+        persisted. Matches the server-side `PrivacyDto`.
+      properties:
+        lastSeenVisible: {type: boolean}
+        readReceiptsEnabled: {type: boolean}
+
+    BlockBody:
+      type: object
+      required: [userId]
+      properties:
+        userId: {type: string, format: uuid}
+
+    LookupBody:
+      type: object
+      required: [phones]
+      properties:
+        phones:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items: {type: string, pattern: '^\+\d{7,15}$'}
+
+    LookupResponse:
+      type: object
+      properties:
+        matches:
+          type: array
+          items:
+            type: object
+            properties:
+              phone: {type: string, description: 'Echoed in E.164 form', example: '+15555550199'}
+              userId: {type: string, format: uuid}
+              displayName: {type: string}
+              avatarUrl: {type: string, nullable: true}
+
+    KeyUploadBody:
+      type: object
+      required: [registrationId, identityKey, signedPrekeyId, signedPrekey, signedPrekeySig]
+      properties:
+        registrationId: {type: integer, minimum: 0, maximum: 16383}
+        identityKey: {type: string, description: base64-encoded 32-byte Curve25519 public key}
+        signedPrekeyId: {type: integer}
+        signedPrekey: {type: string, description: base64-encoded 32-byte public key}
+        signedPrekeySig:
+          {type: string, description: base64-encoded 64-byte Ed25519 signature over signedPrekey}
+        oneTimePrekeys:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required: [keyId, publicKey]
+            properties:
+              keyId: {type: integer}
+              publicKey: {type: string, description: base64}
+
+    KeyUploadResponse:
+      type: object
+      required: [ok, poolSize]
+      properties:
+        ok: {type: boolean, example: true}
+        poolSize:
+          {
+            type: integer,
+            example: 42,
+            description: 'Remaining one-time pre-key count for this device',
+          }
+        oneTimeKeysStored:
+          {
+            type: integer,
+            example: 2,
+            description: 'How many OPKs from this request were newly inserted (source also returns this field)',
+          }
+
+    PreKeyBundle:
+      type: object
+      properties:
+        userId: {type: string, format: uuid}
+        registrationId: {type: integer}
+        deviceId: {type: integer}
+        identityKey: {type: string, description: base64}
+        signedPreKey:
+          type: object
+          properties:
+            keyId: {type: integer}
+            publicKey: {type: string}
+            signature: {type: string}
+        preKey:
+          type: object
+          nullable: true
+          properties:
+            keyId: {type: integer}
+            publicKey: {type: string}
+
+    TotpSetupResponse:
+      type: object
+      required: [uri, backupCodes]
+      properties:
+        uri:
+          type: string
+          format: uri
+          description: |
+            `otpauth://` URL to feed into Google Authenticator / 1Password /
+            Authy. The TOTP secret is embedded in this URL — the service
+            deliberately does NOT return a separate `secret` field.
+          example: 'otpauth://totp/BravoSecure:tester@bravosecure.com?secret=JBSWY3DPEHPK3PXP&issuer=BravoSecure'
+        backupCodes:
+          type: array
+          description: 10 one-time backup codes. Shown once — never returned again.
+          items: {type: string}
+
+    TotpVerifyBody:
+      type: object
+      required: [userId, code, deviceId, platform]
+      properties:
+        userId: {type: string, format: uuid}
+        code:
+          type: string
+          minLength: 6
+          maxLength: 10
+          description: 6-digit TOTP code (RFC 6238) OR an 8-character backup code.
+          example: '123456'
+        deviceId: {type: string, minLength: 1, maxLength: 128, example: swaggerhub-1}
+        platform: {type: string, enum: [ios, android, web], example: android}
+
+    BiometricAssertBody:
+      type: object
+      required: [attestationToken, platform, purpose]
+      properties:
+        attestationToken:
+          type: string
+          description: |
+            Platform attestation token — Google Play Integrity JWS on Android,
+            Apple DeviceCheck / App Attest payload on iOS. Can be any non-empty
+            string when `BIOMETRIC_DEV_BYPASS=true` on the server.
+          example: dev
+        platform:
+          type: string
+          enum: [android, ios]
+          example: android
+        purpose:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: What this action token will authorise (e.g. vault_unlock, wipe, revoke_all).
+          example: vault_unlock
+
+    BiometricAssertResponse:
+      type: object
+      required: [actionToken, expiresIn, purpose]
+      properties:
+        actionToken:
+          {
+            type: string,
+            description: 'Short-lived JWT bound to (userId, deviceId, purpose) with a 5-minute single-use jti.',
+          }
+        expiresIn: {type: integer, example: 300, description: seconds}
+        purpose: {type: string, example: vault_unlock}
+
+    SenderCertRevokeBody:
+      type: object
+      required: [jti, ttlSeconds]
+      properties:
+        jti:
+          type: string
+          pattern: '^[0-9a-fA-F-]{36}$'
+          description: UUID from the sender-cert JWT payload.
+          example: c1a2f3d4-5678-40ab-90cd-1234567890ab
+        ttlSeconds:
+          type: integer
+          minimum: 1
+          description: |
+            Remaining TTL of the cert in seconds — clamped server-side to
+            [60, 172800]. Used so the Redis revocation entry can clear once
+            the cert would have naturally expired.
+          example: 3600
+
+    SenderCertRevokeAllResponse:
+      type: object
+      required: [newGeneration]
+      properties:
+        newGeneration:
+          type: integer
+          description: Updated per-user generation counter. Clients compare cert.iat against this to decide validity.
+          example: 3
+
+    Conversation:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        title: {type: string, nullable: true}
+        kind: {type: string, enum: [direct, group]}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              userId: {type: string, format: uuid}
+              role: {type: string, enum: [owner, admin, member]}
+
+    ConversationPatchBody:
+      type: object
+      properties:
+        title: {type: string}
+
+    ConversationMemberBody:
+      type: object
+      required: [userId]
+      properties:
+        userId: {type: string, format: uuid}
+        role:
+          type: string
+          enum: [admin, member]
+          default: member
+          description: |
+            Currently ignored — all new members are inserted as `member`.
+            Reserved for future admin-grant flow.
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ValidationError'}
+    Unauthorized:
+      description: Missing / invalid bearer token
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/UnauthorizedError'}
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/RateLimited'}
+    NoContent:
+      description: Success, empty body
+
+paths:
+  /auth/health:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      security: []
+      description: |
+        **Purpose.** Unauthenticated liveness probe — returns
+        `{ok:true, ts:<ISO-8601>}` the moment the Nest HTTP server
+        can respond. Used by Caddy, ALB/ELB, and the messenger client
+        connection banner.
+
+        **Auth.** No auth.
+
+        **Preconditions.** None.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/auth/health
+
+        **Common failures.** The only failure modes are infrastructure
+        (TCP reset, 502 from Caddy if the Nest process is down, 504 if
+        it's wedged). There are no app-level 4xx/5xx codes on this
+        route.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HealthResponse'}
+
+  /auth/register:
+    post:
+      tags: [Registration]
+      summary: Request registration OTP
+      security: []
+      description: |
+        **Purpose.** Step 1 of a 2-step phone-OTP signup. Checks that
+        no active user already owns this `email` or `phoneE164`, then
+        asks Twilio Verify to dispatch the OTP. **No row is written in
+        `public.users` yet** — the row is created only after
+        `/auth/register/verify` succeeds.
+
+        **Auth.** No auth.
+
+        **Preconditions.** `email` and `phoneE164` must not already
+        belong to a non-deleted user. `phoneE164` must match
+        `^\+\d{7,15}$`.
+
+        **Staging quirks.** Twilio is stubbed — no SMS leaves the
+        network. Rate-limited by `@nestjs/throttler` to **5 requests
+        per 10-minute window per IP** (staging — bucket refills every
+        10 min so testers aren't locked out). If Twilio itself returns
+        rate-limit code
+        60203 you'll see a 429 with `error: otp_rate_limited`; codes
+        60410 / 21608 surface as 403.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/register \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "email": "tester+$(date +%s)@bravosecure.com",
+                    "password": "StagingSmoke1!",
+                    "displayName": "Tester",
+                    "phoneE164": "+15555550199"
+                  }'
+
+        **Common failures.**
+        - `400` — body fails DTO validation (bad email, weak
+          password, phone not E.164).
+        - `403` — Twilio refuses the number (`otp_number_blocked`,
+          `otp_unverified_number`).
+        - `409` — `already_exists`: a user with this email or phone
+          already exists.
+        - `429` — per-IP throttler hit OR Twilio upstream rate
+          limit (`otp_rate_limited`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterBody'}
+      responses:
+        '200':
+          description: OTP dispatched
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RegisterResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '403':
+          description: Twilio refused the number (otp_number_blocked / otp_unverified_number)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: {type: string, example: otp_number_blocked}
+                  message: {type: string}
+        '409':
+          description: A user with this email or phone already exists (already_exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: {type: integer, example: 409}
+                  message: {type: string, example: already_exists}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+
+  /auth/register/verify:
+    post:
+      tags: [Registration]
+      summary: Verify OTP and create user
+      security: []
+      description: |
+        **Purpose.** Step 2 of signup. Confirms the OTP with Twilio
+        Verify (or the staging stub), writes the `public.users` row,
+        inserts the first `public.auth_devices` row, and returns an
+        access + refresh token pair. Responds **`201 Created`**.
+
+        **Auth.** No auth.
+
+        **Preconditions.** `/auth/register` must have been called
+        with the same `email` / `phoneE164` within the OTP TTL (~10
+        minutes). The OTP `code`, a `deviceId` (free-form 1–128
+        chars — pick anything stable per physical device), and a
+        `platform` (`ios` | `android` | `web`) are required.
+
+        **Staging quirks.** Any 4–8 digit numeric code passes.
+        Rate-limited to **10 requests per 10-minute window per IP**. On success
+        the response body contains `{user, accessToken, refreshToken,
+        expiresIn}` — paste the `accessToken` into SwaggerHub's
+        Authorize dialog.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/register/verify \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "email": "tester@bravosecure.com",
+                    "password": "StagingSmoke1!",
+                    "displayName": "Tester",
+                    "phoneE164": "+15555550199",
+                    "code": "1234",
+                    "deviceId": "swaggerhub-1",
+                    "platform": "android"
+                  }'
+
+        **Common failures.**
+        - `400` — `otp_invalid` (Twilio rejected the code) or
+          class-validator body errors.
+        - `409` — `already_exists`: someone else took this email /
+          phone between step 1 and step 2.
+        - `429` — throttler (10 per 10-minute window per IP).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterVerifyBody'}
+      responses:
+        '201':
+          description: User created, tokens issued
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TokenBundle'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409':
+          description: A user with this email or phone already exists (already_exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: {type: integer, example: 409}
+                  message: {type: string, example: already_exists}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+
+  /auth/login:
+    post:
+      tags: [Session]
+      summary: Request login OTP
+      security: []
+      description: |
+        **Purpose.** Password check + dispatches a login OTP to the
+        user's phone (or email fallback). Returns `{userId, otpSentTo}`
+        which the client feeds into `/auth/verify`. Intentionally
+        returns the **same response shape** for unknown accounts and
+        wrong passwords (`{userId: null, otpSentTo: null}`) to avoid
+        user-enumeration.
+
+        **Auth.** No auth.
+
+        **Preconditions.** User must have finished registration
+        (`/auth/register/verify`). Supply exactly one of `email` OR
+        `phoneE164`, plus `password`.
+
+        **Staging quirks.** Rate-limited to **5 per 10-minute window per IP**.
+        Twilio OTP is stubbed — any 4–8 digit code will pass at `/auth/verify`.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/login \
+              -H "Content-Type: application/json" \
+              -d '{"email":"tester@bravosecure.com","password":"StagingSmoke1!"}'
+
+        **Common failures.**
+        - `200` with `{userId:null,otpSentTo:null}` — credentials
+          didn't match (enumeration-safe, no 401 is raised).
+        - `400` — `email_or_phone_required` when both are missing;
+          other DTO validation errors.
+        - `429` — throttler (5 per 10-minute window per IP).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginBody'}
+      responses:
+        '200':
+          description: OTP sent
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+
+  /auth/verify:
+    post:
+      tags: [Session]
+      summary: Verify login OTP & mint tokens
+      security: []
+      description: |
+        **Purpose.** Confirms the login OTP for an existing user and
+        mints a fresh `{accessToken, refreshToken}` pair bound to
+        `(userId, deviceId)`. Registering the same `deviceId` twice
+        rotates the refresh token and revokes the old access-token
+        `jti` in Redis — so a second login from SwaggerHub with the
+        same `deviceId` will instantly invalidate the earlier token.
+
+        **Auth.** No auth (OTP is the factor being verified).
+
+        **Preconditions.** `/auth/login` must have been called within
+        the OTP TTL (default 10 min) so an `auth_otps` row exists for
+        this `userId`. Provide the `userId` returned by login plus
+        `code`, `deviceId`, and `platform`.
+
+        **Staging quirks.** Twilio stubbed — any 4–8 digit code
+        works. Max 3 bad attempts per OTP before it gets force-expired.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/verify \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "userId":"<userId-from-login>",
+                    "code":"1234",
+                    "deviceId":"swaggerhub-1",
+                    "platform":"android"
+                  }'
+
+        **Common failures.**
+        - `400` — `no_pending_otp`, `otp_expired`, `otp_already_used`,
+          `otp_invalid` (response includes `attemptsLeft`), or
+          `otp_max_attempts`.
+        - `404` — `user_not_found` (bad `userId`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/VerifyBody'}
+      responses:
+        '200':
+          description: Tokens issued
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TokenBundle'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404':
+          description: user_not_found (bad userId)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: {type: integer, example: 404}
+                  message: {type: string, example: user_not_found}
+
+  /auth/refresh:
+    post:
+      tags: [Session]
+      summary: Exchange refresh token for a new access token
+      security: []
+      description: |
+        **Purpose.** Rotates a refresh token into a new access token
+        (and a new refresh token — old one becomes unusable). The
+        matching `auth_devices` row's `refresh_token_hash`,
+        `current_jti`, `expires_at`, and `last_used_at` are updated
+        in place.
+
+        **Auth.** No bearer — the refresh token itself is the credential.
+        Token is the opaque string returned by `/auth/register/verify`
+        or `/auth/verify` (≥32 chars).
+
+        **Preconditions.** User must hold an un-revoked, un-expired
+        refresh token. Calling this does **not** require a bearer
+        access token.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/refresh \
+              -H "Content-Type: application/json" \
+              -d '{"refreshToken":"$REFRESH_TOKEN"}'
+
+        **Common failures.**
+        - `401` — `invalid_refresh` (hash miss), `revoked` (session
+          was deleted via `DELETE /auth/session`), or `expired`
+          (past `expires_at`).
+        - `404` — `user_not_found` (user row soft-deleted after the
+          token was issued).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RefreshBody'}
+      responses:
+        '200':
+          description: New access token
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AccessRefresh'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/me:
+    get:
+      tags: [Profile]
+      summary: Current user (from token)
+      description: |
+        **Purpose.** Returns the user row pointed to by the `sub`
+        claim on your access token, wrapped as `{user: {...}}`.
+        Cheapest way to confirm a bearer token is actually valid.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Click Authorize in SwaggerHub first with
+        the `accessToken` from `/auth/register/verify` or
+        `/auth/verify`.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/auth/me \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — missing, malformed, expired, or revoked access
+          token (the `jti` gets revoked in Redis on login rotation
+          and on `DELETE /auth/session`).
+        - `404` — `user_not_found` when the token is valid but the
+          user was soft-deleted.
+      responses:
+        '200':
+          description: Decoded claims + user row (nested under `user`, snake_case fields)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthMeResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/session:
+    delete:
+      tags: [Session]
+      summary: Delete a device session (log out)
+      description: |
+        **Purpose.** Logs out a single device (or optionally every
+        device). Sets `revoked_at` on the `auth_devices` row(s) and
+        adds the current access-token `jti` to Redis so the bearer
+        becomes unusable immediately — no waiting for the JWT to
+        expire.
+
+        **Auth.** Requires bearer access token (only revokes sessions
+        belonging to the token's `sub`).
+
+        **Preconditions.** You must know the `deviceId` you want to
+        kill. Use the same string you sent at
+        `/auth/register/verify` or `/auth/verify`. Set
+        `allDevices:true` to revoke everything at once (the
+        `deviceId` field is still required by the DTO — it's just
+        ignored when `allDevices` is truthy).
+
+        **Example curl.**
+
+            curl -X DELETE https://auth.94-136-184-52.sslip.io/auth/session \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"deviceId":"swaggerhub-1"}'
+
+        **Common failures.**
+        - `400` — DTO validation (missing `deviceId`).
+        - `401` — bearer missing or already revoked.
+
+        Note: deleting a device you don't own or a `deviceId` that
+        doesn't exist is a silent no-op (still returns `{ok:true}`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SessionDeleteBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get my profile
+      description: |
+        **Purpose.** Returns the richer "me" view used by the profile
+        screen — includes `bio`, `avatarUrl`, `lastSeenVisible`,
+        `readReceiptsEnabled` on top of the basic identity fields.
+        Companion to `/auth/me`, but this one pulls privacy flags too.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** None beyond a valid access token.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/users/me \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — missing / expired / revoked bearer.
+        - `404` — `user_not_found` (user was soft-deleted while
+          token is still live).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UserProfile'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    patch:
+      tags: [Users]
+      summary: Update my profile
+      description: |
+        **Purpose.** Partial update of `display_name`, `bio`, and
+        `avatar_url`. All three fields are optional — send only what
+        you want to change. Sending `avatarUrl: null` clears the
+        image; omitting it leaves it alone. Returns the updated "me"
+        row.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** None.
+
+        **Example curl.**
+
+            curl -X PATCH https://auth.94-136-184-52.sslip.io/users/me \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"displayName":"Tester Two","bio":"staging smoke test"}'
+
+        **Common failures.**
+        - `400` — validation: `displayName` outside 1–80 chars,
+          `bio` > 280 chars, or `avatarUrl` > 2048 chars.
+        - `401` — bad / missing bearer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UserPatchBody'}
+      responses:
+        '200':
+          description: Updated row
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UserProfile'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/me/privacy:
+    patch:
+      tags: [Users]
+      summary: Update privacy settings
+      description: |
+        **Purpose.** Toggle privacy flags — currently
+        `lastSeenVisible` (boolean) and `readReceiptsEnabled`
+        (boolean). Both optional; only provided flags are persisted.
+        Returns the full "me" row so clients can resync in one call.
+
+        NOTE: the yaml's `PrivacyPatchBody` lists enum-valued
+        `lastSeenVisibility` / `profilePhotoVisibility` / boolean
+        `readReceipts`, but the backend actually accepts
+        `lastSeenVisible` and `readReceiptsEnabled` (both booleans).
+        Testers should use the field names shown in the curl below.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** None.
+
+        **Example curl.**
+
+            curl -X PATCH https://auth.94-136-184-52.sslip.io/users/me/privacy \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"lastSeenVisible":false,"readReceiptsEnabled":true}'
+
+        **Common failures.**
+        - `400` — non-boolean value for either flag.
+        - `401` — bad bearer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PrivacyPatchBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/block:
+    post:
+      tags: [Users]
+      summary: Block a user
+      description: |
+        **Purpose.** Insert a pairwise block into `public.blocked_users`.
+        Idempotent (`ON CONFLICT DO NOTHING`). Blocks are directional
+        in the DB but applied bidirectionally at query time — a block
+        in either direction hides both users from each other's
+        `POST /users/lookup` results.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** The target `userId` must exist in
+        `public.users`. Blocking yourself is a silent no-op (the
+        service short-circuits when `blockerId == blockedId`).
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/users/block \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"userId":"<target-userId>"}'
+
+        **Common failures.**
+        - `400` — `userId` not a UUID.
+        - `401` — bad bearer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BlockBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/block/{userId}:
+    delete:
+      tags: [Users]
+      summary: Unblock a user
+      description: |
+        **Purpose.** Remove the pairwise block from
+        `public.blocked_users`. Idempotent — unblocking someone you
+        never blocked returns `200 {ok:true}` without error.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** `userId` path param must be a UUID; it
+        doesn't have to correspond to an active user (the DELETE
+        just won't match anything).
+
+        **Example curl.**
+
+            curl -X DELETE "https://auth.94-136-184-52.sslip.io/users/block/<userId>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `400` — `userId` not a UUID (pipe throws before the service).
+        - `401` — bad bearer.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/blocked:
+    get:
+      tags: [Users]
+      summary: List my blocked users
+      description: |
+        **Purpose.** Returns `{blocked: [{userId, displayName,
+        avatarUrl}]}` — every user the caller has blocked, newest
+        first. Soft-deleted targets are filtered out.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** None. Returns `{blocked: []}` if you've
+        never blocked anyone.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/users/blocked \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blocked:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId: {type: string, format: uuid}
+                        displayName: {type: string}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /users/lookup:
+    post:
+      tags: [Users]
+      summary: Lookup users by phone (batch)
+      description: |
+        **Purpose.** Contact-discovery. Client uploads up to 500
+        E.164 phone numbers from the local address book; server
+        returns `{matches: [{phone, userId, displayName, avatarUrl}]}`
+        for those that correspond to non-deleted Bravo users.
+        **Unknown numbers are omitted** — the endpoint cannot be used
+        as a pure existence oracle. Blocks (either direction) are
+        filtered out of the result.
+
+        NOTE: the request DTO field is actually `phones`, not
+        `phoneE164List` as shown in the yaml schema. Use `phones`.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Each entry must match `^\+\d{7,15}$`.
+        Array size 1–500.
+
+        **Staging quirks.** Rate-limited to **20 requests per 10-minute
+        window per IP** via `@Throttle`.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/users/lookup \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"phones":["+15555550199","+15555550142"]}'
+
+        **Common failures.**
+        - `400` — array empty, > 500 entries, or an entry fails
+          the E.164 regex.
+        - `401` — bad bearer.
+        - `429` — 20 per 10-minute window throttler tripped.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LookupBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LookupResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/keys/upload:
+    post:
+      tags: [Keys]
+      summary: Upload my Signal pre-key bundle
+      description: |
+        **Purpose.** Publish this device's Signal identity key,
+        signed pre-key, signed pre-key signature, and a batch of
+        one-time pre-keys into `public.signal_identities` /
+        `public.signal_one_time_prekeys`. The signed pre-key is
+        **Ed25519-signature-verified** against the identity key
+        before it's stored (32-byte identity + 64-byte signature
+        only — other sizes skip verification). OPK inserts are
+        incremental and de-duped on `(user_id, key_id)`.
+
+        NOTE: the yaml schema shows `signedPreKey.{keyId, publicKey,
+        signature}` and `preKeys[].{keyId, publicKey}`. The actual
+        DTO uses flat fields: `signedPrekeyId`, `signedPrekey`,
+        `signedPrekeySig`, plus `oneTimePrekeys[].{keyId, publicKey}`.
+        Use the flat field names in the curl below.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** User must be fully registered. Base64-
+        encoded keys must fit the size expectations (identity 32 B,
+        sig 64 B). The response includes `poolSize`; once it drops
+        below 10 the response also sets an `X-Pre-Key-Count` header
+        nudging the client to replenish.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/keys/upload \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "registrationId": 1234,
+                    "identityKey": "<base64 32B>",
+                    "signedPrekeyId": 1,
+                    "signedPrekey": "<base64 32B>",
+                    "signedPrekeySig": "<base64 64B>",
+                    "oneTimePrekeys": [
+                      {"keyId":100,"publicKey":"<base64 32B>"},
+                      {"keyId":101,"publicKey":"<base64 32B>"}
+                    ]
+                  }'
+
+        **Common failures.**
+        - `400` — `signed_prekey_signature_invalid` (signature
+          check failed); DTO validation (`registrationId` out of
+          range, `oneTimePrekeys` > 100 entries, etc.).
+        - `401` — bad bearer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/KeyUploadBody'}
+      responses:
+        '200':
+          description: Stored
+          headers:
+            X-Pre-Key-Count:
+              description: |
+                Emitted when the remaining one-time pre-key pool is below 10,
+                nudging the client to replenish. Value equals `poolSize`.
+              schema: {type: integer, example: 8}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/KeyUploadResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/keys/{userId}:
+    get:
+      tags: [Keys]
+      summary: Fetch a recipient's pre-key bundle
+      description: |
+        **Purpose.** Returns the target user's pre-key bundle so the
+        caller can run Signal X3DH. **Consumes one** one-time pre-key
+        atomically (SELECT + DELETE in the same SQL) so each OPK is
+        handed out at most once. If the pool is empty the response
+        comes back with `oneTimePrekey: null` (session creation
+        falls back to just the signed pre-key). Response sets
+        `X-Pre-Key-Count` header when fewer than 10 OPKs remain.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Target user must have previously called
+        `POST /auth/keys/upload`. You can fetch your own bundle too —
+        useful for smoke tests.
+
+        **Example curl.**
+
+            curl "https://auth.94-136-184-52.sslip.io/auth/keys/<userId>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+        - `404` — `no_keys_found`: the target has never uploaded a
+          bundle.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Bundle
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/PreKeyBundle'}
+        '404':
+          description: User has no keys registered
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/totp/setup:
+    post:
+      tags: [TOTP]
+      summary: Begin TOTP enrolment
+      description: |
+        **Purpose.** Generates a fresh TOTP secret, encrypts it into
+        `public.auth_totp_secrets` (replacing any prior unverified
+        row), and generates a new batch of 10 one-time backup codes
+        (old codes are deleted). Returns `{uri, backupCodes}` — the
+        `uri` is an `otpauth://` URL to feed into Google
+        Authenticator / 1Password / Authy. Tell the user to write
+        down the backup codes; they are never returned again.
+
+        NOTE: the response schema advertises a `secret` field, but
+        the actual service returns only `{uri, backupCodes}`.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** User row must exist (created at
+        `/auth/register/verify`). Calling this endpoint twice
+        rotates the secret — any authenticator app registered
+        against the previous secret will stop working.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/totp/setup \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+        - `404` — `user_not_found` (token valid but user gone).
+      responses:
+        '201':
+          description: |
+            TOTP setup record created — backend returns `HTTP 201 Created`
+            because a new enrolment row is written. Response body contains
+            the otpauth URI (encode it as a QR code on the client) and the
+            10 single-use backup codes (show once, never re-issue).
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TotpSetupResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/totp/verify:
+    post:
+      tags: [TOTP]
+      summary: Finish TOTP enrolment / 2FA step-up
+      description: |
+        **Purpose.** Accepts either a **6-digit TOTP code** (RFC 6238)
+        or an **8-char backup code**. On first-ever success the
+        `verified_at` column is stamped (enrolment completed); on
+        every success a fresh access + refresh token pair is minted
+        via the same `issueSession()` path as `/auth/verify` — so
+        this endpoint doubles as the step-up-login return leg.
+
+        NOTE: the yaml's `TotpVerifyBody` schema only lists `code`.
+        The real DTO also requires `userId` (UUID), `deviceId`
+        (1–128 chars), and `platform` (`ios`|`android`|`web`), and
+        `code` accepts 6–10 chars (6 digits for TOTP, 8 for backup).
+
+        **Auth.** No bearer — the TOTP code itself is the factor.
+        In production this endpoint is the second half of a step-up
+        auth flow (bearer + TOTP code).
+
+        **Preconditions.** `POST /auth/totp/setup` must have been
+        called for this `userId` so a secret exists.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/totp/verify \
+              -H "Content-Type: application/json" \
+              -d '{
+                    "userId":"<userId>",
+                    "code":"123456",
+                    "deviceId":"swaggerhub-1",
+                    "platform":"android"
+                  }'
+
+        **Common failures.**
+        - `400` — `totp_not_setup`, `totp_invalid`.
+        - `404` — `user_not_found`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/TotpVerifyBody'}
+      responses:
+        '200':
+          description: Verified — fresh access + refresh token pair issued (same path as /auth/verify)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TokenBundle'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /auth/biometric/assert:
+    post:
+      tags: [Biometric]
+      summary: Biometric challenge assertion
+      description: |
+        **Purpose.** Validates a platform attestation token (Google
+        Play Integrity on Android, Apple DeviceCheck on iOS), and on
+        success mints a short-lived **action token** stored in Redis
+        with a 5-minute, single-use `jti`. Used as the "step-up"
+        factor before sensitive actions (vault unlock, wipe, revoke-
+        all).
+
+        NOTE: the yaml's request schema shows `{deviceId, platform,
+        assertion}`. The real DTO is `{attestationToken, platform
+        (android|ios), purpose}`. Response is `{actionToken,
+        expiresIn:300, purpose}` — not `{ok:true}`.
+
+        **Auth.** Requires bearer access token (user identity
+        anchors the minted action token).
+
+        **Preconditions.** User must be logged in. On iOS, Apple
+        DeviceCheck p8 signing is **not yet wired** — iOS calls
+        currently return 403 `apple_jwt_signing_pending` unless dev
+        bypass is on. Android needs `GOOGLE_PLAY_INTEGRITY_KEY` set
+        or it returns 403.
+
+        **Staging quirks.** Set server env `BIOMETRIC_DEV_BYPASS=true`
+        to skip attestation entirely — any payload passes and you
+        still get a real action token. This is the recommended
+        staging test path.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/auth/biometric/assert \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"attestationToken":"dev","platform":"android","purpose":"vault_unlock"}'
+
+        **Common failures.**
+        - `400` — DTO validation (missing `attestationToken` /
+          `platform` / `purpose`, or `purpose` > 64 chars).
+        - `401` — bad bearer.
+        - `403` — `attestation_failed` (bypass off + real
+          attestation rejected).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/BiometricAssertBody'}
+      responses:
+        '201':
+          description: |
+            Attestation accepted, action token minted. Backend returns
+            `HTTP 201 Created` because the action-token is a new
+            resource (short-lived JWT, default 5-min TTL).
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/BiometricAssertResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403':
+          description: |
+            iOS attestation pending (apple_jwt_signing_pending) when
+            BIOMETRIC_DEV_BYPASS is not set, OR Android Play Integrity
+            verification failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode: {type: integer, example: 403}
+                  error: {type: string, example: attestation_failed}
+                  message: {type: string}
+
+  /sender-cert/revoke:
+    post:
+      tags: [Sender Cert]
+      summary: Revoke a single sender certificate
+      description: |
+        **Purpose.** Add a specific sender-cert `jti` to the Redis
+        revocation set so the messenger relay refuses messages
+        bearing that cert. Idempotent (second call just refreshes
+        the Redis TTL). Used when a device is lost or a key is
+        suspected compromised.
+
+        NOTE: the yaml schema shows `{certId}`. The real DTO is
+        `{jti: UUID, ttlSeconds: int ≥ 1}`. `ttlSeconds` is clamped
+        server-side to `[60, 172800]`.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Caller must have issued the cert (via
+        `POST /sender-cert` — not in this yaml but exists). You need
+        the `jti` from the cert JWT payload and the cert's remaining
+        TTL.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/sender-cert/revoke \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"jti":"c1a2f3d4-5678-40ab-90cd-1234567890ab","ttlSeconds":3600}'
+
+        **Common failures.**
+        - `400` — `jti` not a UUID (`^[0-9a-f-]{36}$`) or
+          `ttlSeconds < 1`.
+        - `401` — bad bearer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SenderCertRevokeBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /sender-cert/revoke-all:
+    post:
+      tags: [Sender Cert]
+      summary: Revoke all sender certs for me
+      description: |
+        **Purpose.** "Nuclear option" — increments a per-user
+        generation counter in Redis (`sender-cert:gen:<userId>`).
+        Every outstanding cert minted before this moment is
+        considered revoked because clients compare `cert.iat`
+        against the generation timestamp on verify. Used by sign-out
+        flows and the "Revoke all sessions" setting.
+
+        NOTE: the yaml response schema shows `{ok:true}`. The actual
+        response is `{newGeneration: <int>}`.
+
+        **Auth.** Requires bearer access token. Only affects the
+        caller's own certs.
+
+        **Preconditions.** None — safe to call even if the caller
+        has never issued a cert.
+
+        **Example curl.**
+
+            curl -X POST https://auth.94-136-184-52.sslip.io/sender-cert/revoke-all \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+      responses:
+        '200':
+          description: Generation counter advanced
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SenderCertRevokeAllResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /sender-cert/revocation-list:
+    get:
+      tags: [Sender Cert]
+      summary: Current revocation list (short-TTL cache)
+      security: []
+      description: |
+        **Purpose.** Public endpoint — returns every currently-
+        revoked sender-cert `jti` as `{jtis: [...], asOf: <unix>}`.
+        Clients poll this every few minutes to refresh their local
+        revocation cache. Unauthenticated because the list holds
+        only opaque UUIDs.
+
+        NOTE: the yaml schema shows `{revokedAt, certIds[]}`. The
+        real response shape is `{jtis: string[], asOf: number}`.
+
+        **Auth.** No auth.
+
+        **Preconditions.** None.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/sender-cert/revocation-list
+
+        **Common failures.** None under normal operation. A Redis
+        outage on the server would surface as a 500.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jtis, asOf]
+                properties:
+                  jtis:
+                    type: array
+                    items: {type: string, description: Revoked sender-cert UUID (jti)}
+                  asOf:
+                    type: integer
+                    description: |
+                      Unix epoch seconds at which the list was generated.
+                      (Source returns `Math.floor(Date.now()/1000)`, not an
+                      ISO-8601 string.)
+                    example: 1713888000
+
+  /conversations/mine:
+    get:
+      tags: [Conversations]
+      summary: My conversations
+      description: |
+        **Purpose.** Returns every conversation (direct or group) the
+        caller is currently a member of, newest first, wrapped as
+        `{conversations: [...]}`. Each item includes full member list
+        + the caller's `myRole` (`admin` | `member`) so the client
+        can decide which UI affordances to show.
+
+        NOTE: the yaml schema shows a raw array at the top level.
+        The actual response is `{conversations: [...]}`.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** None. Returns `{conversations: []}` for a
+        fresh account.
+
+        **Example curl.**
+
+            curl https://auth.94-136-184-52.sslip.io/conversations/mine \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [conversations]
+                properties:
+                  conversations:
+                    type: array
+                    items: {$ref: '#/components/schemas/Conversation'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /conversations/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Conversations]
+      summary: Get one conversation
+      description: |
+        **Purpose.** Returns the full conversation record — `id`,
+        `kind`, `title`, `createdAt`, `createdBy`, all `members` with
+        `displayName` + `joinedAt`, and the caller's `myRole`.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** `id` must be a UUID pointing to a
+        conversation the caller is a member of. Non-members get
+        `404` — existence is deliberately indistinguishable from
+        "you aren't in it".
+
+        **Example curl.**
+
+            curl "https://auth.94-136-184-52.sslip.io/conversations/<id>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+        - `404` — `conversation_not_found_or_forbidden`: either
+          doesn't exist OR caller isn't a member.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Conversation'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '404': {description: Not a member / not found}
+    patch:
+      tags: [Conversations]
+      summary: Update conversation metadata
+      description: |
+        **Purpose.** Rename a conversation. Only the `title` field is
+        patchable today. Returns the full refreshed conversation
+        record.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Caller must be an **admin** of the
+        conversation. The creator is admin by default; admins can
+        promote others only via the last-admin-left auto-promotion
+        path (there's no explicit role-change endpoint yet).
+
+        **Example curl.**
+
+            curl -X PATCH "https://auth.94-136-184-52.sslip.io/conversations/<id>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"title":"Staging smoke group"}'
+
+        **Common failures.**
+        - `400` — `title` empty or > 80 chars.
+        - `401` — bad bearer.
+        - `403` — `only_admin_can_do_that`.
+        - `404` — `conversation_not_found_or_forbidden` (caller not
+          a member).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ConversationPatchBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Conversation'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+    delete:
+      tags: [Conversations]
+      summary: Delete conversation (owner only)
+      description: |
+        **Purpose.** Hard-deletes the conversation row (`DELETE FROM
+        public.conversations`). Member rows cascade. Irreversible —
+        members lose access immediately.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Caller must be an **admin** of this
+        conversation.
+
+        **Example curl.**
+
+            curl -X DELETE "https://auth.94-136-184-52.sslip.io/conversations/<id>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+        - `403` — `only_admin_can_do_that`.
+        - `404` — `conversation_not_found_or_forbidden`.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /conversations/{id}/members:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    post:
+      tags: [Conversations]
+      summary: Add a member
+      description: |
+        **Purpose.** Insert a new `member` into
+        `public.conversation_members`. Idempotent (`ON CONFLICT DO
+        NOTHING`). Returns the refreshed conversation record. New
+        members always join with role `member` — there's no way to
+        add someone directly as admin via this endpoint.
+
+        NOTE: the yaml's `ConversationMemberBody` shows an optional
+        `role` field. The actual `AddMemberDto` only accepts
+        `{userId}` — `role` is ignored.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Caller must be admin of this conversation.
+        Target `userId` must be a UUID; the INSERT will fail with a
+        500 if the target user doesn't exist in `public.users`
+        (FK violation), so verify first via `POST /users/lookup`.
+
+        **Example curl.**
+
+            curl -X POST "https://auth.94-136-184-52.sslip.io/conversations/<id>/members" \
+              -H "Authorization: Bearer $ACCESS_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"userId":"<userId>"}'
+
+        **Common failures.**
+        - `400` — `userId` not a UUID.
+        - `401` — bad bearer.
+        - `403` — `only_admin_can_do_that`.
+        - `404` — `conversation_not_found_or_forbidden`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ConversationMemberBody'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Conversation'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+
+  /conversations/{id}/members/{userId}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+      - in: path
+        name: userId
+        required: true
+        schema: {type: string, format: uuid}
+    delete:
+      tags: [Conversations]
+      summary: Remove a member
+      description: |
+        **Purpose.** Remove a member from the conversation. Two legal
+        callers:
+        - An **admin** removing anyone.
+        - A **member** removing themselves (self-leave — pass your
+          own `userId` in the path).
+
+        If the removed user was the only remaining admin, the
+        service auto-promotes the **oldest-joined** remaining member
+        to admin so conversations never orphan.
+
+        **Auth.** Requires bearer access token.
+
+        **Preconditions.** Caller must be a member. The target
+        `userId` doesn't have to be a current member (DELETE is a
+        no-op if they already left).
+
+        **Example curl.**
+
+            curl -X DELETE "https://auth.94-136-184-52.sslip.io/conversations/<id>/members/<userId>" \
+              -H "Authorization: Bearer $ACCESS_TOKEN"
+
+        **Common failures.**
+        - `401` — bad bearer.
+        - `403` — `only_admin_can_remove_others` (non-admin tried
+          to remove someone other than self).
+        - `404` — `conversation_not_found_or_forbidden` (caller
+          not a member).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Ok'}
+        '401': {$ref: '#/components/responses/Unauthorized'}

@@ -1,0 +1,120 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Deploy to Contabo staging on push to main.
+#
+# Replaces the old deploy-auth / deploy-messenger / deploy-ops-console
+# workflows, which targeted decommissioned infra (AWS ECR + EC2, Vercel) and
+# failed on every push. This one uses the ACTUAL staging mechanism: SSH to
+# the Contabo box (94.136.184.52), rsync the changed service's source into
+# ~/bravo, `docker compose build` + `up -d`, then verify container health.
+# All of that lives in scripts/deploy-staging.sh so it can also be run by
+# hand (SSH_KEY=~/.ssh/bravo-staging.pem scripts/deploy-staging.sh <svc>).
+#
+# Only the services whose files changed are redeployed. The Docker build
+# runs each service's typecheck/build, so a broken commit fails the build and
+# the running container is left untouched (build gates deploy).
+#
+# ── REQUIRED GitHub secret ────────────────────────────────────────────────
+#   CONTABO_SSH_KEY  — the PRIVATE key (contents of bravo-staging.pem) whose
+#                      public half is in admin@94.136.184.52:~/.ssh/authorized_keys
+#   Add via: Repo → Settings → Secrets and variables → Actions → New secret.
+#
+# ── Optional repository variables (override the defaults below) ────────────
+#   BOX_HOST (94.136.184.52) · BOX_USER (admin) · BOX_DIR (/home/admin/bravo)
+#
+# ⚠️  main is the source of truth — the sync uses --delete, so any
+#     uncommitted server-side hotfix under a service's dir is overwritten.
+#     Commit hotfixes to main. (.env* and build artefacts are never synced.)
+# ─────────────────────────────────────────────────────────────────────────
+name: Deploy to Contabo staging
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/auth-service/**'
+      - 'apps/messenger-service/**'
+      - 'apps/ops-console/**'
+      - 'packages/messenger-core/**'
+      - 'docker-compose.staging.yml'
+      - 'scripts/deploy-staging.sh'
+      - '.github/workflows/deploy-staging.yml'
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to deploy: "all" or a space-separated subset (auth-service messenger-service ops-console)'
+        required: false
+        default: 'all'
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    name: Detect changed services
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.pick.outputs.services }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            auth:
+              - 'apps/auth-service/**'
+            messenger:
+              - 'apps/messenger-service/**'
+              - 'packages/messenger-core/**'
+            ops:
+              - 'apps/ops-console/**'
+              - 'packages/messenger-core/**'
+      - id: pick
+        env:
+          DISPATCH: ${{ github.event.inputs.services }}
+        run: |
+          if [ -n "$DISPATCH" ]; then
+            # Manual run: honour the input verbatim ("all" or an explicit list).
+            echo "services=$DISPATCH" >> "$GITHUB_OUTPUT"
+            echo "manual dispatch → $DISPATCH"; exit 0
+          fi
+          svcs=""
+          [ "${{ steps.filter.outputs.auth }}"      = "true" ] && svcs="$svcs auth-service"
+          [ "${{ steps.filter.outputs.messenger }}" = "true" ] && svcs="$svcs messenger-service"
+          [ "${{ steps.filter.outputs.ops }}"       = "true" ] && svcs="$svcs ops-console"
+          svcs="$(echo "$svcs" | xargs)"   # trim
+          echo "services=$svcs" >> "$GITHUB_OUTPUT"
+          echo "changed services → '${svcs:-<none>}'"
+
+  deploy:
+    name: Deploy ${{ needs.detect.outputs.services }}
+    needs: detect
+    if: needs.detect.outputs.services != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BOX_HOST: ${{ vars.BOX_HOST || '94.136.184.52' }}
+      BOX_USER: ${{ vars.BOX_USER || 'admin' }}
+      BOX_DIR: ${{ vars.BOX_DIR || '/home/admin/bravo' }}
+      SSH_KEY: ${{ github.workspace }}/.deploy_key
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write SSH key
+        run: |
+          if [ -z "${{ secrets.CONTABO_SSH_KEY }}" ]; then
+            echo "::error::CONTABO_SSH_KEY secret is not set — add the bravo-staging.pem private key under Repo → Settings → Secrets → Actions."
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "${{ secrets.CONTABO_SSH_KEY }}" > "$SSH_KEY"
+          chmod 600 "$SSH_KEY"
+
+      - name: Deploy
+        run: |
+          chmod +x scripts/deploy-staging.sh
+          scripts/deploy-staging.sh ${{ needs.detect.outputs.services }}
+
+      - name: Scrub key
+        if: always()
+        run: rm -f "$SSH_KEY"

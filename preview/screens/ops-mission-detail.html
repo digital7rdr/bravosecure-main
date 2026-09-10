@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "ops":"#0EA5E9","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .fu1{animation:fade-up 0.35s ease 0.05s both;}
+  .fu2{animation:fade-up 0.35s ease 0.12s both;}
+  .fu3{animation:fade-up 0.35s ease 0.19s both;}
+  .fu4{animation:fade-up 0.35s ease 0.26s both;}
+  .fu5{animation:fade-up 0.35s ease 0.33s both;}
+  .fu6{animation:fade-up 0.35s ease 0.40s both;}
+
+  /* CPO selection chips */
+  .cpo-chip {
+    padding:8px 14px; border-radius:0.75rem;
+    border:1.5px solid #1E2D45; background:#0D1929;
+    cursor:pointer; transition:all 0.15s; font-family:'Manrope',sans-serif;
+  }
+  .cpo-chip.selected {
+    border-color:#0EA5E9;
+    background:rgba(14,165,233,0.12);
+    box-shadow:0 0 0 1px rgba(14,165,233,0.2);
+  }
+
+  /* Status stages */
+  .stage-dot { width:10px; height:10px; border-radius:50%; border:2px solid; flex-shrink:0; }
+  .stage-done  { background:#22c55e; border-color:#22c55e; }
+  .stage-active{ background:#0EA5E9; border-color:#0EA5E9; }
+  .stage-wait  { background:transparent; border-color:#1E2D45; }
+
+  /* Confirm overlay */
+  @keyframes pop-in { 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+  .pop-in { animation:pop-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+  /* Section tabs */
+  .stab { padding:8px 14px; border-radius:0.6rem; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.15s; font-family:'Manrope',sans-serif; color:#64748b; }
+  .stab.active { background:rgba(14,165,233,0.15); color:#38bdf8; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <div class="text-center -ml-9 flex-1">
+    <h2 class="text-sm font-bold text-slate-200">Mission BS-8829</h2>
+    <div class="flex items-center justify-center gap-1.5 mt-0.5">
+      <span class="size-1.5 rounded-full bg-emerald-400 pulse-dot inline-block"></span>
+      <span class="text-[10px] font-bold text-emerald-400 uppercase">Active</span>
+    </div>
+  </div>
+  <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">more_vert</span>
+  </button>
+</header>
+
+<main class="flex-1 overflow-y-auto px-5 pb-28 space-y-5">
+
+  <!-- Mission stage progress -->
+  <div class="fu1 p-4 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="flex items-center gap-0">
+      <!-- Stage 1: Received -->
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="stage-dot stage-done"></div>
+        <p class="text-[9px] font-bold uppercase text-emerald-400 text-center">Received</p>
+      </div>
+      <div class="flex-1 h-px mb-3" style="background:#22c55e"></div>
+      <!-- Stage 2: Approved -->
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="stage-dot stage-done"></div>
+        <p class="text-[9px] font-bold uppercase text-emerald-400 text-center">Approved</p>
+      </div>
+      <div class="flex-1 h-px mb-3" style="background:#22c55e"></div>
+      <!-- Stage 3: Assigned -->
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="stage-dot stage-done"></div>
+        <p class="text-[9px] font-bold uppercase text-emerald-400 text-center">Assigned</p>
+      </div>
+      <div class="flex-1 h-px mb-3" style="background:#0EA5E9"></div>
+      <!-- Stage 4: Active -->
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="stage-dot stage-active" style="box-shadow:0 0 8px rgba(14,165,233,0.6)"></div>
+        <p class="text-[9px] font-bold uppercase text-sky-400 text-center">Active</p>
+      </div>
+      <div class="flex-1 h-px mb-3" style="background:#1E2D45"></div>
+      <!-- Stage 5: Complete -->
+      <div class="flex flex-col items-center gap-1 flex-1">
+        <div class="stage-dot stage-wait"></div>
+        <p class="text-[9px] font-bold uppercase text-slate-600 text-center">Done</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section tabs -->
+  <div class="fu2 flex gap-1 p-1 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+    <button class="stab active flex-1 text-center" id="tab-overview" onclick="switchTab('overview')">Overview</button>
+    <button class="stab flex-1 text-center" id="tab-team" onclick="switchTab('team')">Team</button>
+    <button class="stab flex-1 text-center" id="tab-log" onclick="switchTab('log')">Log</button>
+  </div>
+
+  <!-- ─── OVERVIEW TAB ─── -->
+  <div id="panel-overview">
+
+    <!-- Approve / Reject -->
+    <div class="fu3 rounded-2xl overflow-hidden mb-5" style="background:#0D1929;border:1px solid rgba(14,165,233,0.3)">
+      <div class="px-4 pt-4 pb-2 flex items-center gap-2">
+        <span class="material-symbols-outlined filled" style="font-size:16px;color:#0EA5E9">gavel</span>
+        <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#0EA5E9">Ops Decision</p>
+      </div>
+      <div id="approval-section" class="px-4 pb-4">
+        <p class="text-xs text-slate-400 mb-3 leading-relaxed">Review this booking and approve for dispatch or reject with a reason. Client will be notified immediately.</p>
+        <div class="flex gap-2.5">
+          <button onclick="showRejectSheet()" id="reject-btn" class="flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:rgba(239,68,68,0.07);color:#f87171;border:1px solid rgba(239,68,68,0.25)">
+            <span class="material-symbols-outlined" style="font-size:18px">close</span>Reject
+          </button>
+          <button onclick="showApproveConfirm()" id="approve-btn" class="flex-[2] py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:linear-gradient(160deg,#38bdf8,#0EA5E9,#0369a1);box-shadow:inset 0 1px 0 rgba(255,255,255,0.15),0 4px 14px rgba(14,165,233,0.28),0 1px 2px rgba(0,0,0,0.25);color:white;letter-spacing:0.03em">
+            <span class="material-symbols-outlined" style="font-size:18px">check</span>Approve Mission
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job info card -->
+    <div class="fu4 rounded-xl overflow-hidden mb-5" style="background:#0D1929;border:1px solid #1E2D45">
+      <!-- Client row -->
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <div class="size-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">AA</div>
+        <div class="flex-1">
+          <p class="text-sm font-bold text-slate-100">Abdullah Al-Rashid</p>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px">star</span>
+            <span class="text-[10px] text-slate-400 font-semibold">4.9 · 47 bookings · VIP</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold px-2 py-1 rounded-full" style="background:rgba(212,175,55,0.1);color:#D4AF37;border:1px solid rgba(212,175,55,0.25)">VIP</span>
+      </div>
+      <!-- Job grid -->
+      <div class="grid grid-cols-2">
+        <div class="px-4 py-3 border-b border-r" style="border-color:#1E2D45">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Type</p>
+          <p class="text-xs font-bold text-slate-200">Close Protection</p>
+        </div>
+        <div class="px-4 py-2.5 border-b" style="border-color:#1E2D45">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Payout</p>
+          <p class="text-xs font-bold" style="color:#D4AF37">1,175 credits</p>
+        </div>
+        <div class="px-4 py-3 border-b border-r" style="border-color:#1E2D45">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Date</p>
+          <p class="text-xs font-bold text-slate-200">18 March 2026</p>
+        </div>
+        <div class="px-4 py-2.5 border-b" style="border-color:#1E2D45">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Duration</p>
+          <p class="text-xs font-bold text-slate-200">8 hours</p>
+        </div>
+        <div class="px-4 py-3 col-span-2">
+          <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Location</p>
+          <p class="text-xs font-bold text-slate-200">DXB Terminal 3 → DIFC Tower, Dubai</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign CPO Leader -->
+    <div class="fu5 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Assign CPO Leader</p>
+        <span id="cpo-selected-label" class="text-[10px] font-bold text-slate-600">None selected</span>
+      </div>
+      <div class="space-y-2.5" id="cpo-list">
+
+        <div class="cpo-chip selected flex items-center gap-3" id="cpo-marcus" onclick="selectCPO('marcus')">
+          <div class="size-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">MJ</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-bold text-slate-100">Marcus Johnson</p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(34,197,94,0.1);color:#4ade80">AVAILABLE</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] text-slate-500">Level 3 CPO</span>
+              <span class="text-slate-600">·</span>
+              <span class="text-[10px] text-slate-500">48 missions</span>
+              <span class="text-slate-600">·</span>
+              <span class="text-[10px] text-amber-400">4.9★</span>
+            </div>
+          </div>
+          <span id="cpo-marcus-check" class="material-symbols-outlined filled" style="font-size:18px;color:#0EA5E9">check_circle</span>
+        </div>
+
+        <div class="cpo-chip flex items-center gap-3" id="cpo-aisha" onclick="selectCPO('aisha')">
+          <div class="size-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#D4AF37,#B8962E);color:white">AR</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-bold text-slate-100">Aisha Rahman</p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(34,197,94,0.1);color:#4ade80">AVAILABLE</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] text-slate-500">Level 3 CPO</span>
+              <span class="text-slate-600">·</span>
+              <span class="text-[10px] text-slate-500">61 missions</span>
+              <span class="text-slate-600">·</span>
+              <span class="text-[10px] text-amber-400">5.0★</span>
+            </div>
+          </div>
+          <span id="cpo-aisha-check" class="material-symbols-outlined filled text-slate-700" style="font-size:18px">radio_button_unchecked</span>
+        </div>
+
+        <div class="cpo-chip flex items-center gap-3 opacity-50" id="cpo-james" onclick="() => {}">
+          <div class="size-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:#1E2D45;color:#64748b">JT</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-bold text-slate-400">James Tate</p>
+              <span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(245,158,11,0.1);color:#fbbf24">ON MISSION</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[10px] text-slate-600">Level 2 CPO</span>
+              <span class="text-slate-700">·</span>
+              <span class="text-[10px] text-slate-600">29 missions</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-slate-700" style="font-size:18px">block</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── TEAM TAB ─── -->
+  <div id="panel-team" class="hidden space-y-4">
+    <div class="flex items-center justify-between">
+      <p class="text-[11px] font-bold uppercase tracking-widest text-slate-500">Mission Team</p>
+      <button class="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg" style="background:rgba(14,165,233,0.12);color:#38bdf8;border:1px solid rgba(14,165,233,0.3)">
+        <span class="material-symbols-outlined" style="font-size:15px">person_add</span>Add
+      </button>
+    </div>
+
+    <div class="rounded-xl overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45">
+
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <div class="size-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">MJ</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2"><p class="text-sm font-bold text-slate-100">Marcus Johnson</p><span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(14,165,233,0.12);color:#38bdf8">CPO LEAD</span></div>
+          <p class="text-xs text-slate-500">Level 3 · Armed · En route</p>
+        </div>
+        <button class="text-[10px] text-red-400 font-semibold">Remove</button>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <div class="size-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);color:white">SK</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2"><p class="text-sm font-bold text-slate-100">Sam Kowalski</p><span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(124,58,237,0.12);color:#a78bfa">CPO</span></div>
+          <p class="text-xs text-slate-500">Level 2 · Unarmed · Staged</p>
+        </div>
+        <button class="text-[10px] text-red-400 font-semibold">Remove</button>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <div class="size-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#D4AF37,#B8962E);color:white">RP</div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2"><p class="text-sm font-bold text-slate-100">Reza Patel</p><span class="text-[9px] px-1.5 py-0.5 rounded font-bold" style="background:rgba(20,184,166,0.12);color:#2dd4bf">DRIVER</span></div>
+          <p class="text-xs text-slate-500">Tactical · Armoured Veh. · Staged</p>
+        </div>
+        <button class="text-[10px] text-red-400 font-semibold">Remove</button>
+      </div>
+
+      <div class="flex items-center gap-3 px-4 py-3.5">
+        <div class="size-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:rgba(14,165,233,0.12);border:1px dashed rgba(14,165,233,0.4)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#38bdf8">add</span>
+        </div>
+        <p class="text-sm text-slate-500 italic">Add ops handler or analyst...</p>
+      </div>
+
+    </div>
+
+    <!-- Create Group Chat -->
+    <button onclick="createMissionGroup()" id="create-group-btn" class="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:linear-gradient(160deg,#38bdf8,#0EA5E9,#0369a1);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(14,165,233,0.25);color:white;letter-spacing:0.03em">
+      <span class="material-symbols-outlined filled" style="font-size:18px">add_comment</span>
+      Create Mission Group Chat
+    </button>
+  </div>
+
+  <!-- ─── LOG TAB ─── -->
+  <div id="panel-log" class="hidden">
+    <div class="space-y-0">
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+          <div class="w-px flex-1" style="background:#1E2D45;min-height:36px"></div>
+        </div>
+        <div class="pb-4">
+          <p class="text-xs font-bold text-slate-200">Mission approved by Ops</p>
+          <p class="text-[10px] text-slate-500">Sarah Chen · 16 Mar, 09:12</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+          <div class="w-px flex-1" style="background:#1E2D45;min-height:36px"></div>
+        </div>
+        <div class="pb-4">
+          <p class="text-xs font-bold text-slate-200">CPO Leader assigned: Marcus Johnson</p>
+          <p class="text-[10px] text-slate-500">Sarah Chen · 16 Mar, 09:15</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+          <div class="w-px flex-1" style="background:#1E2D45;min-height:36px"></div>
+        </div>
+        <div class="pb-4">
+          <p class="text-xs font-bold text-slate-200">Mission group created (4 members)</p>
+          <p class="text-[10px] text-slate-500">System · 16 Mar, 09:16</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full bg-emerald-400 mt-1.5 shrink-0"></div>
+          <div class="w-px flex-1" style="background:#1E2D45;min-height:36px"></div>
+        </div>
+        <div class="pb-4">
+          <p class="text-xs font-bold text-slate-200">Marcus Johnson accepted job</p>
+          <p class="text-[10px] text-slate-500">Agent · 18 Mar, 05:45</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full bg-sky-400 mt-1.5 shrink-0" style="box-shadow:0 0 8px rgba(14,165,233,0.6)"></div>
+          <div class="w-px flex-1" style="background:#1E2D45;min-height:36px"></div>
+        </div>
+        <div class="pb-4">
+          <p class="text-xs font-bold text-sky-400">Mission Active — En route to pickup</p>
+          <p class="text-[10px] text-slate-500">System · 18 Mar, 06:22</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <div class="flex flex-col items-center">
+          <div class="size-2 rounded-full mt-1.5 shrink-0" style="background:#1E2D45;border:1.5px solid #1E2D45"></div>
+        </div>
+        <div class="pb-2">
+          <p class="text-xs text-slate-600 italic">Awaiting completion...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer: Open Group Chat -->
+<footer class="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-3" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goMissionChat()" class="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.3);color:#38bdf8">
+    <span class="material-symbols-outlined filled" style="font-size:18px">forum</span>
+    Open Mission Group Chat
+    <span class="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:rgba(14,165,233,0.15)">
+      <span class="size-1.5 rounded-full bg-sky-400 pulse-dot inline-block"></span>4 members
+    </span>
+  </button>
+</footer>
+
+<!-- Approve confirm overlay -->
+<div id="approve-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px)">
+  <div class="pop-in mx-5 p-6 rounded-2xl text-center w-full max-w-xs" style="background:#0D1929;border:1px solid rgba(14,165,233,0.4)">
+    <div class="size-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:rgba(14,165,233,0.15);border:2px solid rgba(14,165,233,0.4)">
+      <span class="material-symbols-outlined filled" style="font-size:32px;color:#0EA5E9">verified</span>
+    </div>
+    <h3 class="text-base font-extrabold text-slate-100 mb-1">Approve Mission BS-8829?</h3>
+    <p class="text-xs text-slate-400 mb-5 leading-relaxed">This will notify the client and dispatch job to available agents on the marketplace.</p>
+    <div class="flex gap-3">
+      <button onclick="closeApproveOverlay()" class="flex-1 py-3 rounded-xl font-bold text-xs text-slate-400" style="border:1px solid #1E2D45">Cancel</button>
+      <button onclick="confirmApprove()" class="flex-[2] py-3 rounded-xl font-bold text-sm text-white" style="background:linear-gradient(135deg,#0EA5E9,#0284C7)">
+        Yes, Approve
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject sheet -->
+<div id="reject-sheet-wrap" class="hidden fixed inset-0 z-50 flex flex-col items-center justify-end" style="background:rgba(0,0,0,0.75);backdrop-filter:blur(4px)">
+  <div class="w-full px-5 pt-5 pb-8 rounded-t-3xl" style="background:#0D1929;border-top:1px solid #1E2D45">
+    <div class="w-10 h-1 rounded-full mx-auto mb-5" style="background:#1E2D45"></div>
+    <h3 class="text-base font-extrabold text-slate-100 mb-1">Reject this mission?</h3>
+    <p class="text-xs text-slate-400 mb-3">Select a reason to notify the client.</p>
+    <div class="space-y-2 mb-4">
+      <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#07111f;border:1px solid #1E2D45">
+        <input type="radio" name="reject-reason" class="accent-red-400">
+        <span class="text-xs text-slate-300">Insufficient staffing availability</span>
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#07111f;border:1px solid #1E2D45">
+        <input type="radio" name="reject-reason" class="accent-red-400">
+        <span class="text-xs text-slate-300">Client requirements cannot be met</span>
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#07111f;border:1px solid #1E2D45">
+        <input type="radio" name="reject-reason" class="accent-red-400">
+        <span class="text-xs text-slate-300">Security clearance issue</span>
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style="background:#07111f;border:1px solid #1E2D45">
+        <input type="radio" name="reject-reason" class="accent-red-400">
+        <span class="text-xs text-slate-300">Other</span>
+      </label>
+    </div>
+    <button onclick="confirmReject()" class="w-full py-3.5 rounded-xl font-bold text-sm text-white mb-3" style="background:linear-gradient(135deg,#dc2626,#b91c1c)">Reject Mission</button>
+    <button onclick="closeRejectSheet()" class="w-full text-sm text-slate-500 font-semibold py-2">Cancel</button>
+  </div>
+</div>
+
+<script>
+  let currentCPO = 'marcus';
+
+  function selectCPO(id) {
+    if(id === 'james') return;
+    ['marcus','aisha'].forEach(c => {
+      document.getElementById('cpo-'+c).classList.toggle('selected', c===id);
+      const icon = document.getElementById('cpo-'+c+'-check');
+      if(c===id){ icon.textContent='check_circle'; icon.style.color='#0EA5E9'; }
+      else { icon.textContent='radio_button_unchecked'; icon.style.color='#334155'; }
+    });
+    currentCPO = id;
+    const names = {marcus:'Marcus Johnson',aisha:'Aisha Rahman'};
+    document.getElementById('cpo-selected-label').textContent = names[id];
+    document.getElementById('cpo-selected-label').style.color = '#38bdf8';
+  }
+
+  function switchTab(tab) {
+    ['overview','team','log'].forEach(t => {
+      document.getElementById('panel-'+t).classList.toggle('hidden', t!==tab);
+      document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    });
+  }
+
+  function showApproveConfirm() {
+    document.getElementById('approve-overlay').classList.remove('hidden');
+  }
+  function closeApproveOverlay() {
+    document.getElementById('approve-overlay').classList.add('hidden');
+  }
+  function confirmApprove() {
+    closeApproveOverlay();
+    const section = document.getElementById('approval-section');
+    section.innerHTML = '<div class="flex items-center gap-2 py-2"><span class="material-symbols-outlined filled text-emerald-400" style="font-size:20px">check_circle</span><p class="text-sm font-bold text-emerald-400">Mission Approved — dispatched to marketplace</p></div>';
+  }
+
+  function showRejectSheet() {
+    document.getElementById('reject-sheet-wrap').classList.remove('hidden');
+    document.getElementById('reject-sheet-wrap').classList.add('flex');
+  }
+  function closeRejectSheet() {
+    document.getElementById('reject-sheet-wrap').classList.add('hidden');
+    document.getElementById('reject-sheet-wrap').classList.remove('flex');
+  }
+  function confirmReject() {
+    closeRejectSheet();
+    const section = document.getElementById('approval-section');
+    section.innerHTML = '<div class="flex items-center gap-2 py-2"><span class="material-symbols-outlined filled text-red-400" style="font-size:20px">cancel</span><p class="text-sm font-bold text-red-400">Mission Rejected — client notified</p></div>';
+  }
+
+  function createMissionGroup() {
+    const btn = document.getElementById('create-group-btn');
+    btn.innerHTML = '<span class="material-symbols-outlined filled" style="font-size:18px">check_circle</span>Group Created — 4 Members';
+    btn.style.background = 'rgba(34,197,94,0.15)';
+    btn.style.boxShadow = 'none';
+    btn.style.color = '#4ade80';
+    btn.style.border = '1.5px solid rgba(34,197,94,0.3)';
+    btn.style.pointerEvents = 'none';
+    setTimeout(() => goMissionChat(), 800);
+  }
+
+  function goMissionChat() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="mission-chat"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/mission-chat.html', nav||document.createElement('div'));
+    }
+  }
+
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="ops-dashboard"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/ops-dashboard.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

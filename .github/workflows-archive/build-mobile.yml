@@ -1,0 +1,95 @@
+# ──────────────────────────────────────────────────────────────────────
+# Trigger EAS staging build for the mobile app.
+#
+# Audit reference: DEPLOY_PLAN.md §C.5.
+#
+# EAS Build runs on Expo's hosted infrastructure; this workflow just
+# fires the build and returns. The build itself takes 15–25 minutes
+# and finishes on EAS — we don't wait for it (`--no-wait`) so the CI
+# log doesn't hold a runner slot idle.
+#
+# The `preview-staging` profile in eas.json carries the staging env:
+#   - EXPO_PUBLIC_API_BASE_URL=https://auth.94-136-184-52.sslip.io
+#   - EXPO_PUBLIC_MSG_BASE_URL=https://relay.94-136-184-52.sslip.io
+#   - EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY
+# Add these via `eas secret:create` (not committed) once provisioned:
+#   - EXPO_PUBLIC_SENTRY_DSN     — Phase 5.4
+#   - EXPO_PUBLIC_MAPBOX_TOKEN   — verify present per Phase 4.5
+#
+# Required GitHub secret:
+#   - EXPO_TOKEN  — Expo access token from
+#                   https://expo.dev/accounts/[acct]/settings/access-tokens
+#
+# Triggers:
+#   - push to main touching src/**, App.tsx, app.config.ts, eas.json
+#   - manual workflow_dispatch with platform + profile inputs
+# ──────────────────────────────────────────────────────────────────────
+name: Build mobile (EAS)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'packages/messenger-core/**'
+      - 'App.tsx'
+      - 'index.ts'
+      - 'app.config.ts'
+      - 'app.json'
+      - 'eas.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-mobile.yml'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS profile (preview-staging / preview-local / production)'
+        required: false
+        default: 'preview-staging'
+      platform:
+        description: 'all / android / ios'
+        required: false
+        default: 'all'
+
+concurrency:
+  # Per-profile concurrency — don't queue a fresh build behind itself.
+  # `cancel-in-progress: true` because EAS dedupes via fingerprint
+  # anyway and a stale fire-and-forget run wastes the runner.
+  group: build-mobile-${{ github.event.inputs.profile || 'preview-staging' }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: EAS build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # `npm ci` rather than `npm install` so the lockfile is honored.
+      # `--legacy-peer-deps` matches the rest of the CI (React 19 +
+      # libsignal still have peer-dep conflicts; see .npmrc).
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Fire EAS build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PROFILE: ${{ github.event.inputs.profile || 'preview-staging' }}
+          PLATFORM: ${{ github.event.inputs.platform || 'all' }}
+        # `--non-interactive` for CI; `--no-wait` to drop the
+        # runner the moment EAS accepts the job (build finishes on
+        # EAS infrastructure). Result link goes to the Expo dashboard.
+        run: |
+          npx eas-cli build \
+            --profile "$PROFILE" \
+            --platform "$PLATFORM" \
+            --non-interactive \
+            --no-wait

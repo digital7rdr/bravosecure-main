@@ -1,0 +1,53 @@
+diff --git a/node_modules/react-native-quick-crypto/cpp/Cipher/MGLPublicCipher.h b/node_modules/react-native-quick-crypto/cpp/Cipher/MGLPublicCipher.h
+index 3b36e86..67d8b88 100644
+--- a/node_modules/react-native-quick-crypto/cpp/Cipher/MGLPublicCipher.h
++++ b/node_modules/react-native-quick-crypto/cpp/Cipher/MGLPublicCipher.h
+@@ -21,7 +21,7 @@
+ #else
+ #include "MGLJSIUtils.h"
+ #include "MGLTypedArray.h"
+-#include "logs.h"
++#include "Utils/logs.h"
+ #endif
+ 
+ namespace margelo {
+diff --git a/node_modules/react-native-quick-crypto/cpp/Sig/MGLSignInstaller.cpp b/node_modules/react-native-quick-crypto/cpp/Sig/MGLSignInstaller.cpp
+index 425642e..6063474 100644
+--- a/node_modules/react-native-quick-crypto/cpp/Sig/MGLSignInstaller.cpp
++++ b/node_modules/react-native-quick-crypto/cpp/Sig/MGLSignInstaller.cpp
+@@ -5,7 +5,7 @@
+ #include "JSIUtils/MGLJSIMacros.h"
+ #else
+ #include "MGLJSIMacros.h"
+-#include "logs.h"
++#include "Utils/logs.h"
+ #endif
+ 
+ namespace margelo {
+diff --git a/node_modules/react-native-quick-crypto/cpp/Sig/MGLVerifyInstaller.cpp b/node_modules/react-native-quick-crypto/cpp/Sig/MGLVerifyInstaller.cpp
+index 980cbed..3ff05b9 100644
+--- a/node_modules/react-native-quick-crypto/cpp/Sig/MGLVerifyInstaller.cpp
++++ b/node_modules/react-native-quick-crypto/cpp/Sig/MGLVerifyInstaller.cpp
+@@ -5,7 +5,7 @@
+ #include "JSIUtils/MGLJSIMacros.h"
+ #else
+ #include "MGLJSIMacros.h"
+-#include "logs.h"
++#include "Utils/logs.h"
+ #endif
+ 
+ namespace margelo {
+diff --git a/node_modules/react-native-quick-crypto/react-native-quick-crypto.podspec b/node_modules/react-native-quick-crypto/react-native-quick-crypto.podspec
+index b16d9ec..5945996 100644
+--- a/node_modules/react-native-quick-crypto/react-native-quick-crypto.podspec
++++ b/node_modules/react-native-quick-crypto/react-native-quick-crypto.podspec
+@@ -23,6 +23,9 @@ Pod::Spec.new do |s|
+   # Use install_modules_dependencies helper to install the dependencies if React Native version >=0.71.0.
+   # See https://github.com/facebook/react-native/blob/febf6b7f33fdb4904669f99d795eba4c0f95d7bf/scripts/cocoapods/new_architecture.rb#L79
+   if defined?(install_modules_dependencies()) != nil
++    s.pod_target_xcconfig = {
++      "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/**\""
++    }
+     install_modules_dependencies(s)
+     s.dependency "React" # remove after migrating breaking changes to remove explicit dep on React
+   else

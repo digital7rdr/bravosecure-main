@@ -1,0 +1,17 @@
+node_modules/
+android/
+ios/
+.expo/
+dist/
+build/
+coverage/
+# Separate Vite web project with its own tsconfig — don't lint with the RN config.
+worldmonitor/
+# Monorepo backend services have their own tsconfig — the root RN
+# eslint config can't parse them with `parserOptions.project` set to
+# the RN tsconfig.json. Each service should have its own lint pass.
+apps/
+*.config.js
+babel.config.js
+metro.config.js
+jest.config.js

@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+  :root {
+    --bg:       #0A0F1E;
+    --surface:  #0D1929;
+    --border:   #1E2D45;
+    --green:    #2563EB;
+    --green-dim:#3B82F6;
+    --green-lo: #0D1B36;
+    --amber:    #FFB800;
+    --red:      #FF3B30;
+    --blue:     #60A5FA;
+    --text:     #F1F5F9;
+    --text-dim: #64748B;
+    --text-lo:  #334155;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; }
+  ::-webkit-scrollbar { display: none; } * { scrollbar-width: none; }
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; font-size: 20px; line-height: 1; display: inline-block; }
+  .filled { font-variation-settings: 'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 1000; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 48px 12px 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+  }
+  .topbar::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green-dim), transparent);
+  }
+  .logo-cluster { display: flex; flex-direction: column; gap: 2px; }
+  .logo-text { font-size: 13px; font-weight: 700; letter-spacing: 3px; color: var(--green); }
+  .logo-sub { font-size: 8px; font-weight: 500; letter-spacing: 2px; color: var(--text-dim); }
+  .live-badge { display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 600; letter-spacing: 1.5px; color: var(--green); }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  #clock { font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+  .coords { font-size: 8px; color: var(--text-dim); letter-spacing: 0.5px; text-align: right; }
+
+  /* Tab bar */
+  .tabbar {
+    display: flex; align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .tab {
+    flex: 1; padding: 8px 0; text-align: center;
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    color: var(--text-dim); cursor: pointer; transition: color 0.15s;
+    border-bottom: 2px solid transparent; position: relative;
+  }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%; font-size: 7px; font-weight: 700;
+    background: rgba(37,99,235,0.15); color: var(--green); margin-left: 4px;
+  }
+
+  /* Main content area */
+  .content { flex: 1; overflow: hidden; position: relative; }
+  .tab-panel { display: none; height: 100%; overflow-y: auto; }
+  .tab-panel.active { display: block; }
+
+  /* ── MAP TAB ─────────────────────────────── */
+  #panel-map { background: #060C18; position: relative; overflow: hidden; }
+
+  /* D3 map container */
+  #map-canvas {
+    position: absolute; inset: 0; z-index: 2;
+    cursor: grab; touch-action: none;
+  }
+  #map-canvas.dragging { cursor: grabbing; }
+  #map-canvas svg { display: block; width: 100%; height: 100%; }
+
+  /* Country styles */
+  .country { fill: #0A1628; stroke: #1E2D45; stroke-width: 0.4; transition: fill 0.15s; }
+  .country:hover { fill: #0F1E35; }
+  .graticule { fill: none; stroke: #0D1929; stroke-width: 0.3; }
+  .sphere { fill: #060C18; }
+  .equator { stroke: #1E2D45; stroke-width: 0.6; stroke-dasharray: 4 6; }
+
+  /* Bubble markers */
+  .bubble-group { cursor: pointer; }
+  .bubble-circle {
+    fill-opacity: 0.18; stroke-width: 1.5;
+    transition: fill-opacity 0.15s;
+  }
+  .bubble-group:hover .bubble-circle { fill-opacity: 0.35; }
+  .bubble-pulse {
+    fill: none; stroke-width: 1; opacity: 0;
+    animation: bPulse 2.5s ease-out infinite;
+  }
+  .bubble-pulse2 {
+    fill: none; stroke-width: 0.6; opacity: 0;
+    animation: bPulse 2.5s ease-out infinite 0.8s;
+  }
+  @keyframes bPulse {
+    0%   { r: var(--br); opacity: 0.7; }
+    100% { r: calc(var(--br) + 14px); opacity: 0; }
+  }
+  .bubble-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 700;
+    text-anchor: middle; dominant-baseline: central;
+    pointer-events: none;
+  }
+  .bubble-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 6.5px; font-weight: 600; letter-spacing: 0.8px;
+    text-anchor: middle; dominant-baseline: hanging;
+    fill-opacity: 0.75; pointer-events: none;
+  }
+
+  /* Map bottom info bar */
+  .map-info {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: linear-gradient(to top, rgba(10,15,30,0.97) 60%, transparent);
+    padding: 32px 12px 8px;
+  }
+  .map-stat-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .map-stat {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 8px; letter-spacing: 1px; color: var(--text-dim);
+    padding: 4px 8px; border-radius: 4px;
+    border: 1px solid var(--border); background: rgba(10,15,30,0.85);
+  }
+  .map-stat span.val { color: var(--green); font-weight: 700; }
+
+  /* ── WIRE TAB ────────────────────────────── */
+  #panel-wire { background: var(--bg); padding: 0; }
+  .wire-header {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg); position: sticky; top: 0; z-index: 10;
+  }
+  .filter-chips { display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .fchip {
+    flex-shrink: 0; padding: 3px 10px; border-radius: 4px;
+    font-size: 8px; font-weight: 700; letter-spacing: 1.5px;
+    border: 1px solid var(--border); color: var(--text-dim); cursor: pointer;
+    transition: all 0.12s;
+  }
+  .fchip.active { border-color: var(--green-dim); color: var(--green); background: rgba(37,99,235,0.07); }
+
+  .wire-item {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.12s; position: relative;
+  }
+  .wire-item:hover, .wire-item:active { background: var(--surface); }
+  .wire-item::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--item-color, var(--green-dim));
+  }
+  .item-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+  .item-code { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-dim); }
+  .item-badge {
+    font-size: 7px; font-weight: 800; letter-spacing: 1px;
+    padding: 1px 5px; border-radius: 2px; text-transform: uppercase;
+  }
+  .item-ts { font-size: 8px; color: var(--text-lo); margin-left: auto; letter-spacing: 0.5px; }
+  .item-headline {
+    font-size: 12px; font-weight: 600; line-height: 1.4;
+    color: var(--text); margin-bottom: 4px;
+    font-family: 'Manrope', sans-serif;
+  }
+  .item-summary { font-size: 10px; color: var(--text-dim); line-height: 1.5; font-family: 'Manrope', sans-serif; }
+  .item-footer { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .item-loc { font-size: 8px; letter-spacing: 1px; color: var(--text-dim); }
+  .item-src { font-size: 8px; color: var(--text-lo); margin-left: auto; }
+
+  /* ── SIGNALS TAB ─────────────────────────── */
+  #panel-signals { background: var(--bg); padding: 10px 12px; }
+  .sig-section-label { font-size: 8px; letter-spacing: 2px; color: var(--text-dim); margin: 12px 0 6px; }
+  .sig-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; border-radius: 4px; margin-bottom: 4px;
+    border: 1px solid var(--border); background: var(--surface);
+  }
+  .sig-name { font-size: 10px; font-weight: 600; color: var(--text); font-family: 'Manrope', sans-serif; }
+  .sig-region { font-size: 8px; color: var(--text-dim); letter-spacing: 0.5px; }
+  .sig-bar-wrap { flex: 1; margin: 0 10px; height: 3px; border-radius: 2px; background: var(--border); }
+  .sig-bar { height: 100%; border-radius: 2px; }
+  .sig-level { font-size: 9px; font-weight: 700; letter-spacing: 1px; min-width: 28px; text-align: right; }
+
+  /* ── BOTTOM TICKER ───────────────────────── */
+  .ticker-wrap {
+    flex-shrink: 0; border-top: 1px solid var(--border);
+    background: var(--surface); overflow: hidden; height: 28px;
+    display: flex; align-items: center;
+  }
+  .ticker-tag {
+    flex-shrink: 0; padding: 0 8px; height: 100%; display: flex; align-items: center;
+    font-size: 8px; font-weight: 800; letter-spacing: 2px;
+    background: var(--green); color: var(--bg); border-right: 1px solid var(--border);
+  }
+  .ticker-scroll { flex: 1; overflow: hidden; }
+  .ticker-inner {
+    display: flex; gap: 60px; width: max-content;
+    animation: tickerScroll 60s linear infinite;
+    font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; white-space: nowrap;
+    align-items: center; height: 28px;
+  }
+  @keyframes tickerScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item { display: flex; align-items: center; gap: 8px; }
+  .ticker-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+  .ticker-sep { color: var(--text-lo); font-size: 12px; }
+
+  /* Layout */
+  body { display: flex; flex-direction: column; }
+  .main-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* ── INCIDENT DRAWER ─────────────────────── */
+  .incident-backdrop {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .incident-backdrop.open { opacity: 1; pointer-events: all; }
+  .incident-drawer {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 201;
+    background: #0D1929;
+    border-top: 1px solid var(--green-dim);
+    border-radius: 14px 14px 0 0;
+    padding: 0 0 24px;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 -8px 40px rgba(37,99,235,0.08);
+    max-height: 82vh; overflow-y: auto;
+  }
+  .incident-drawer.open { transform: translateY(0); }
+  .incident-drawer.dragging { transition: none; }
+  .drawer-handle { width: 48px; height: 5px; border-radius: 3px; background: var(--green-dim); margin: 12px auto 4px; cursor: grab; touch-action: none; }
+  .drawer-header { padding: 12px 16px 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .drawer-code { font-size: 8px; font-weight: 700; letter-spacing: 2px; color: var(--text-dim); }
+  .drawer-close { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); cursor: pointer; padding: 4px 8px; border: 1px solid var(--border); border-radius: 3px; }
+  .drawer-body { padding: 12px 16px; }
+  .drawer-headline { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.4; margin: 8px 0 6px; font-family: 'Manrope', sans-serif; }
+  .drawer-summary { font-size: 11px; color: var(--text-dim); line-height: 1.6; font-family: 'Manrope', sans-serif; margin-bottom: 10px; }
+  .drawer-meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .drawer-meta { font-size: 8px; letter-spacing: 1px; color: var(--text-dim); padding: 3px 8px; border: 1px solid var(--border); border-radius: 3px; }
+  .drawer-actions { display: flex; gap: 8px; }
+  .drawer-btn { flex: 1; padding: 10px; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 2px; cursor: pointer; text-align: center; }
+  .drawer-btn-primary { background: rgba(37,99,235,0.1); color: var(--green); border: 1px solid var(--green-dim); }
+  .drawer-btn-sec { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+
+  /* ── LIVE INCOMING FLASH ─────────────────── */
+  @keyframes newItemFlash {
+    0%   { background: rgba(37,99,235,0.15); }
+    100% { background: transparent; }
+  }
+  .wire-item.new-incoming { animation: newItemFlash 3s ease-out forwards; }
+  .badge-new { font-size: 7px; font-weight: 900; letter-spacing: 1px; padding: 1px 5px; border-radius: 2px; background: var(--green); color: var(--bg); margin-left: 4px; animation: blink 0.6s step-end 6; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button onclick="nav('news-hub.html')" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:rgba(37,99,235,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+      <span class="material-symbols-outlined" style="font-size:18px;color:var(--text-dim);">arrow_back</span>
+    </button>
+    <div class="logo-cluster">
+      <div class="logo-text">▌BRAVO INTEL</div>
+      <div class="logo-sub">GLOBAL INTELLIGENCE FEED</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      LIVE FEED
+    </div>
+    <div id="clock">--:--:-- UTC</div>
+    <div class="coords" id="coords">25°2'N · 55°22'E</div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tabbar">
+  <div class="tab active" onclick="switchTab('map', this)">THE MAP</div>
+  <div class="tab" onclick="switchTab('wire', this)">THE WIRE <span class="tab-count">47</span></div>
+  <div class="tab" onclick="switchTab('signals', this)">SIGNALS <span class="tab-count" style="background:rgba(255,59,48,0.2);color:#FF3B30;">9</span></div>
+</div>
+
+<!-- Main area -->
+<div class="main-area">
+  <div class="content">
+
+    <!-- ── MAP PANEL ──────────────────────────── -->
+    <div id="panel-map" class="tab-panel active" style="height:100%;position:relative;">
+
+      <!-- D3 map renders here -->
+      <div id="map-canvas" style="position:absolute;inset:0;"></div>
+
+      <!-- Map bottom info -->
+      <div class="map-info">
+        <div class="map-stat-row">
+          <div class="map-stat"><span>INCIDENTS</span> <span class="val" style="color:var(--red);">9</span></div>
+          <div class="map-stat"><span>ALERTS</span> <span class="val" style="color:var(--amber);">23</span></div>
+          <div class="map-stat"><span>MONITORED</span> <span class="val">47</span></div>
+          <div class="map-stat"><span>ZONES</span> <span class="val">12</span></div>
+        </div>
+        <div style="margin-top:6px;font-size:8px;color:var(--text-dim);letter-spacing:1px;" id="map-coords">
+          25°2'14" N · 55°22'37" E · ALT 12m
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WIRE PANEL ──────────────────────────── -->
+    <div id="panel-wire" class="tab-panel">
+      <div class="wire-header">
+        <span style="font-size:9px;letter-spacing:2px;color:var(--text-dim);">INTEL STREAM</span>
+        <div style="display:flex;align-items:center;gap:4px;font-size:8px;color:var(--text-dim);">
+          <div class="live-dot"></div>
+          <span id="wire-count">47 ITEMS</span>
+        </div>
+      </div>
+      <div class="filter-chips">
+        <div class="fchip active" onclick="filterWire(this,'ALL')">ALL</div>
+        <div class="fchip" onclick="filterWire(this,'CRITICAL')">CRITICAL</div>
+        <div class="fchip" onclick="filterWire(this,'SECURITY')">SECURITY</div>
+        <div class="fchip" onclick="filterWire(this,'POLITICAL')">POLITICAL</div>
+        <div class="fchip" onclick="filterWire(this,'FINANCE')">FINANCE</div>
+        <div class="fchip" onclick="filterWire(this,'MILITARY')">MILITARY</div>
+      </div>
+
+      <div id="wire-feed">
+        <div id="wire-loading" style="padding:32px 16px;text-align:center;color:var(--text-dim);font-size:9px;letter-spacing:2px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <div class="live-dot"></div>FETCHING LIVE INTEL FEEDS...
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SIGNALS PANEL ───────────────────────── -->
+    <div id="panel-signals" class="tab-panel">
+      <div style="font-size:8px;letter-spacing:2px;color:var(--text-dim);padding:8px 0 4px;">THREAT MATRIX — LIVE</div>
+
+      <!-- Critical -->
+      <div class="sig-section-label">◆ CRITICAL SIGNALS</div>
+
+      <div class="sig-row" style="border-color:rgba(255,59,48,0.3);background:rgba(255,59,48,0.04);">
+        <div>
+          <div class="sig-name">Red Sea Corridor</div>
+          <div class="sig-region">MARITIME · MILITARY</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:92%;background:linear-gradient(90deg,#FF3B30,#FF6B6B);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--red);">92</div>
+      </div>
+
+      <div class="sig-row" style="border-color:rgba(255,59,48,0.3);background:rgba(255,59,48,0.04);">
+        <div>
+          <div class="sig-name">Sudan-Chad Border</div>
+          <div class="sig-region">GROUND · ARMED</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:88%;background:linear-gradient(90deg,#FF3B30,#FF6B6B);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--red);">88</div>
+      </div>
+
+      <div class="sig-row" style="border-color:rgba(255,59,48,0.25);background:rgba(255,59,48,0.03);">
+        <div>
+          <div class="sig-name">UAE Cyber Grid</div>
+          <div class="sig-region">CYBER · INFRASTRUCTURE</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:79%;background:linear-gradient(90deg,#FF3B30,#FF9500);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--red);">79</div>
+      </div>
+
+      <!-- High -->
+      <div class="sig-section-label">◆ HIGH SIGNALS</div>
+
+      <div class="sig-row" style="border-color:rgba(255,184,0,0.25);">
+        <div>
+          <div class="sig-name">Riyadh Protest Zone</div>
+          <div class="sig-region">CIVIL · POLITICAL</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:64%;background:linear-gradient(90deg,#FFB800,#FFD060);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--amber);">64</div>
+      </div>
+
+      <div class="sig-row" style="border-color:rgba(255,184,0,0.2);">
+        <div>
+          <div class="sig-name">Arabian Sea Ops</div>
+          <div class="sig-region">NAVAL · EXERCISES</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:58%;background:linear-gradient(90deg,#FFB800,#FFD060);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--amber);">58</div>
+      </div>
+
+      <!-- Medium -->
+      <div class="sig-section-label">◆ MEDIUM / MONITOR</div>
+
+      <div class="sig-row">
+        <div>
+          <div class="sig-name">Moscow Tensions</div>
+          <div class="sig-region">DIPLOMATIC · POLITICAL</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:45%;background:linear-gradient(90deg,#60A5FA,#93C5FD);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--blue);">45</div>
+      </div>
+
+      <div class="sig-row">
+        <div>
+          <div class="sig-name">London Finance</div>
+          <div class="sig-region">ECONOMIC · TRADE</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:32%;background:linear-gradient(90deg,#60A5FA,#93C5FD);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--blue);">32</div>
+      </div>
+
+      <div class="sig-row">
+        <div>
+          <div class="sig-name">Singapore Maritime</div>
+          <div class="sig-region">TRADE · SHIPPING</div>
+        </div>
+        <div class="sig-bar-wrap">
+          <div class="sig-bar" style="width:24%;background:linear-gradient(90deg,#2563EB,#93C5FD);"></div>
+        </div>
+        <div class="sig-level" style="color:var(--green);">24</div>
+      </div>
+
+      <div style="height:24px;"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Incident Drawer -->
+<div class="incident-backdrop" id="incident-backdrop" onclick="closeIncident()"></div>
+<div class="incident-drawer" id="incident-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-code" id="drawer-code">BS-INTEL-0000</div>
+      <div id="drawer-badge-row" style="margin-top:4px;display:flex;gap:5px;"></div>
+    </div>
+    <div class="drawer-close" onclick="closeIncident()">✕ CLOSE</div>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-headline" id="drawer-headline">—</div>
+    <div class="drawer-summary" id="drawer-summary">—</div>
+    <div class="drawer-meta-row">
+      <div class="drawer-meta" id="drawer-loc">📍 —</div>
+      <div class="drawer-meta" id="drawer-ts">—</div>
+      <div class="drawer-meta" id="drawer-src">SOURCE: —</div>
+    </div>
+    <div class="drawer-actions">
+      <div class="drawer-btn drawer-btn-primary" id="drawer-wire-btn" onclick="viewInWire()">VIEW IN WIRE →</div>
+      <div class="drawer-btn drawer-btn-sec" onclick="closeIncident()">DISMISS</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Ticker -->
+<div class="ticker-wrap">
+  <div class="ticker-tag">▶ WIRE</div>
+  <div class="ticker-scroll">
+    <div class="ticker-inner" id="ticker">
+      <!-- items duplicated for seamless loop -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Live Intel Feed — GDELT (no proxy, CORS-enabled) ──
+  let wireItemCounter = 1000;
+  const activeWireItems = {};
+
+  function gdeltDate(s) {
+    // "20260207T111500Z"
+    if (!s || s.length < 8) return new Date();
+    return new Date(`${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}T${s.slice(9,11)||'00'}:${s.slice(11,13)||'00'}:00Z`);
+  }
+
+  function formatRelTime(d) {
+    if (!(d instanceof Date) || isNaN(d)) return '';
+    const mins = Math.round((Date.now() - d) / 60000);
+    if (mins < 2)   return 'JUST NOW';
+    if (mins < 60)  return mins + 'M AGO';
+    if (mins < 1440) return Math.round(mins/60) + 'H AGO';
+    return Math.round(mins/1440) + 'D AGO';
+  }
+
+  function classifyItem(title) {
+    const t = title.toLowerCase();
+    let priority, priorityColor, itemColor, cssColor;
+    if (/\b(killed?|dead|death|attack|bomb|explosion|missile|strike|coup|massacre|shoot|siege|blitz|hostage)\b/.test(t)) {
+      priority='CRITICAL'; priorityColor='#FF3B30'; itemColor='var(--red)'; cssColor='rgba(255,59,48,0.15)';
+    } else if (/\b(conflict|clash|troops|military|sanction|crisis|threat|detained|arrested|protest|unrest|escalat|war)\b/.test(t)) {
+      priority='HIGH'; priorityColor='#FFB800'; itemColor='var(--amber)'; cssColor='rgba(255,184,0,0.12)';
+    } else if (/\b(election|government|diplomacy|talks|negotiations|trade|economy|deal|summit|bilateral|parliament)\b/.test(t)) {
+      priority='MEDIUM'; priorityColor='#60A5FA'; itemColor='var(--blue)'; cssColor='rgba(96,165,250,0.12)';
+    } else {
+      priority='LOW'; priorityColor='#2563EB'; itemColor='var(--green-dim)'; cssColor='rgba(37,99,235,0.08)';
+    }
+    const tags = [];
+    if (/\b(attack|terror|cyber|bomb|weapon|shoot|explosive|security|threat|hostage)\b/.test(t)) tags.push('SECURITY');
+    if (/\b(war|military|troops|navy|army|missile|strike|conflict|defence|defense|soldier)\b/.test(t)) tags.push('MILITARY');
+    if (/\b(election|government|sanction|minister|parliament|president|diplomat|political|coup|senate)\b/.test(t)) tags.push('POLITICAL');
+    if (/\b(market|economy|trade|oil|currency|bank|finance|stock|gdp|inflation|investment|tariff)\b/.test(t)) tags.push('FINANCE');
+    if (tags.length === 0) tags.push('INTEL');
+    return { priority, priorityColor, itemColor, cssColor, tags };
+  }
+
+  function buildWireItemFromGdelt(article) {
+    const id = 'BS-LIVE-' + (wireItemCounter++);
+    const title = (article.title || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const { priority, priorityColor, itemColor, cssColor, tags } = classifyItem(article.title || '');
+    const ts = formatRelTime(gdeltDate(article.seendate));
+    const domain = (article.domain || 'GDELT SOURCE').replace(/^www\./,'');
+    const country = article.sourcecountry ? '📍 ' + article.sourcecountry.toUpperCase() : '📍 WORLD';
+    const tagStr = tags.join(' ') + (priority === 'CRITICAL' ? ' CRITICAL' : '');
+
+    activeWireItems[id] = {
+      code: id, headline: article.title || '', summary: 'via ' + domain,
+      loc: country, ts, src: 'SOURCE: ' + domain.toUpperCase(),
+      priority, priorityColor, tag: tags[0], wireTag: tags[0], link: article.url
+    };
+
+    return `<div class="wire-item" style="--item-color:${itemColor};" data-tag="${tagStr}" data-code="${id}" onclick="openLiveItem('${id}')">
+      <div class="item-meta">
+        <span class="item-code">${id}</span>
+        <span class="item-badge" style="background:${cssColor};color:${priorityColor};border:1px solid ${priorityColor}44;">${priority}</span>
+        <span class="item-badge" style="background:rgba(37,99,235,0.04);color:var(--text-dim);">${tags[0]}</span>
+        <span class="item-ts">${ts}</span>
+      </div>
+      <div class="item-headline">${title}</div>
+      <div class="item-footer">
+        <span class="item-loc">${country}</span>
+        <span class="item-src">SOURCE: ${domain.toUpperCase()}</span>
+      </div>
+    </div>`;
+  }
+
+  function openLiveItem(id) {
+    const inc = activeWireItems[id] || incidents[id];
+    if (!inc) return;
+    activeWireCode = inc.code;
+    document.getElementById('drawer-code').textContent = inc.code;
+    document.getElementById('drawer-headline').textContent = inc.headline;
+
+    // For region bubbles — show all headlines as a list
+    const summaryEl = document.getElementById('drawer-summary');
+    if (inc.isRegion && inc.allTitles && inc.allTitles.length > 0) {
+      summaryEl.innerHTML = inc.allTitles.map((t, i) =>
+        `<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text-dim);line-height:1.4;">
+          <span style="color:var(--green-dim);margin-right:5px;font-size:8px;">${i + 1}.</span>${t.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+        </div>`
+      ).join('');
+    } else {
+      summaryEl.textContent = inc.summary || '';
+    }
+
+    document.getElementById('drawer-loc').textContent = inc.loc;
+    document.getElementById('drawer-ts').textContent = inc.ts;
+    document.getElementById('drawer-src').textContent = inc.src;
+    const badgeRow = document.getElementById('drawer-badge-row');
+    badgeRow.innerHTML = `<span style="font-size:7px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:2px;background:${inc.priorityColor}22;color:${inc.priorityColor};border:1px solid ${inc.priorityColor}55;">${inc.priority}</span>
+      <span style="font-size:7px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:2px;background:rgba(37,99,235,0.06);color:var(--text-dim);border:1px solid var(--border);">${inc.tag}</span>`;
+    activeWireTag = inc.wireTag;
+    document.getElementById('incident-backdrop').classList.add('open');
+    document.getElementById('incident-drawer').classList.add('open');
+    const btn = document.getElementById('drawer-wire-btn');
+    if (inc.isRegion) {
+      btn.textContent = 'VIEW IN WIRE →';
+      btn.onclick = viewInWire;
+    } else if (inc.link) {
+      btn.textContent = 'OPEN SOURCE ↗';
+      btn.onclick = () => window.open(inc.link, '_blank');
+    } else {
+      btn.textContent = 'VIEW IN WIRE →';
+      btn.onclick = viewInWire;
+    }
+  }
+
+  // Country → lat/lng lookup for map geo-tagging
+  const GEO_MAP = {
+    'iran':[32.4,53.7],'iraq':[33.2,43.7],'ukraine':[49.0,31.5],'russia':[55.75,37.6],
+    'china':[35.9,104.2],'india':[20.6,78.9],'pakistan':[30.4,69.3],'israel':[31.0,34.9],
+    'gaza':[31.4,34.4],'west bank':[31.9,35.2],'syria':[35.0,38.0],'turkey':[38.96,35.24],
+    'egypt':[26.8,30.8],'sudan':[12.86,30.22],'nigeria':[9.08,8.68],'ethiopia':[9.1,40.5],
+    'somalia':[5.15,46.2],'yemen':[15.55,48.5],'saudi':[23.9,45.1],'uae':[23.4,53.8],
+    'dubai':[25.2,55.3],'afghanistan':[33.9,67.7],'myanmar':[19.2,96.7],'bangladesh':[23.7,90.4],
+    'north korea':[40.0,127.5],'south korea':[35.9,127.8],'taiwan':[23.7,121.0],
+    'united states':[37.1,-95.7],'usa':[37.1,-95.7],'america':[37.1,-95.7],
+    'united kingdom':[51.5,-0.1],'britain':[51.5,-0.1],'england':[51.5,-0.1],
+    'france':[46.2,2.2],'germany':[51.2,10.4],'hungary':[47.2,19.5],'poland':[51.9,19.1],
+    'italy':[41.9,12.5],'spain':[40.4,-3.7],'greece':[39.1,21.8],'europe':[50.0,10.0],
+    'brazil':[-14.2,-51.9],'venezuela':[6.4,-66.6],'colombia':[4.6,-74.1],
+    'mexico':[23.6,-102.6],'haiti':[18.97,-72.29],'cuba':[21.5,-80.0],
+    'japan':[36.2,138.3],'indonesia':[-0.8,113.9],'philippines':[12.9,121.8],
+    'australia':[-25.3,133.8],'singapore':[1.35,103.8],'thailand':[15.9,100.9],
+    'vietnam':[14.1,108.3],'malaysia':[4.2,101.9],
+    // Middle East extended
+    'lebanon':[33.9,35.5],'jordan':[30.6,36.2],'qatar':[25.3,51.2],'kuwait':[29.4,47.7],
+    'bahrain':[26.0,50.6],'oman':[21.5,55.9],'houthi':[15.55,48.5],
+    'hezbollah':[33.9,35.5],'hamas':[31.4,34.4],'west bank':[31.9,35.2],
+    'hormuz':[26.6,56.3],'strait':[26.6,56.3],'persian gulf':[26.0,50.5],
+    'irgc':[32.4,53.7],'tehran':[35.7,51.4],'baghdad':[33.3,44.4],
+    'damascus':[33.5,36.3],'beirut':[33.9,35.5],'riyadh':[24.7,46.7],
+    // Africa extended
+    'libya':[26.3,17.2],'mali':[17.6,-1.6],'congo':[-4.0,21.8],'kenya':[-1.3,36.8],
+    'south africa':[-30.6,22.9],'johannesburg':[-26.2,28.0],'cape town':[-33.9,18.4],
+    'anc':[-30.6,22.9],'ramaphosa':[-30.6,22.9],
+    'morocco':[31.8,-7.1],'algeria':[28.0,1.7],'tunisia':[33.9,9.6],
+    'ghana':[7.9,-1.0],'senegal':[14.5,-14.5],'cameroon':[3.9,11.5],
+    'mozambique':[-18.7,35.5],'zimbabwe':[-20.0,30.0],'zambia':[-13.1,27.8],
+    'tanzania':[-6.4,34.9],'uganda':[1.4,32.0],'rwanda':[-1.9,29.9],
+    'sahel':[14.0,-2.0],'sahara':[23.0,8.0],
+    // South Asia extended
+    'kashmir':[34.1,76.7],'islamabad':[33.7,73.1],'karachi':[24.9,67.0],
+    'new delhi':[28.6,77.2],'mumbai':[19.1,72.9],'dhaka':[23.7,90.4],
+    // East Asia extended
+    'beijing':[39.9,116.4],'shanghai':[31.2,121.5],'hong kong':[22.3,114.2],
+    'pyongyang':[39.0,125.7],'seoul':[37.6,127.0],'tokyo':[35.7,139.7],
+    'taipei':[25.1,121.6],'manila':[14.6,121.0],'jakarta':[-6.2,106.8],
+    // Ukraine / Russia extended
+    'kyiv':[50.5,30.5],'moscow':[55.75,37.6],'kremlin':[55.75,37.6],
+    'zelensky':[50.5,30.5],'putin':[55.75,37.6],'nato':[50.1,14.4],
+    'crimea':[45.3,34.0],'donbas':[48.0,37.8],
+  };
+
+  function geoTagArticle(text) {
+    const t = text.toLowerCase();
+    for (const [name, coords] of Object.entries(GEO_MAP)) {
+      if (t.includes(name)) return { name: name.toUpperCase(), lat: coords[0], lng: coords[1] };
+    }
+    return null;
+  }
+
+  function fetchTimeout(url, ms) {
+    return new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error('timeout')), ms);
+      fetch(url).then(r => { clearTimeout(t); resolve(r); }).catch(e => { clearTimeout(t); reject(e); });
+    });
+  }
+
+  let _guardianArticles = []; // shared between wire + map
+
+  const GUARDIAN_BASE = 'https://content.guardianapis.com/search?api-key=test&show-fields=trailText&order-by=newest';
+  const GN = q => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
+  const RSS2JSON = url => `https://api.rss2json.com/v1/api.json?count=15&rss_url=${encodeURIComponent(url)}`;
+
+  function guardianFetch(params) {
+    return fetchTimeout(`${GUARDIAN_BASE}&${params}`, 10000)
+      .then(r => r.json())
+      .then(d => (d.response?.results || []).map(a => ({ ...a, _src: 'GUARDIAN' })))
+      .catch(() => []);
+  }
+
+  function gnewsFetch(query, country) {
+    return fetchTimeout(RSS2JSON(GN(query)), 10000)
+      .then(r => r.json())
+      .then(d => (d.items || []).map(item => ({
+        id: item.link,
+        webTitle: item.title,
+        webUrl: item.link,
+        webPublicationDate: item.pubDate,
+        fields: { trailText: item.description?.replace(/<[^>]+>/g,'').slice(0,200) || '' },
+        sectionName: country || 'WORLD',
+        _src: item.author || 'GOOGLE NEWS',
+      })))
+      .catch(() => []);
+  }
+
+  async function loadLiveWire() {
+    const feed = document.getElementById('wire-feed');
+    try {
+      const fetches = [
+        // ── Guardian: Global ─────────────────────────────────
+        guardianFetch('section=world&page-size=20'),
+        guardianFetch('section=politics&page-size=15'),
+        guardianFetch('section=business&page-size=10'),
+
+        // ── Guardian: Middle East ────────────────────────────
+        guardianFetch('tag=world/middleeast&page-size=20'),
+        guardianFetch('q=israel+OR+gaza+OR+palestine+OR+hamas&section=world&page-size=15'),
+        guardianFetch('q=iran+OR+tehran+OR+irgc&section=world&page-size=10'),
+        guardianFetch('q=saudi+OR+riyadh+OR+opec+OR+yemen+OR+houthi&section=world&page-size=10'),
+        guardianFetch('q=iraq+OR+syria+OR+lebanon+OR+hezbollah+OR+jordan&section=world&page-size=10'),
+
+        // ── Guardian: Africa ─────────────────────────────────
+        guardianFetch('tag=world/africa&page-size=20'),
+        guardianFetch('q=south+africa+OR+ANC+OR+ramaphosa+OR+johannesburg&section=world&page-size=15'),
+        guardianFetch('q=nigeria+OR+kenya+OR+ethiopia+OR+somalia+OR+sudan&section=world&page-size=10'),
+        guardianFetch('q=ukraine+OR+russia+OR+putin+OR+zelensky+OR+nato&section=world&page-size=12'),
+
+        // ── Google News: Middle East ──────────────────────────
+        gnewsFetch('Middle East conflict war crisis', 'MIDDLE EAST'),
+        gnewsFetch('Israel Gaza Palestine war', 'ISRAEL / GAZA'),
+        gnewsFetch('Iran nuclear sanctions IRGC', 'IRAN'),
+        gnewsFetch('Saudi Arabia Yemen Houthi Red Sea', 'SAUDI / YEMEN'),
+        gnewsFetch('Iraq Syria Lebanon Hezbollah', 'IRAQ / SYRIA'),
+        gnewsFetch('UAE Dubai Abu Dhabi OPEC oil', 'UAE'),
+
+        // ── Google News: Africa ───────────────────────────────
+        gnewsFetch('South Africa crime ANC election economy', 'SOUTH AFRICA'),
+        gnewsFetch('Nigeria security Boko Haram election', 'NIGERIA'),
+        gnewsFetch('Kenya Ethiopia Somalia conflict', 'EAST AFRICA'),
+        gnewsFetch('Sudan conflict Sahel coup military', 'SAHEL / SUDAN'),
+        gnewsFetch('Congo DRC mining conflict', 'CONGO'),
+
+        // ── Google News: Other regions ────────────────────────
+        gnewsFetch('India Pakistan Kashmir military', 'INDIA / PAKISTAN'),
+        gnewsFetch('China Taiwan South China Sea military', 'CHINA / TAIWAN'),
+        gnewsFetch('Russia Ukraine war NATO', 'RUSSIA / UKRAINE'),
+        gnewsFetch('North Korea missile nuclear', 'NORTH KOREA'),
+      ];
+
+      const results = await Promise.all(fetches);
+      const seen = new Set();
+      const all = results.flat()
+        .filter(a => {
+          if (seen.has(a.id)) return false;
+          seen.add(a.id);
+          return true;
+        })
+        .sort((a, b) => new Date(b.webPublicationDate) - new Date(a.webPublicationDate));
+
+      if (all.length === 0) throw new Error('empty');
+      _guardianArticles = all;
+      feed.innerHTML = all.map(buildGuardianItem).join('');
+      const count = document.getElementById('wire-count');
+      if (count) count.textContent = all.length + ' ITEMS · LIVE';
+      updateMapFromArticles(all);
+    } catch(e) {
+      feed.innerHTML = `<div style="padding:24px;color:var(--text-dim);font-size:9px;letter-spacing:1px;text-align:center;">FEED UNAVAILABLE — CHECK CONNECTION<br><span style="font-size:8px;opacity:0.5;">${e.message||''}</span></div>`;
+    }
+  }
+
+  function buildGuardianItem(article) {
+    const id = 'BS-LIVE-' + (wireItemCounter++);
+    const title = (article.webTitle || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const summary = (article.fields?.trailText || '').replace(/<[^>]+>/g,'').slice(0,200);
+    const { priority, priorityColor, itemColor, cssColor, tags } = classifyItem(article.webTitle || '');
+    const ts = formatRelTime(new Date(article.webPublicationDate));
+    const section = (article.sectionName || 'WORLD').toUpperCase();
+    const srcName = article._src && article._src !== 'GUARDIAN' ? article._src : 'THE GUARDIAN';
+    const geo = geoTagArticle(article.webTitle + ' ' + (article.fields?.trailText || '') + ' ' + section);
+    const loc = geo ? '📍 ' + geo.name : (section !== 'WORLD' ? '📍 ' + section : '📍 WORLD');
+    const tagStr = tags.join(' ') + (priority === 'CRITICAL' ? ' CRITICAL' : '');
+
+    activeWireItems[id] = {
+      code: id, headline: article.webTitle || '', summary,
+      loc, ts, src: 'SOURCE: ' + srcName.toUpperCase(),
+      priority, priorityColor, tag: tags[0], wireTag: tags[0], link: article.webUrl
+    };
+
+    return `<div class="wire-item" style="--item-color:${itemColor};" data-tag="${tagStr}" data-code="${id}" onclick="openLiveItem('${id}')">
+      <div class="item-meta">
+        <span class="item-code">${id}</span>
+        <span class="item-badge" style="background:${cssColor};color:${priorityColor};border:1px solid ${priorityColor}44;">${priority}</span>
+        <span class="item-badge" style="background:rgba(37,99,235,0.04);color:var(--text-dim);">${tags[0]}</span>
+        <span class="item-ts">${ts}</span>
+      </div>
+      <div class="item-headline">${title}</div>
+      ${summary ? `<div class="item-summary">${summary}</div>` : ''}
+      <div class="item-footer">
+        <span class="item-loc">${loc}</span>
+        <span class="item-src">${srcName.toUpperCase()} · ${section}</span>
+      </div>
+    </div>`;
+  }
+
+  function updateMapFromArticles(articles) {
+    // Aggregate articles by geo location → map bubbles
+    const clusters = {};
+    articles.forEach(a => {
+      const text = (a.webTitle || '') + ' ' + (a.fields?.trailText || '');
+      const geo = geoTagArticle(text);
+      if (!geo) return;
+      const key = geo.name;
+      if (!clusters[key]) clusters[key] = { ...geo, count: 0, titles: [] };
+      clusters[key].count++;
+      clusters[key].titles.push(a.webTitle || '');
+    });
+    const SEV = /\b(killed?|dead|attack|bomb|war|crisis|strike|shoot|explosion|missile|hostage)\b/i;
+    const HIGH = /\b(military|troops|protest|sanction|clash|threat|conflict)\b/i;
+    const bubbles = Object.values(clusters).map((c, i) => {
+      const joined = c.titles.join(' ');
+      const color = SEV.test(joined) ? '#FF3B30' : HIGH.test(joined) ? '#FFB800' : '#2563EB';
+      const pulse = SEV.test(joined) ? 1.2 : HIGH.test(joined) ? 1.8 : 2.8;
+      const { priority, priorityColor } = classifyItem(joined);
+      const topArticle = articles.find(a => geoTagArticle((a.webTitle||'') + ' ' + (a.fields?.trailText||''))?.name === c.name);
+      const id = 'live-' + i;
+      // Register in activeWireItems so drawer can show it
+      activeWireItems[id] = {
+        code: id,
+        headline: c.name + ' — ' + c.count + ' ACTIVE REPORT' + (c.count !== 1 ? 'S' : ''),
+        allTitles: c.titles,
+        loc: '📍 ' + c.name,
+        ts: 'LIVE',
+        src: 'SOURCE: GUARDIAN + GOOGLE NEWS',
+        priority, priorityColor,
+        tag: SEV.test(joined) ? 'SECURITY' : HIGH.test(joined) ? 'MILITARY' : 'INTEL',
+        wireTag: SEV.test(joined) ? 'SECURITY' : HIGH.test(joined) ? 'MILITARY' : 'INTEL',
+        link: topArticle ? topArticle.webUrl : null,
+        isRegion: true,
+      };
+      return { id, name:c.name.slice(0,10), lat:c.lat, lng:c.lng, count:c.count, color, pulse };
+    });
+    if (bubbles.length === 0) return;
+    if (window._mapBaseReady) {
+      window.renderBubbles(bubbles);
+    } else {
+      window._pendingBubbles = bubbles; // map not ready yet — will apply on load
+    }
+  }
+
+  // fetchGdeltBubbles no longer used (CORS blocked); map driven by Guardian articles
+  async function fetchGdeltBubbles() { return []; }
+
+  // ── D3 World Map ────────────────────────────
+  (function initMap() {
+
+    const container = document.getElementById('map-canvas');
+    const W = container.offsetWidth  || window.innerWidth;
+    const H = container.offsetHeight || window.innerHeight;
+
+    const svg = d3.select('#map-canvas').append('svg').attr('width', W).attr('height', H);
+
+    const LAT_NORTH = 72, LAT_SOUTH = -56, LAT_RANGE = LAT_NORTH - LAT_SOUTH;
+    const LAT_CENTER = (LAT_NORTH + LAT_SOUTH) / 2;
+    const mapScale = Math.min(W / (2 * Math.PI), H / (LAT_RANGE * Math.PI / 180));
+
+    const projection = d3.geoEquirectangular()
+      .scale(mapScale).center([0, LAT_CENTER]).translate([W/2, H/2]);
+    const path = d3.geoPath().projection(projection);
+
+    const markerLayer = { selection: null };
+
+    const zoom = d3.zoom().scaleExtent([1, 8]).on('zoom', e => {
+      g.attr('transform', e.transform);
+      if (markerLayer.selection) {
+        markerLayer.selection.attr('transform', d => {
+          const [x, y] = projection([d.lng, d.lat]);
+          return `translate(${x},${y}) scale(${1 / e.transform.k})`;
+        });
+      }
+    });
+    svg.call(zoom);
+
+    const g = svg.append('g');
+    g.append('path').datum({type:'Sphere'}).attr('class','sphere').attr('d', path);
+    g.append('path').datum(d3.geoGraticule()()).attr('class','graticule').attr('d', path);
+
+    window._mapBaseReady = false;
+    window._pendingBubbles = null;
+
+    window.renderBubbles = function renderBubbles(data) {
+      g.selectAll('.bubble-group').remove();
+      const R = 10;
+      const bubbles = g.selectAll('.bubble-group').data(data).join('g')
+        .attr('class','bubble-group')
+        .attr('transform', d => {
+          const [x, y] = projection([d.lng, d.lat]);
+          return `translate(${x},${y})`;
+        });
+      markerLayer.selection = bubbles;
+
+      bubbles.append('circle').attr('class','bubble-pulse')
+        .attr('r', R).attr('stroke', d => d.color)
+        .style('pointer-events','none')
+        .style('animation-duration', d => d.pulse + 's');
+      bubbles.append('circle').attr('class','bubble-pulse2')
+        .attr('r', R).attr('stroke', d => d.color)
+        .style('pointer-events','none')
+        .style('animation-duration', d => (d.pulse + 0.9) + 's');
+      bubbles.append('circle').attr('class','bubble-circle')
+        .attr('r', R).attr('fill', d => d.color).attr('stroke', d => d.color)
+        .style('cursor','pointer')
+        .on('click', function(event, d) {
+          event.stopPropagation();
+          if (incidents[d.id]) {
+            showIncident(d.id);
+          } else {
+            openLiveItem(d.id);
+          }
+        });
+      bubbles.append('text').attr('class','bubble-count')
+        .attr('fill', d => d.color).style('pointer-events','none').text(d => d.count);
+      bubbles.append('text').attr('class','bubble-label')
+        .attr('y', R + 4).attr('fill', d => d.color).style('pointer-events','none').text(d => d.name);
+
+      // Update stat counter
+      const stat = document.querySelector('#panel-map .map-stat .val[style*="red"]');
+      if (stat) stat.textContent = data.length;
+    }
+
+    const STATIC_FALLBACK = [
+      { id:'london',    name:'LONDON',    lat:51.5,  lng:-0.1,   count:5,  color:'#60A5FA', pulse:2.6 },
+      { id:'moscow',    name:'MOSCOW',    lat:55.75, lng:37.62,  count:8,  color:'#FF3B30', pulse:1.1 },
+      { id:'dubai',     name:'DUBAI',     lat:25.2,  lng:55.27,  count:4,  color:'#2563EB', pulse:2.4 },
+      { id:'mumbai',    name:'MUMBAI',    lat:19.08, lng:72.88,  count:3,  color:'#2563EB', pulse:2.8 },
+      { id:'beijing',   name:'BEIJING',   lat:39.91, lng:116.39, count:7,  color:'#FFB800', pulse:1.8 },
+      { id:'nairobi',   name:'NAIROBI',   lat:-1.29, lng:36.82,  count:4,  color:'#FFB800', pulse:2.2 },
+      { id:'newyork',   name:'NEW YORK',  lat:40.71, lng:-74.01, count:3,  color:'#60A5FA', pulse:2.8 },
+      { id:'singapore', name:'SINGAPORE', lat:1.35,  lng:103.82, count:2,  color:'#2563EB', pulse:3.0 },
+      { id:'riyadh',    name:'RIYADH',    lat:24.69, lng:46.72,  count:6,  color:'#FFB800', pulse:1.5 },
+      { id:'newdelhi',  name:'NEW DELHI', lat:28.61, lng:77.21,  count:5,  color:'#FFB800', pulse:2.0 },
+    ];
+
+    // Load world base map
+    d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json').then(world => {
+      g.selectAll('.country')
+        .data(topojson.feature(world, world.objects.countries).features)
+        .join('path').attr('class','country').attr('d', path);
+      g.append('path')
+        .datum({ type:'LineString', coordinates: d3.range(-180,181,1).map(d => [d,0]) })
+        .attr('class','equator').attr('d', path);
+
+      window._mapBaseReady = true;
+      // Render live bubbles if Guardian already loaded, else use fallback
+      renderBubbles(window._pendingBubbles && window._pendingBubbles.length > 0 ? window._pendingBubbles : STATIC_FALLBACK);
+      window._pendingBubbles = null;
+
+    }).catch(() => {
+      g.append('text').attr('x', W/2).attr('y', H/2)
+        .attr('text-anchor','middle').attr('fill','#1a4a1a')
+        .attr('font-family','IBM Plex Mono,monospace').attr('font-size','11px')
+        .text('MAP DATA UNAVAILABLE — CHECK CONNECTION');
+    });
+  })();
+
+  // ── Clock ──────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const hh = String(now.getUTCHours()).padStart(2,'0');
+    const mm = String(now.getUTCMinutes()).padStart(2,'0');
+    const ss = String(now.getUTCSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = hh + ':' + mm + ':' + ss + ' UTC';
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Boot live feeds ─────────────────────────
+  loadLiveWire();
+  setInterval(loadLiveWire, 5 * 60 * 1000); // refresh every 5 min
+
+  // ── Tabs ───────────────────────────────────
+  function switchTab(id, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + id).classList.add('active');
+  }
+
+  // Auto-open wire tab if redirected from VBG or via sessionStorage flag
+  (function checkAutoTab() {
+    try {
+      const flag = sessionStorage.getItem('intel_open_tab');
+      const urlTab = new URLSearchParams(window.location.search).get('tab');
+      const target = flag || urlTab;
+      if (target === 'wire') {
+        sessionStorage.removeItem('intel_open_tab');
+        const wireTab = document.querySelector('.tab:nth-child(2)');
+        if (wireTab) switchTab('wire', wireTab);
+      }
+    } catch(e) {}
+  })();
+
+  // ── Wire filter ────────────────────────────
+  function filterWire(el, tag) {
+    document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.wire-item').forEach(item => {
+      if (tag === 'ALL' || item.dataset.tag.includes(tag)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  // ── Ticker ─────────────────────────────────
+  const tickerItems = [
+    { color: '#FF3B30', text: 'CRITICAL · Ballistic missile trajectory analysis — Red Sea region' },
+    { color: '#FFB800', text: 'HIGH · Protest activity escalates — Riyadh, 400+ crowd' },
+    { color: '#FF3B30', text: 'CRITICAL · Cyber intrusion attempt on UAE critical infrastructure' },
+    { color: '#60A5FA', text: 'MED · Saudi Aramco Q1 net income $31.9B, dividend maintained' },
+    { color: '#2563EB', text: 'INFO · DIFC FinTech Q1 record — 18 new licences issued' },
+    { color: '#FFB800', text: 'HIGH · Three-nation naval exercises — Arabian Sea, manoeuvres active' },
+    { color: '#FF3B30', text: 'CRITICAL · Armed convoy intercepted — Sudan-Chad border zone' },
+    { color: '#60A5FA', text: 'MED · UK-GCC trade negotiations enter final round, Q3 target' },
+    { color: '#2563EB', text: 'INFO · India-UAE CEPA bilateral investment hits $100B milestone' },
+    { color: '#FFB800', text: 'HIGH · GCC defence systems on standby — ballistic alert active' },
+  ];
+
+  function buildTicker() {
+    const el = document.getElementById('ticker');
+    const all = [...tickerItems, ...tickerItems];
+    el.innerHTML = all.map(item =>
+      `<div class="ticker-item">
+        <div class="ticker-dot" style="background:${item.color};box-shadow:0 0 5px ${item.color};"></div>
+        <span style="color:${item.color};font-weight:700;font-size:9px;">${item.text.split('·')[0].trim()}</span>
+        <span class="ticker-sep">·</span>
+        <span>${item.text.split('·').slice(1).join('·').trim()}</span>
+        <span class="ticker-sep" style="margin-left:30px;">///</span>
+       </div>`
+    ).join('');
+  }
+  buildTicker();
+
+  // ── Incident data keyed by location ────────
+  const incidents = {
+    dubai: {
+      code: 'BS-INTEL-0044', priority: 'CRITICAL', priorityColor: '#FF3B30', tag: 'SECURITY',
+      headline: 'Cyber Intrusion Attempt Detected — Critical Infrastructure Sector, UAE',
+      summary: 'CERT-UAE confirmed state-sponsored intrusion attempt on water treatment SCADA systems. Attribution pending. Isolated successfully.',
+      loc: '📍 UAE · ABU DHABI / DUBAI',
+      ts: '03:18 UTC', src: 'SOURCE: CERT-UAE', wireTag: 'SECURITY'
+    },
+    riyadh: {
+      code: 'BS-INTEL-0046', priority: 'HIGH', priorityColor: '#FFB800', tag: 'POLITICAL',
+      headline: 'Protest Activity Escalates Outside UAE Embassy — Riyadh District 7',
+      summary: 'Crowd estimated at 400+. Police presence deployed. Diplomatic communications ongoing. Travel advisories updated for Riyadh central districts.',
+      loc: '📍 KSA · RIYADH',
+      ts: '03:57 UTC', src: 'SOURCE: FIELD ASSET', wireTag: 'POLITICAL'
+    },
+    london: {
+      code: 'BS-INTEL-0043', priority: 'LOW', priorityColor: '#2563EB', tag: 'POLITICAL',
+      headline: 'UK-GCC Trade Framework Negotiations Enter Final Round — Agreement Expected Q3',
+      summary: 'Post-Brexit trade deal covers financial services, energy, and technology sectors. Bilateral trade value $30B+/yr. Final signing projected Q3 2026.',
+      loc: '📍 UK · LONDON',
+      ts: '02:55 UTC', src: 'SOURCE: DIPLOMATIC FEED', wireTag: 'POLITICAL'
+    },
+    moscow: {
+      code: 'BS-INTEL-0038', priority: 'MEDIUM', priorityColor: '#60A5FA', tag: 'POLITICAL',
+      headline: 'Moscow Diplomatic Tension — GCC Ambassadorial Meetings Suspended',
+      summary: 'Three GCC ambassadors recalled for consultations. Trade corridors unaffected. Situation described as "temporary posturing" by analysts.',
+      loc: '📍 RUSSIA · MOSCOW',
+      ts: '00:44 UTC', src: 'SOURCE: DIPLOMATIC FEED', wireTag: 'POLITICAL'
+    },
+    mumbai: {
+      code: 'BS-INTEL-0039', priority: 'MEDIUM', priorityColor: '#60A5FA', tag: 'FINANCE',
+      headline: 'India-UAE Bilateral Investment Corridor Reaches $100B Milestone Ahead of Schedule',
+      summary: 'Sovereign wealth funds and private equity jointly invested across infrastructure, tech, and energy. CEPA framework cited as catalyst.',
+      loc: '📍 INDIA · MUMBAI',
+      ts: '01:20 UTC', src: 'SOURCE: ECONOMIC WIRE', wireTag: 'FINANCE'
+    },
+    nairobi: {
+      code: 'BS-INTEL-0047', priority: 'CRITICAL', priorityColor: '#FF3B30', tag: 'MILITARY',
+      headline: 'Armed Convoy Intercepted Near Sudan-Chad Border — Unidentified Group, Heavy Weapons Confirmed',
+      summary: 'Satellite imagery confirms 3 technical vehicles. Local security forces alerted. Displacement risk HIGH in 40km radius. East Africa monitoring elevated.',
+      loc: '📍 SUDAN · N\'DJAMENA / NAIROBI',
+      ts: '04:22 UTC', src: 'SOURCE: OSINT LAYER 3', wireTag: 'MILITARY'
+    },
+    singapore: {
+      code: 'BS-INTEL-0037', priority: 'LOW', priorityColor: '#2563EB', tag: 'FINANCE',
+      headline: 'Singapore MAS Issues Digital Asset Custody Framework — 14 Institutions Approved',
+      summary: 'New licensing regime for digital asset custodians effective Q2 2026. Framework aligns with FATF guidance. Regional FinTech hubs watching closely.',
+      loc: '📍 SINGAPORE · RAFFLES DISTRICT',
+      ts: '00:11 UTC', src: 'SOURCE: MAS / BRAVO INTEL', wireTag: 'FINANCE'
+    },
+    newyork: {
+      code: 'BS-INTEL-0036', priority: 'MEDIUM', priorityColor: '#60A5FA', tag: 'FINANCE',
+      headline: 'US Fed Holds Rates — Dollar Index Softens, GCC Pegs Stable',
+      summary: 'FOMC holds at 4.75%. GCC dollar-pegged currencies unaffected. Oil denominated trades continue without disruption. Markets rally 1.2%.',
+      loc: '📍 USA · NEW YORK',
+      ts: '23:50 UTC', src: 'SOURCE: FINANCIAL WIRE', wireTag: 'FINANCE'
+    },
+    newdelhi: {
+      code: 'BS-INTEL-0048', priority: 'HIGH', priorityColor: '#FFB800', tag: 'POLITICAL',
+      headline: 'India-Pakistan Border Tension Heightens — LOC Skirmishes Reported',
+      summary: 'Three ceasefire violations recorded along the Line of Control. Indian Army on heightened alert. Diplomatic backchannel communications active.',
+      loc: '📍 INDIA · NEW DELHI',
+      ts: '04:45 UTC', src: 'SOURCE: FIELD ASSET', wireTag: 'POLITICAL'
+    },
+    beijing: {
+      code: 'BS-INTEL-0049', priority: 'HIGH', priorityColor: '#FFB800', tag: 'POLITICAL',
+      headline: 'South China Sea Posturing — PLA Navy Exercises in Disputed Waters',
+      summary: 'Seven vessels confirmed in disputed EEZ. Philippines coast guard on standby. US 7th Fleet monitoring. Regional shipping unaffected so far.',
+      loc: '📍 CHINA · BEIJING',
+      ts: '05:10 UTC', src: 'SOURCE: OSINT LAYER 2', wireTag: 'POLITICAL'
+    },
+    tokyo: {
+      code: 'BS-INTEL-0050', priority: 'LOW', priorityColor: '#60A5FA', tag: 'FINANCE',
+      headline: 'Bank of Japan Signals Rate Path Shift — Yen Strengthens Against Dollar',
+      summary: 'BOJ Governor hints at further tightening in H2 2026. JPY/USD moves to 148. Export-heavy sectors see moderate pressure. Sovereign bonds rally.',
+      loc: '📍 JAPAN · TOKYO',
+      ts: '05:35 UTC', src: 'SOURCE: FINANCIAL WIRE', wireTag: 'FINANCE'
+    },
+    sydney: {
+      code: 'BS-INTEL-0051', priority: 'LOW', priorityColor: '#2563EB', tag: 'SECURITY',
+      headline: 'Australia Elevates Cyber Threat Advisory — Critical Sector Alert Issued',
+      summary: 'ASD issues advisory following attempted intrusions on energy and rail networks. Attribution to foreign state actor under assessment. Patches deployed.',
+      loc: '📍 AUSTRALIA · SYDNEY',
+      ts: '06:00 UTC', src: 'SOURCE: ACSC / BRAVO INTEL', wireTag: 'SECURITY'
+    },
+    paris: {
+      code: 'BS-INTEL-0052', priority: 'LOW', priorityColor: '#60A5FA', tag: 'POLITICAL',
+      headline: 'EU-GCC Strategic Partnership Summit Concludes — Joint Communiqué Signed',
+      summary: 'Energy, AI regulation, and climate finance form core pillars of agreement. Trade targets set at €200B by 2030. Implementation roadmap published.',
+      loc: '📍 FRANCE · PARIS',
+      ts: '02:30 UTC', src: 'SOURCE: DIPLOMATIC FEED', wireTag: 'POLITICAL'
+    },
+    cairo: {
+      code: 'BS-INTEL-0053', priority: 'HIGH', priorityColor: '#FFB800', tag: 'SECURITY',
+      headline: 'Sinai Security Incident — IED Detonation Near North Sinai Checkpoint',
+      summary: 'One soldier killed, two injured. Egyptian military response ongoing. Tourist routes unaffected. Red Sea shipping corridor monitoring elevated.',
+      loc: '📍 EGYPT · CAIRO',
+      ts: '03:40 UTC', src: 'SOURCE: OSINT LAYER 3', wireTag: 'SECURITY'
+    }
+  };
+
+  let activeWireTag = null;
+  let activeWireCode = null;
+
+  function showIncident(key) {
+    const inc = incidents[key];
+    if (!inc) return;
+    activeWireCode = inc.code;
+    document.getElementById('drawer-code').textContent = inc.code;
+    document.getElementById('drawer-headline').textContent = inc.headline;
+    document.getElementById('drawer-summary').textContent = inc.summary;
+    document.getElementById('drawer-loc').textContent = inc.loc;
+    document.getElementById('drawer-ts').textContent = inc.ts;
+    document.getElementById('drawer-src').textContent = inc.src;
+
+    const badgeRow = document.getElementById('drawer-badge-row');
+    badgeRow.innerHTML = `
+      <span style="font-size:7px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:2px;background:${inc.priorityColor}22;color:${inc.priorityColor};border:1px solid ${inc.priorityColor}55;">${inc.priority}</span>
+      <span style="font-size:7px;font-weight:800;letter-spacing:1px;padding:2px 6px;border-radius:2px;background:rgba(37,99,235,0.06);color:var(--text-dim);border:1px solid var(--border);">${inc.tag}</span>
+    `;
+    activeWireTag = inc.wireTag;
+
+    document.getElementById('incident-backdrop').classList.add('open');
+    document.getElementById('incident-drawer').classList.add('open');
+  }
+
+  function closeIncident() {
+    const drawer = document.getElementById('incident-drawer');
+    drawer.classList.remove('open');
+    drawer.style.transform = '';
+    document.getElementById('incident-backdrop').classList.remove('open');
+  }
+
+  // ── Swipe-down to dismiss drawer ────────────
+  (function() {
+    const drawer = document.getElementById('incident-drawer');
+    const handle = drawer.querySelector('.drawer-handle');
+    let startY = 0, curY = 0, dragging = false;
+
+    function onStart(y) {
+      if (!drawer.classList.contains('open')) return;
+      startY = y; curY = y; dragging = true;
+      drawer.classList.add('dragging');
+    }
+    function onMove(y) {
+      if (!dragging) return;
+      curY = y;
+      const dy = Math.max(0, curY - startY);
+      drawer.style.transform = `translateY(${dy}px)`;
+    }
+    function onEnd() {
+      if (!dragging) return;
+      dragging = false;
+      drawer.classList.remove('dragging');
+      const dy = curY - startY;
+      if (dy > 80) {
+        closeIncident();
+      } else {
+        drawer.style.transform = '';
+      }
+    }
+
+    // Only start drag from the handle — so body content remains scrollable
+    handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
+    window.addEventListener('touchmove',  e => { if (dragging) onMove(e.touches[0].clientY); }, { passive: true });
+    window.addEventListener('touchend',   onEnd);
+    handle.addEventListener('mousedown',  e => onStart(e.clientY));
+    window.addEventListener('mousemove',  e => { if (dragging) onMove(e.clientY); });
+    window.addEventListener('mouseup',    onEnd);
+  })();
+
+  function viewInWire() {
+    const code = activeWireCode;
+    const inc = activeWireItems[code] || incidents[code];
+    closeIncident();
+    setTimeout(() => {
+      // Switch to wire tab
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-wire').classList.add('active');
+      document.querySelectorAll('.tab').forEach(t => { if (t.textContent.includes('WIRE')) t.classList.add('active'); });
+
+      const allChip = document.querySelector('.fchip');
+      if (allChip) filterWire(allChip, 'ALL');
+
+      setTimeout(() => {
+        let targets = [];
+
+        if (inc && inc.isRegion) {
+          // Region bubble — find all wire items mentioning this country
+          const regionName = (inc.loc || '').replace('📍 ', '').toLowerCase().trim();
+          const allItems = document.querySelectorAll('.wire-item');
+          allItems.forEach(item => {
+            const text = (item.querySelector('.item-headline')?.textContent || '') +
+                         (item.querySelector('.item-loc')?.textContent || '') +
+                         (item.querySelector('.item-src')?.textContent || '');
+            if (text.toLowerCase().includes(regionName)) targets.push(item);
+          });
+        } else if (code) {
+          const t = document.querySelector('[data-code="' + code + '"]');
+          if (t) targets = [t];
+        }
+
+        if (targets.length > 0) {
+          // Scroll to first match
+          targets[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Flash all matches
+          targets.forEach(el => {
+            el.style.outline = '1px solid var(--green)';
+            el.style.background = 'rgba(37,99,235,0.12)';
+            setTimeout(() => { el.style.outline = ''; el.style.background = ''; }, 2800);
+          });
+        }
+      }, 150);
+    }, 300);
+  }
+
+  // ── Live incoming alerts simulation ────────
+  let wireCounter = 48;
+  const liveAlerts = [
+    { delay: 22000, priority: 'HIGH', priorityColor: '#FFB800', tag: 'SECURITY MILITARY',
+      borderColor: 'var(--amber)',
+      headline: 'Vessel Diverted Near Strait of Hormuz — Iranian Coast Guard Intercept',
+      summary: 'Commercial tanker flagged by Iranian patrol vessel. Cargo inspection ongoing. Lloyd\'s of London notified. No crew harm reported.',
+      loc: '📍 IRAN · STRAIT OF HORMUZ', ts: null, src: 'SOURCE: MARITIME INTEL' },
+    { delay: 48000, priority: 'CRITICAL', priorityColor: '#FF3B30', tag: 'CRITICAL SECURITY',
+      borderColor: 'var(--red)',
+      headline: 'SIGINT Intercept Confirms Coordinated Cyber Op — Multi-Vector Attack, GCC Targets',
+      summary: 'Three simultaneous intrusion attempts across UAE, KSA, and Bahrain government networks. Attribution cluster matches known APT group. CERT-CC activated.',
+      loc: '📍 GCC · REGIONAL', ts: null, src: 'SOURCE: SIGINT / BRAVO INTEL' },
+  ];
+
+  liveAlerts.forEach(alert => {
+    setTimeout(() => {
+      const now = new Date();
+      const hh = String(now.getUTCHours()).padStart(2,'0');
+      const mm = String(now.getUTCMinutes()).padStart(2,'0');
+      const ts = hh + ':' + mm + ' UTC';
+      const code = 'BS-INTEL-00' + wireCounter++;
+
+      const item = document.createElement('div');
+      item.className = 'wire-item new-incoming';
+      item.style.setProperty('--item-color', alert.borderColor);
+      item.dataset.tag = alert.tag;
+      item.innerHTML = `
+        <div class="item-meta">
+          <span class="item-code">${code}</span>
+          <span class="item-badge" style="background:${alert.priorityColor}22;color:${alert.priorityColor};border:1px solid ${alert.priorityColor}55;">${alert.priority}</span>
+          <span class="badge-new">NEW</span>
+          <span class="item-ts">${ts}</span>
+        </div>
+        <div class="item-headline">${alert.headline}</div>
+        <div class="item-summary">${alert.summary}</div>
+        <div class="item-footer">
+          <span class="item-loc">${alert.loc}</span>
+          <span class="item-src">${alert.src}</span>
+        </div>
+      `;
+
+      const feed = document.getElementById('wire-feed');
+      feed.insertBefore(item, feed.firstChild);
+
+      // Update wire count
+      const countEl = document.getElementById('wire-count');
+      const cur = parseInt(countEl.textContent) || 47;
+      countEl.textContent = (cur + 1) + ' ITEMS';
+      document.querySelector('.tab:nth-child(2) .tab-count').textContent = cur + 1;
+
+      // Flash LIVE badge in topbar
+      const liveBadge = document.querySelector('.live-badge');
+      liveBadge.style.color = '#fff';
+      setTimeout(() => { liveBadge.style.color = ''; }, 1500);
+    }, alert.delay);
+  });
+
+  // ── Nav helper ─────────────────────────────
+  function nav(screen) {
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

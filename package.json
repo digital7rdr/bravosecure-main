@@ -1,0 +1,311 @@
+{
+  "name": "BravoSecure",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "start": "expo start",
+    "start:staging": "cross-env EXPO_PUBLIC_API_BASE_URL=https://auth.94-136-184-52.sslip.io EXPO_PUBLIC_MSG_BASE_URL=https://relay.94-136-184-52.sslip.io expo start --clear",
+    "android:staging": "cross-env EXPO_PUBLIC_API_BASE_URL=https://auth.94-136-184-52.sslip.io EXPO_PUBLIC_MSG_BASE_URL=https://relay.94-136-184-52.sslip.io expo start --clear",
+    "start:staging:hot": "dotenv -e .env.staging.local -- expo start --clear",
+    "android:staging:hot": "dotenv -e .env.staging.local -- expo run:android",
+    "ios:staging:hot": "dotenv -e .env.staging.local -- expo run:ios",
+    "start:staging:mac": "dotenv -e config/staging.env -- expo start --clear",
+    "android:staging:mac": "dotenv -e config/staging.env -- expo run:android",
+    "ios:staging:mac": "dotenv -e config/staging.env -- expo run:ios",
+    "apk:staging": "cross-env EXPO_PUBLIC_API_BASE_URL=https://auth.94-136-184-52.sslip.io EXPO_PUBLIC_MSG_BASE_URL=https://relay.94-136-184-52.sslip.io EXPO_PUBLIC_AUTO_DISPATCH=true EXPO_PUBLIC_DEPT_CHAT_V2=true EXPO_PUBLIC_SUPABASE_URL=https://qkkfkicgoncxslbwhyhz.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg expo run:android --variant release",
+    "apk:local": "cross-env EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3001 EXPO_PUBLIC_MSG_BASE_URL=http://127.0.0.1:3100 expo run:android --variant release",
+    "apk:user": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-user-apk.ps1",
+    "apk:dist": "cross-env-shell \"EXPO_PUBLIC_API_BASE_URL=https://auth.94-136-184-52.sslip.io EXPO_PUBLIC_MSG_BASE_URL=https://relay.94-136-184-52.sslip.io EXPO_PUBLIC_SUPABASE_URL=https://qkkfkicgoncxslbwhyhz.supabase.co EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg cd android && gradlew.bat assembleRelease appDistributionUploadRelease\"",
+    "eas:login": "npx eas login",
+    "eas:whoami": "npx eas whoami",
+    "eas:init": "npx eas init",
+    "eas:build:staging": "npx eas build --profile preview-staging --platform android",
+    "eas:build:local": "npx eas build --profile preview-local --platform android",
+    "eas:build:both": "npx eas build --profile preview-staging --platform android --non-interactive && npx eas build --profile preview-local --platform android --non-interactive",
+    "eas:build:ios:staging": "npx eas build --profile preview-staging --platform ios",
+    "eas:build:ios:local": "npx eas build --profile preview-local --platform ios",
+    "eas:build:ios:device": "npx eas build --profile preview-staging-device --platform ios",
+    "eas:builds": "npx eas build:list --platform android",
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-apk.ps1",
+    "test": "jest",
+    "test:crypto": "jest --selectProjects messenger-crypto",
+    "test:changed": "jest --changedSince=origin/main --passWithNoTests --no-cache",
+    "test:coverage": "jest --coverage --coverageReporters=json-summary --coverageReporters=text",
+    "typecheck": "tsc --noEmit",
+    "tsc:rebaseline": "node scripts/tsc-rebaseline.mjs",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "deadcode": "npx knip",
+    "audit:high": "npm audit --audit-level=high --omit=dev",
+    "mutation:crypto": "stryker run stryker.crypto.config.mjs",
+    "size": "size-limit",
+    "sbom": "cyclonedx-npm --output-file sbom.cdx.json --output-format JSON",
+    "flake:crypto": "node scripts/flake-detect.mjs messenger-crypto",
+    "ci:local": "npm run typecheck && npm run lint && npm run test:changed",
+    "ci:full": "npm run typecheck && npm run lint && npm test && npm run deadcode",
+    "adb:watch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/adb-reverse-watcher.ps1",
+    "emu": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-emulator.ps1",
+    "android:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-android-env.ps1",
+    "prepare": "husky",
+    "postinstall": "patch-package",
+    "ios:release": "bash scripts/ios-release.sh",
+    "ios:release:check": "bash scripts/ios-release.sh --check",
+    "ios:release:noupload": "bash scripts/ios-release.sh --no-upload",
+    "ios:status": "python3 scripts/ios-asc-latest-build.py --status"
+  },
+  "dependencies": {
+    "@config-plugins/react-native-callkeep": "^12.0.0",
+    "@config-plugins/react-native-webrtc": "^13.0.0",
+    "@craftzdog/react-native-buffer": "^6.0.5",
+    "@expo-google-fonts/manrope": "^0.4.2",
+    "@expo/vector-icons": "^15.0.3",
+    "@noble/hashes": "^2.2.0",
+    "@notifee/react-native": "^9.1.8",
+    "@op-engineering/op-sqlite": "^14.0.0",
+    "@privacyresearch/libsignal-protocol-typescript": "^0.0.16",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "@react-native-community/blur": "^4.4.1",
+    "@react-native-community/datetimepicker": "8.4.4",
+    "@react-native-community/netinfo": "11.4.1",
+    "@react-native-firebase/analytics": "^21.14.0",
+    "@react-native-firebase/app": "^21.14.0",
+    "@react-native-firebase/app-check": "21.14.0",
+    "@react-native-firebase/crashlytics": "^21.14.0",
+    "@react-native-firebase/messaging": "^21.14.0",
+    "@react-native-ml-kit/face-detection": "^2.0.1",
+    "@react-navigation/bottom-tabs": "^6.6.1",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/native-stack": "^6.11.0",
+    "@react-navigation/stack": "^6.4.1",
+    "@rnmapbox/maps": "^10.3.5",
+    "@stripe/stripe-react-native": "0.50.3",
+    "@supabase/supabase-js": "^2.47.2",
+    "@types/react": "^19.1.0",
+    "axios": "^1.7.9",
+    "base64-arraybuffer": "^1.0.2",
+    "date-fns": "^4.1.0",
+    "expo": "^54.0.0",
+    "expo-asset": "~12.0.12",
+    "expo-audio": "~1.1.1",
+    "expo-av": "~16.0.8",
+    "expo-build-properties": "~1.0.10",
+    "expo-camera": "~17.0.10",
+    "expo-clipboard": "~8.0.7",
+    "expo-contacts": "~15.0.11",
+    "expo-dev-client": "~6.0.20",
+    "expo-document-picker": "~14.0.8",
+    "expo-file-system": "~19.0.23",
+    "expo-font": "~14.0.11",
+    "expo-image-manipulator": "~14.0.8",
+    "expo-image-picker": "~17.0.11",
+    "expo-linear-gradient": "~15.0.8",
+    "expo-linking": "~8.0.12",
+    "expo-local-authentication": "~17.0.8",
+    "expo-sharing": "~14.0.8",
+    "expo-speech": "~14.0.8",
+    "expo-splash-screen": "~31.0.13",
+    "expo-video": "~3.0.16",
+    "immer": "^10.1.1",
+    "jose": "^5.10.0",
+    "mediasoup-client": "^3.7.16",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-argon2": "^4.0.0",
+    "react-native-callkeep": "^4.3.16",
+    "react-native-file-viewer": "^2.1.5",
+    "react-native-fs": "^2.20.0",
+    "react-native-geolocation-service": "^5.3.1",
+    "react-native-gesture-handler": "~2.28.0",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-image-picker": "^7.2.3",
+    "react-native-incall-manager": "^4.2.1",
+    "react-native-keyboard-controller": "^1.22.4",
+    "react-native-keychain": "^9.2.2",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-modal": "^14.0.0-rc.1",
+    "react-native-permissions": "^4.1.5",
+    "react-native-quick-crypto": "^0.7.0",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
+    "react-native-url-polyfill": "^3.0.0",
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-voip-push-notification": "^3.3.3",
+    "react-native-webrtc": "npm:@livekit/react-native-webrtc@125.0.12",
+    "react-native-webview": "13.15.0",
+    "react-native-worklets": "0.5.1",
+    "rn-emoji-keyboard": "^1.7.0",
+    "socket.io-client": "^4.8.1",
+    "text-encoding": "^0.7.0",
+    "typescript": "~5.9.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.9",
+    "@babel/preset-env": "^7.25.9",
+    "@babel/runtime": "^7.25.9",
+    "@react-native/babel-preset": "^0.76.5",
+    "@react-native/eslint-config": "^0.76.5",
+    "@react-native/metro-config": "^0.76.5",
+    "@react-native/typescript-config": "^0.76.5",
+    "@testing-library/react-native": "13.2.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "~19.1.10",
+    "@types/react-native-vector-icons": "^6.4.18",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "babel-plugin-transform-remove-console": "^6.9.4",
+    "babel-preset-expo": "~54.0.10",
+    "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
+    "eas-cli": "^18.7.0",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
+    "jest": "^29.7.0",
+    "lint-staged": "^16.4.0",
+    "patch-package": "^8.0.1",
+    "prettier": "^3.4.2",
+    "react-test-renderer": "19.1.0",
+    "supabase": "^2.91.2",
+    "typescript": "~5.9.2"
+  },
+  "overrides": {
+    "tar": "^7.5.20"
+  },
+  "lint-staged": {
+    "{src,packages}/**/*.{ts,tsx}": [
+      "eslint --fix --max-warnings=20"
+    ],
+    "*.{js,jsx,json,md,yml,yaml}": [
+      "prettier --write --ignore-unknown"
+    ]
+  },
+  "jest": {
+    "projects": [
+      {
+        "displayName": "app",
+        "preset": "react-native",
+        "setupFilesAfterEnv": [
+          "<rootDir>/jest.setup.app.js"
+        ],
+        "moduleNameMapper": {
+          "^expo/virtual/env$": "<rootDir>/src/modules/messenger/__tests__/__mocks__/expo-virtual-env.ts"
+        },
+        "transformIgnorePatterns": [
+          "node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native/.*|expo-modules-core|@react-navigation/.*|@testing-library/react-native|immer|zustand|@noble/hashes)/)"
+        ],
+        "testPathIgnorePatterns": [
+          "<rootDir>/src/modules/messenger/__tests__/",
+          "<rootDir>/packages/messenger-core/__tests__/",
+          "<rootDir>/src/screens/booking/__tests__/",
+          "<rootDir>/src/screens/agent/__tests__/",
+          "<rootDir>/apps/",
+          "<rootDir>/worldmonitor/"
+        ],
+        "modulePathIgnorePatterns": [
+          "\\.next"
+        ]
+      },
+      {
+        "displayName": "messenger-crypto",
+        "testEnvironment": "node",
+        "testMatch": [
+          "<rootDir>/src/modules/messenger/__tests__/**/*.test.ts",
+          "<rootDir>/packages/messenger-core/__tests__/**/*.test.ts"
+        ],
+        "moduleNameMapper": {
+          "^expo/virtual/env$": "<rootDir>/src/modules/messenger/__tests__/__mocks__/expo-virtual-env.ts",
+          "^react-native-argon2$": "<rootDir>/src/modules/messenger/__tests__/__mocks__/react-native-argon2.ts",
+          "^react-native-quick-crypto$": "<rootDir>/src/modules/messenger/__tests__/__mocks__/react-native-quick-crypto.ts",
+          "^react-native$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/react-native.ts",
+          "^@op-engineering/op-sqlite$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/op-sqlite.ts",
+          "^@react-native-firebase/crashlytics$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/firebase-crashlytics.ts",
+          "^@react-native-firebase/analytics$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/firebase-analytics.ts",
+          "^react-native-fs$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/react-native-fs.ts",
+          "^@craftzdog/react-native-buffer$": "<rootDir>/src/modules/messenger/__tests__/__stubs__/craftzdog-buffer.ts",
+          "^@bravo/messenger-core$": "<rootDir>/packages/messenger-core/src",
+          "^@bravo/messenger-core/(.*)$": "<rootDir>/packages/messenger-core/src/$1"
+        },
+        "transformIgnorePatterns": [
+          "/node_modules/(?!(@noble/hashes)/)"
+        ],
+        "transform": {
+          "^.+\\.(ts|tsx|js|jsx)$": [
+            "babel-jest",
+            {
+              "presets": [
+                [
+                  "@babel/preset-env",
+                  {
+                    "targets": {
+                      "node": "current"
+                    }
+                  }
+                ],
+                "@babel/preset-typescript"
+              ]
+            }
+          ]
+        },
+        "setupFiles": [
+          "<rootDir>/packages/messenger-core/__tests__/setup.ts"
+        ],
+        "setupFilesAfterEnv": [
+          "<rootDir>/jest.setup.messenger-crypto.js"
+        ],
+        "modulePathIgnorePatterns": [
+          "\\.next"
+        ]
+      },
+      {
+        "displayName": "booking",
+        "testEnvironment": "node",
+        "testMatch": [
+          "<rootDir>/src/screens/booking/__tests__/**/*.test.ts",
+          "<rootDir>/src/screens/agent/__tests__/**/*.test.ts"
+        ],
+        "transform": {
+          "^.+\\.(ts|tsx|js|jsx)$": [
+            "babel-jest",
+            {
+              "presets": [
+                [
+                  "@babel/preset-env",
+                  {
+                    "targets": {
+                      "node": "current"
+                    }
+                  }
+                ],
+                "@babel/preset-typescript"
+              ]
+            }
+          ]
+        },
+        "modulePathIgnorePatterns": [
+          "\\.next"
+        ]
+      }
+    ]
+  },
+  "op-sqlite": {
+    "sqlcipher": true
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-fs",
+          "react-native-geolocation-service",
+          "react-native-vector-icons"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

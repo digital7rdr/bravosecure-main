@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Map background */
+  .map-bg {
+    background-color: #060A12;
+    background-image:
+      radial-gradient(circle at 35% 45%, rgba(37,99,235,0.09) 0%, transparent 55%),
+      radial-gradient(circle at 70% 60%, rgba(37,99,235,0.06) 0%, transparent 50%),
+      linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  }
+  .road-h { position:absolute; height:1px; background:rgba(37,99,235,0.1); }
+  .road-v { position:absolute; width:1px;  background:rgba(37,99,235,0.1); }
+  .road-h-bold { position:absolute; height:2px; background:rgba(37,99,235,0.06); }
+  .road-v-bold { position:absolute; width:2px;  background:rgba(37,99,235,0.06); }
+
+  /* Agent moving dot */
+  @keyframes move-agent {
+    0%   { left:28%; top:62%; }
+    25%  { left:36%; top:55%; }
+    50%  { left:44%; top:47%; }
+    75%  { left:50%; top:42%; }
+    100% { left:54%; top:38%; }
+  }
+  .agent-dot { animation: move-agent 20s linear forwards; position:absolute; }
+
+  /* Pulse rings on agent */
+  @keyframes agent-pulse {
+    0%   { transform:translate(-50%,-50%) scale(1);   opacity:0.6; }
+    100% { transform:translate(-50%,-50%) scale(2.4); opacity:0;   }
+  }
+  .agent-ring {
+    position:absolute; left:50%; top:50%;
+    width:36px; height:36px; border-radius:50%;
+    border:1.5px solid rgba(37,99,235,0.5);
+    animation: agent-pulse 2s ease-out infinite;
+  }
+  .agent-ring-2 { animation: agent-pulse 2s ease-out 0.7s infinite; }
+
+  /* ETA countdown */
+  @keyframes eta-tick {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: 138; }
+  }
+  .eta-ring { animation: eta-tick 2700s linear forwards; }
+
+  /* Route dashed line */
+  .route-line { stroke-dasharray: 8 5; }
+
+  /* Bottom sheet drag */
+  .sheet-handle { width:36px; height:4px; border-radius:9999px; background:rgba(37,99,235,0.25); margin:0 auto 12px; }
+
+  /* Status step */
+  .step-done   { background:rgba(52,211,153,0.15); border-color:rgba(52,211,153,0.35); color:#34D399; }
+  .step-active { background:rgba(37,99,235,0.15);  border-color:rgba(37,99,235,0.4);   color:#2563EB; }
+  .step-todo   { background:rgba(255,255,255,0.04); border-color:#1E2D45;               color:#475569; }
+
+  /* sheet handle cursor */
+  #sheet-handle-area { user-select: none; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen overflow-hidden" style="position:relative;">
+
+<!-- Header overlay on map -->
+<header class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4" style="padding-top:50px; padding-bottom:12px; background:linear-gradient(to bottom, rgba(6,10,18,0.95) 60%, transparent);">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full" style="background:rgba(13,25,41,0.85); border:1px solid #1E2D45;">
+    <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+  </button>
+
+  <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(13,25,41,0.9); border:1px solid rgba(52,211,153,0.3);">
+    <span class="size-1.5 rounded-full animate-pulse" style="background:#34D399;"></span>
+    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Live Tracking</span>
+  </div>
+
+  <button class="size-9 flex items-center justify-center rounded-full" style="background:rgba(13,25,41,0.85); border:1px solid #1E2D45;">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px;">more_vert</span>
+  </button>
+</header>
+
+<!-- Full-screen map -->
+<div class="map-bg overflow-hidden" style="position:absolute; inset:0;">
+
+  <!-- Roads -->
+  <div class="road-h-bold" style="top:30%; left:0; right:0;"></div>
+  <div class="road-h-bold" style="top:55%; left:0; right:0;"></div>
+  <div class="road-h"      style="top:42%; left:0; right:0;"></div>
+  <div class="road-h"      style="top:70%; left:0; right:0;"></div>
+  <div class="road-v-bold" style="left:25%; top:0; bottom:0;"></div>
+  <div class="road-v-bold" style="left:55%; top:0; bottom:0;"></div>
+  <div class="road-v"      style="left:40%; top:0; bottom:0;"></div>
+  <div class="road-v"      style="left:72%; top:0; bottom:0;"></div>
+
+  <!-- Route SVG -->
+  <svg class="absolute inset-0 w-full h-full pointer-events-none" style="opacity:0.55;">
+    <!-- Route path -->
+    <polyline points="28%,62% 36%,55% 44%,47% 54%,38%" fill="none" stroke="#2563EB" stroke-width="3" class="route-line"/>
+    <!-- Destination glow -->
+    <circle cx="54%" cy="38%" r="6" fill="#2563EB" opacity="0.3"/>
+  </svg>
+
+  <!-- Destination pin -->
+  <div class="absolute" style="left:54%; top:38%; transform:translate(-50%,-100%);">
+    <span class="material-symbols-outlined filled text-blue-400" style="font-size:28px; filter:drop-shadow(0 0 6px rgba(37,99,235,0.6));">location_on</span>
+  </div>
+  <div class="absolute px-2 py-0.5 rounded-full text-[9px] font-bold" style="left:54%; top:24%; transform:translateX(-50%); background:rgba(13,25,41,0.9); border:1px solid #1E2D45; color:#93C5FD; white-space:nowrap;">
+    Mayfair, London
+  </div>
+
+  <!-- Moving agent dot -->
+  <div class="agent-dot" style="left:28%; top:62%;">
+    <div class="relative" style="width:16px; height:16px;">
+      <div class="agent-ring"></div>
+      <div class="agent-ring agent-ring-2"></div>
+      <div class="absolute inset-0 rounded-full border-2 border-white" style="background:#2563EB; z-index:2;"></div>
+    </div>
+    <!-- Agent label -->
+    <div class="absolute px-2 py-0.5 rounded-full text-[9px] font-bold whitespace-nowrap" style="top:-22px; left:50%; transform:translateX(-50%); background:rgba(13,25,41,0.9); border:1px solid rgba(37,99,235,0.3); color:#93C5FD;">Alpha Team</div>
+  </div>
+
+  <!-- Map controls -->
+  <div class="absolute right-3 bottom-5 flex flex-col gap-2 z-10">
+    <button class="size-8 rounded-[8px] flex items-center justify-center" style="background:#0D1929; border:1px solid #1E2D45;">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:16px;">add</span>
+    </button>
+    <button class="size-8 rounded-[8px] flex items-center justify-center" style="background:#0D1929; border:1px solid #1E2D45;">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:16px;">remove</span>
+    </button>
+    <button class="size-8 rounded-[8px] flex items-center justify-center" style="background:#0D1929; border:1px solid #1E2D45;">
+      <span class="material-symbols-outlined text-primary" style="font-size:16px;">my_location</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- Bottom sheet -->
+<section id="bottom-sheet" class="fixed left-0 right-0 bottom-0 px-4 pt-0 pb-6 z-20"
+  style="background:#0A0F1E; border-top:1px solid #1E2D45; border-radius:20px 20px 0 0; transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.22,1,0.36,1);">
+  <!-- Handle hit area — tall enough to grab easily -->
+  <div id="sheet-handle-area" style="padding:14px 0 4px; cursor:grab;">
+    <div class="sheet-handle"></div>
+  </div>
+
+  <!-- ETA row -->
+  <div class="flex items-center gap-4 mb-4">
+    <!-- ETA ring -->
+    <div class="relative shrink-0" style="width:52px; height:52px;">
+      <svg width="52" height="52" viewBox="0 0 52 52" class="-rotate-90">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="#1E2D45" stroke-width="3"/>
+        <circle cx="26" cy="26" r="22" fill="none" stroke="#2563EB" stroke-width="3"
+          stroke-dasharray="138" stroke-dashoffset="34" class="eta-ring" stroke-linecap="round"/>
+      </svg>
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span id="eta-min" class="text-[14px] font-extrabold text-slate-100 leading-none">45</span>
+        <span class="text-[8px] font-bold text-slate-500 uppercase">min</span>
+      </div>
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <p class="text-[16px] font-extrabold text-slate-100">Team En Route</p>
+      <p class="text-[12px] text-slate-500 mt-0.5">Arriving at Mayfair, London</p>
+    </div>
+
+    <button onclick="callTeam()" class="size-11 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+      <span class="material-symbols-outlined text-primary" style="font-size:22px;">call</span>
+    </button>
+  </div>
+
+  <!-- Agent card -->
+  <div class="flex items-center gap-3 px-3 py-3 rounded-xl mb-4" style="background:#0D1929; border:1px solid #1E2D45;">
+    <div class="size-10 rounded-full flex items-center justify-center text-[13px] font-extrabold text-white shrink-0"
+      style="background:linear-gradient(135deg,#1D4ED8,#7C3AED);">MT</div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-100">Marcus Trent</p>
+      <div class="flex items-center gap-1 mt-0.5">
+        <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px;">star</span>
+        <span class="text-[11px] text-slate-400">4.8 · Lead CPO · Alpha Team</span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button class="size-8 rounded-full flex items-center justify-center" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+        <span class="material-symbols-outlined text-primary" style="font-size:16px;">chat</span>
+      </button>
+      <button class="size-8 rounded-full flex items-center justify-center" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+        <span class="material-symbols-outlined text-primary" style="font-size:16px;">call</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Status timeline -->
+  <div class="flex items-center gap-0 mb-4">
+
+    <!-- Step 1: Confirmed -->
+    <div class="flex flex-col items-center flex-1">
+      <div class="size-8 rounded-full flex items-center justify-center border step-done">
+        <span class="material-symbols-outlined filled" style="font-size:14px;">check</span>
+      </div>
+      <p class="text-[9px] font-bold uppercase tracking-wide mt-1 text-emerald-400">Confirmed</p>
+    </div>
+
+    <div class="flex-1 h-px mb-4" style="background:rgba(52,211,153,0.3);"></div>
+
+    <!-- Step 2: Dispatched -->
+    <div class="flex flex-col items-center flex-1">
+      <div class="size-8 rounded-full flex items-center justify-center border step-done">
+        <span class="material-symbols-outlined filled" style="font-size:14px;">check</span>
+      </div>
+      <p class="text-[9px] font-bold uppercase tracking-wide mt-1 text-emerald-400">Dispatched</p>
+    </div>
+
+    <div class="flex-1 h-px mb-4" style="background:rgba(37,99,235,0.4);"></div>
+
+    <!-- Step 3: En Route (active) -->
+    <div class="flex flex-col items-center flex-1">
+      <div class="size-8 rounded-full flex items-center justify-center border step-active animate-pulse">
+        <span class="material-symbols-outlined" style="font-size:14px;">directions_car</span>
+      </div>
+      <p class="text-[9px] font-bold uppercase tracking-wide mt-1 text-primary">En Route</p>
+    </div>
+
+    <div class="flex-1 h-px mb-4" style="background:#1E2D45;"></div>
+
+    <!-- Step 4: Arrived -->
+    <div class="flex flex-col items-center flex-1">
+      <div class="size-8 rounded-full flex items-center justify-center border step-todo">
+        <span class="material-symbols-outlined" style="font-size:14px;">location_on</span>
+      </div>
+      <p class="text-[9px] font-bold uppercase tracking-wide mt-1 text-slate-600">Arrived</p>
+    </div>
+
+  </div>
+
+  <!-- SOS -->
+  <button onclick="triggerSOS()" class="w-full py-3 rounded-xl font-extrabold text-[13px] flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:rgba(204,51,51,0.08); border:1px solid rgba(204,51,51,0.2); color:#F87171;">
+    <span class="material-symbols-outlined" style="font-size:18px;">sos</span>
+    Emergency SOS
+  </button>
+
+</section>
+
+<!-- SOS confirm sheet -->
+<div id="sos-modal" class="fixed inset-0 z-50 hidden flex-col items-center justify-end" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(4px);">
+  <div id="sos-sheet" class="w-full rounded-t-[24px] px-5 pt-5 pb-8 flex flex-col items-center text-center"
+    style="background:#0D1929; border-top:1px solid rgba(204,51,51,0.3); transform:translateY(100%); transition:transform 0.3s ease;">
+
+    <div class="w-10 h-1 rounded-full mb-4 mx-auto" style="background:rgba(204,51,51,0.4);"></div>
+
+    <div class="size-16 rounded-2xl flex items-center justify-center mb-4" style="background:rgba(204,51,51,0.12); border:1px solid rgba(204,51,51,0.25);">
+      <span class="material-symbols-outlined filled" style="font-size:32px; color:#F87171;">emergency</span>
+    </div>
+
+    <h2 class="text-[18px] font-extrabold text-slate-100 mb-2">Trigger Emergency SOS?</h2>
+    <p class="text-[13px] text-slate-400 leading-relaxed mb-6">This will immediately alert your protection team and dispatch emergency services to your location.</p>
+
+    <div class="w-full space-y-3">
+      <button onclick="confirmSOS()" class="w-full py-4 rounded-xl font-extrabold text-[14px] transition-all active:scale-[0.98]"
+        style="background:#CC3333; box-shadow:0 6px 20px rgba(204,51,51,0.4); color:#fff;">
+        <span class="material-symbols-outlined filled align-middle mr-1" style="font-size:18px;">sos</span>
+        Confirm SOS
+      </button>
+      <button onclick="closeSOS()" class="w-full py-3 text-[13px] font-semibold text-slate-500">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SOS activated overlay -->
+<div id="sos-active" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center px-6" style="background:rgba(10,0,0,0.97);">
+  <div class="size-20 rounded-full flex items-center justify-center mb-5" style="background:rgba(204,51,51,0.15); border:2px solid rgba(204,51,51,0.4);">
+    <span class="material-symbols-outlined filled animate-pulse" style="font-size:40px; color:#F87171;">emergency</span>
+  </div>
+  <h2 class="text-[22px] font-extrabold text-slate-100 mb-2">SOS Activated</h2>
+  <p class="text-[13px] text-slate-400 text-center mb-6">Your team & emergency services have been alerted. Stay calm — help is on the way.</p>
+  <div class="flex items-center gap-2 px-4 py-2.5 rounded-full mb-8" style="background:rgba(204,51,51,0.1); border:1px solid rgba(204,51,51,0.25);">
+    <span class="size-2 rounded-full animate-pulse" style="background:#F87171;"></span>
+    <span class="text-[12px] font-bold text-red-400">Emergency broadcast active</span>
+  </div>
+  <button onclick="cancelSOS()" class="px-8 py-3.5 rounded-xl font-bold text-[13px] text-slate-400 transition-all"
+    style="background:#0D1929; border:1px solid #1E2D45;">
+    Cancel SOS
+  </button>
+</div>
+
+<script>
+  // ── Draggable bottom sheet ──────────────────────────
+  const sheet      = document.getElementById('bottom-sheet');
+  const handleArea = document.getElementById('sheet-handle-area');
+
+  let isDragging        = false;
+  let startClientY      = 0;
+  let startTranslateY   = 0;   // px value at drag start
+  let currentTranslateY = 0;   // current settled value
+
+  // Snap positions
+  const EXPANDED  = 0;
+  const collapsed = () => sheet.offsetHeight - 72; // show ~72px (handle + ETA)
+
+  // Slide sheet in on load
+  window.addEventListener('DOMContentLoaded', () => {
+    requestAnimationFrame(() => {
+      sheet.style.transform = `translateY(${EXPANDED}px)`;
+    });
+  });
+
+  function applyTranslate(y, animate) {
+    sheet.style.transition = animate ? 'transform 0.3s cubic-bezier(0.22,1,0.36,1)' : 'none';
+    sheet.style.transform  = `translateY(${y}px)`;
+  }
+
+  function snapToNearest() {
+    const mid = collapsed() * 0.38;
+    if (currentTranslateY > mid) {
+      currentTranslateY = collapsed();
+    } else {
+      currentTranslateY = EXPANDED;
+    }
+    applyTranslate(currentTranslateY, true);
+  }
+
+  // ── Touch events ──
+  handleArea.addEventListener('touchstart', e => {
+    isDragging      = true;
+    startClientY    = e.touches[0].clientY;
+    startTranslateY = currentTranslateY;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dy  = e.touches[0].clientY - startClientY;
+    const raw = startTranslateY + dy;
+    currentTranslateY = Math.max(EXPANDED, Math.min(collapsed(), raw));
+    applyTranslate(currentTranslateY, false);
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    snapToNearest();
+  });
+
+  // ── Mouse events (desktop preview) ──
+  handleArea.addEventListener('mousedown', e => {
+    isDragging      = true;
+    startClientY    = e.clientY;
+    startTranslateY = currentTranslateY;
+    sheet.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dy  = e.clientY - startClientY;
+    const raw = startTranslateY + dy;
+    currentTranslateY = Math.max(EXPANDED, Math.min(collapsed(), raw));
+    applyTranslate(currentTranslateY, false);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    snapToNearest();
+  });
+
+  // Countdown ETA from 45 min
+  let etaSeconds = 45 * 60;
+  const etaEl = document.getElementById('eta-min');
+  const etaInterval = setInterval(() => {
+    etaSeconds--;
+    const m = Math.ceil(etaSeconds / 60);
+    etaEl.textContent = m > 0 ? m : '0';
+    if (etaSeconds <= 0) clearInterval(etaInterval);
+  }, 1000);
+
+  function callTeam() {
+    // simulate call
+  }
+
+  function triggerSOS() {
+    const modal = document.getElementById('sos-modal');
+    const sheet = document.getElementById('sos-sheet');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+  }
+
+  function closeSOS() {
+    const sheet = document.getElementById('sos-sheet');
+    sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+      document.getElementById('sos-modal').classList.add('hidden');
+      document.getElementById('sos-modal').classList.remove('flex');
+    }, 300);
+  }
+
+  function confirmSOS() {
+    closeSOS();
+    setTimeout(() => {
+      const overlay = document.getElementById('sos-active');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }, 320);
+  }
+
+  function cancelSOS() {
+    document.getElementById('sos-active').classList.add('hidden');
+    document.getElementById('sos-active').classList.remove('flex');
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('confirmation'));
+      window.parent.loadScreen('screens/confirmation.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+
+</body></html>

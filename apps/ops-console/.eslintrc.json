@@ -1,0 +1,14 @@
+{
+  "root": true,
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {"argsIgnorePattern": "^_", "varsIgnorePattern": "^_"}
+    ],
+    "react/react-in-jsx-scope": "off",
+    "eqeqeq": ["warn", "smart"],
+    "no-unused-vars": "off"
+  }
+}

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Department Channels — Operator's Guide</title>
+<style>
+  /* Minimal reset — the artifact host normally supplies this. */
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0}
+  img{max-width:100%}
+</style>
+</head>
+<body>
+<title>Department Channels — Operator's Guide</title>
+
+<style>
+  :root{
+    --ink:#0B0E14; --ink-2:#3A4356; --ink-3:#69738A;
+    --ground:#F7F8FA; --panel:#FFFFFF; --line:#E2E6ED;
+    --cobalt:#3A6FD8; --cobalt-soft:#EAF0FC;
+    --live:#1E7F52; --live-bg:#E4F4EC;
+    --part:#8A6412; --part-bg:#FBF0D8;
+    --gap:#B03636; --gap-bg:#FBE7E7;
+    --shadow:0 1px 2px rgba(11,14,20,.05),0 8px 24px -12px rgba(11,14,20,.12);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ink:#EDF0F5; --ink-2:#A8B2C6; --ink-3:#77839B;
+      --ground:#07090D; --panel:#0E1219; --line:#1D242F;
+      --cobalt:#5B8DEF; --cobalt-soft:#141C2C;
+      --live:#4FCB8C; --live-bg:#0F241A;
+      --part:#E0B252; --part-bg:#241D0D;
+      --gap:#F08585; --gap-bg:#2A1414;
+      --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 30px -14px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#EDF0F5; --ink-2:#A8B2C6; --ink-3:#77839B;
+    --ground:#07090D; --panel:#0E1219; --line:#1D242F;
+    --cobalt:#5B8DEF; --cobalt-soft:#141C2C;
+    --live:#4FCB8C; --live-bg:#0F241A;
+    --part:#E0B252; --part-bg:#241D0D;
+    --gap:#F08585; --gap-bg:#2A1414;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 30px -14px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --ink:#0B0E14; --ink-2:#3A4356; --ink-3:#69738A;
+    --ground:#F7F8FA; --panel:#FFFFFF; --line:#E2E6ED;
+    --cobalt:#3A6FD8; --cobalt-soft:#EAF0FC;
+    --live:#1E7F52; --live-bg:#E4F4EC;
+    --part:#8A6412; --part-bg:#FBF0D8;
+    --gap:#B03636; --gap-bg:#FBE7E7;
+    --shadow:0 1px 2px rgba(11,14,20,.05),0 8px 24px -12px rgba(11,14,20,.12);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  code,.mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px 96px}
+  header.top{padding:56px 0 32px;border-bottom:1px solid var(--line);margin-bottom:40px}
+  .eyebrow{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--cobalt);margin:0 0 14px
+  }
+  h1{
+    font-size:clamp(30px,4.6vw,46px);line-height:1.08;letter-spacing:-.022em;
+    font-weight:760;margin:0 0 14px;text-wrap:balance;max-width:20ch
+  }
+  .sub{font-size:17px;color:var(--ink-2);margin:0;max-width:64ch}
+
+  .layout{display:grid;grid-template-columns:212px minmax(0,1fr);gap:52px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;gap:28px}nav.toc{position:static!important}}
+
+  nav.toc{position:sticky;top:24px;font-size:13.5px;line-height:1.45}
+  nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  nav.toc a{
+    display:flex;gap:9px;color:var(--ink-3);text-decoration:none;
+    padding:6px 9px;border-radius:6px;border-left:2px solid transparent
+  }
+  nav.toc a:hover{color:var(--cobalt);background:var(--cobalt-soft);border-left-color:var(--cobalt)}
+  nav.toc a:focus-visible{outline:2px solid var(--cobalt);outline-offset:2px}
+  nav.toc .n{
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;
+    color:var(--cobalt);padding-top:2px;min-width:14px
+  }
+
+  section{margin:0 0 56px;scroll-margin-top:24px}
+  h2{
+    font-size:23px;letter-spacing:-.014em;font-weight:700;margin:0 0 6px;
+    display:flex;align-items:baseline;gap:11px;text-wrap:balance
+  }
+  h2 .n{
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:600;
+    color:var(--cobalt);letter-spacing:.06em
+  }
+  h3{font-size:15.5px;font-weight:680;margin:26px 0 8px;letter-spacing:-.006em}
+  .lede{color:var(--ink-2);margin:0 0 20px;max-width:70ch}
+  p{max-width:70ch}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    padding:20px 22px;box-shadow:var(--shadow)
+  }
+
+  /* status chips */
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+    font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 8px;border-radius:5px;border:1px solid transparent
+  }
+  .chip::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+  .live{color:var(--live);background:var(--live-bg);border-color:color-mix(in srgb,var(--live) 26%,transparent)}
+  .part{color:var(--part);background:var(--part-bg);border-color:color-mix(in srgb,var(--part) 30%,transparent)}
+  .gap{color:var(--gap);background:var(--gap-bg);border-color:color-mix(in srgb,var(--gap) 28%,transparent)}
+
+  .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:24px 0 8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+  .stat .k{font-size:30px;font-weight:730;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat .l{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+  .stat.ok .k{color:var(--live)} .stat.warn .k{color:var(--part)} .stat.bad .k{color:var(--gap)}
+
+  .tablewrap{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{
+    font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:600;background:var(--ground)
+  }
+  tr:last-child td{border-bottom:none}
+  td.c{text-align:center;font-weight:600}
+  .yes{color:var(--live)} .no{color:var(--ink-3)}
+
+  ol.steps{list-style:none;counter-reset:s;margin:18px 0;padding:0;display:flex;flex-direction:column;gap:14px}
+  ol.steps>li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:4px 14px;align-items:start}
+  ol.steps>li>*{grid-column:2;min-width:0}
+  ol.steps>li>.chip{justify-self:start;margin-bottom:2px}
+  ol.steps>li::before{
+    content:counter(s,decimal-leading-zero);
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:600;
+    color:var(--cobalt);background:var(--cobalt-soft);
+    border-radius:6px;padding:5px 0;text-align:center;line-height:1.3
+  }
+  ol.steps>li>b{display:block;font-weight:670;margin-bottom:2px}
+  ol.steps p{margin:0;color:var(--ink-2);font-size:14.5px}
+
+  .note{
+    border-left:3px solid var(--cobalt);background:var(--cobalt-soft);
+    padding:13px 17px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14.5px
+  }
+  .note.warn{border-left-color:var(--part);background:var(--part-bg)}
+  .note.bad{border-left-color:var(--gap);background:var(--gap-bg)}
+  .note b{font-weight:680}
+
+  code{
+    background:var(--cobalt-soft);color:var(--cobalt);
+    padding:1.5px 5px;border-radius:4px;font-size:.87em;word-break:break-word
+  }
+  .path{color:var(--ink-2);background:transparent;border:1px solid var(--line)}
+
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin-bottom:6px;color:var(--ink-2)}
+  ul.tight b{color:var(--ink)}
+
+  .levels{display:flex;flex-direction:column;gap:0;margin:16px 0}
+  .lvl{display:grid;grid-template-columns:74px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .lvl:last-child{border-bottom:none}
+  .lvl .tag{
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--cobalt);
+    letter-spacing:.05em;padding-top:3px
+  }
+  .lvl b{font-weight:670}
+  .lvl span{display:block;color:var(--ink-2);font-size:14px}
+
+  footer{border-top:1px solid var(--line);margin-top:56px;padding-top:22px;color:var(--ink-3);font-size:13px}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Bravo Secure · Enterprise</p>
+  <h1>Department Channels: how to run it</h1>
+  <p class="sub">Everything from creating the company workspace to approving staff, structuring channels, and controlling who may post. Written from what is actually deployed on staging — including what is not finished.</p>
+</header>
+
+<div class="layout">
+
+<nav class="toc" aria-label="Contents">
+  <ol>
+    <li><a href="#state"><span class="n">01</span> Where it stands</a></li>
+    <li><a href="#atoz"><span class="n">02</span> A to Z, in order</a></li>
+    <li><a href="#invite"><span class="n">03</span> Invite codes</a></li>
+    <li><a href="#approve"><span class="n">04</span> Approving people</a></li>
+    <li><a href="#levels"><span class="n">05</span> The four levels</a></li>
+    <li><a href="#modes"><span class="n">06</span> Who can post</a></li>
+    <li><a href="#broadcast"><span class="n">07</span> #broadcast</a></li>
+    <li><a href="#control"><span class="n">08</span> Control matrix</a></li>
+    <li><a href="#attend"><span class="n">09</span> Attendance</a></li>
+    <li><a href="#enforce"><span class="n">10</span> What can't be bypassed</a></li>
+    <li><a href="#gaps"><span class="n">11</span> Before customers</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="state">
+  <h2><span class="n">01</span> Where it stands</h2>
+  <p class="lede">Verified against the live staging system, not against the plan. Counts cover the 22 screens the PDF specifies.</p>
+
+  <div class="board">
+    <div class="stat ok"><div class="k">13</div><div class="l">Working end to end</div></div>
+    <div class="stat warn"><div class="k">5</div><div class="l">Partly built</div></div>
+    <div class="stat bad"><div class="k">4</div><div class="l">No usable screen</div></div>
+    <div class="stat"><div class="k">10</div><div class="l">Database migrations live</div></div>
+  </div>
+
+  <div class="note">
+    <b>The database is ahead of the app.</b> All ten migrations are applied and every rule they carry — four levels, one <code>#broadcast</code> per level, append-only corrections — is enforced by the database itself. Some of those rules have no screen yet, so the capability exists before the interface does.
+  </div>
+
+  <h3>What you can do today</h3>
+  <ul class="tight">
+    <li><b>Create your company workspace</b> and become its admin.</li>
+    <li><b>Generate invite codes</b>, approve or decline the people who use them.</li>
+    <li><b>Build the channel structure</b> across four levels, each with its own posting rule.</li>
+    <li><b>Run attendance</b> — shifts, day status, the review queue, incident reports.</li>
+  </ul>
+
+  <h3>What you cannot do yet</h3>
+  <ul class="tight">
+    <li><b>Monthly roster planning</b> <span class="chip gap">no screen</span> — the server is complete; there is no calendar.</li>
+    <li><b>Attendance corrections</b> <span class="chip gap">no screen</span> — the audit trail records changes; nothing lets you make one.</li>
+    <li><b>Rename or delete a workspace</b> — a typo in the company name is currently permanent.</li>
+  </ul>
+</section>
+
+<section id="atoz">
+  <h2><span class="n">02</span> A to Z, in order</h2>
+  <p class="lede">This is a genuine sequence — each step depends on the one before it.</p>
+
+  <ol class="steps">
+    <li><b>Hold an active Enterprise subscription</b><p>The server refuses workspace creation without one, returning <code>enterprise_subscription_required</code>. This is deliberate: it is the paid gate. If the subscription lapses, the workspace disappears from your app and the server stops accepting your admin actions — the two stay in step.</p></li>
+    <li><b>Create the workspace</b><p>Messenger → Groups → Departmental Chat → <b>Set up your workspace</b> → <b>Create a workspace</b>. You name the company here. That name is what your staff and applicants see.</p></li>
+    <li><b>Create your first channel</b><p>Department Channels → Create channel. Give it a name, a type, and a posting rule. A <code>#broadcast</code> channel is created automatically alongside it — you do not make that one.</p></li>
+    <li><b>Generate an invite code</b><p>Approvals → generate. You get an eight-character code valid for seven days. There is nothing to find beforehand; codes do not exist until you make one.</p></li>
+    <li><b>Send the code to your staff</b><p>Any channel you like — it is just a short string. Each code can be used by many people.</p></li>
+    <li><b>They request to join</b><p>They install Bravo, go to Department Channels, tap <b>I have an invite code</b>, and enter it. They see your company name and nothing else.</p></li>
+    <li><b>You approve them</b><p>Approvals shows every pending request. Approving creates their membership; declining closes it. Until you approve, they are not in your organisation in any sense.</p></li>
+    <li><b>Assign them to channels and shifts</b><p>Channel membership follows the channel's access rule. Attendance is separate: create shifts and assign staff to them.</p></li>
+  </ol>
+</section>
+
+<section id="invite">
+  <h2><span class="n">03</span> Invite codes</h2>
+  <p class="lede">The only route into your workspace. There is no open sign-up and no directory to be found in.</p>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Property</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>Format</td><td>Eight characters, e.g. <code>WLVB2PN6</code>. Generated from a cryptographic random source, not a counter.</td></tr>
+      <tr><td>Lifetime</td><td>Seven days by default. You may set 1–90.</td></tr>
+      <tr><td>Reuse</td><td>Unlimited people may use one code until it expires or you revoke it.</td></tr>
+      <tr><td>Revoking</td><td>Immediate. A revoked code returns "not valid" and reveals nothing about your company.</td></tr>
+      <tr><td>Targeting a team</td><td>A code may be tied to one channel, so approved applicants land there automatically.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note">
+    <b>A code cannot leak your organisation.</b> An expired, revoked or invented code returns a flat "not valid" — never a name, a size, or an acknowledgement that the company exists. Codes tied to a managers-only channel are refused at creation, not silently at approval.
+  </div>
+</section>
+
+<section id="approve">
+  <h2><span class="n">04</span> Approving people</h2>
+  <p class="lede">The most important rule in the system, and the one worth understanding precisely.</p>
+
+  <p>Someone who has requested to join and has <em>not</em> been approved sees <b>nothing at all</b> — no channels, no names, no attendance, not even the fact that any of it exists. This is not a filter that could be forgotten. Until you approve them, <b>no membership record exists</b>, so every query in the product returns nothing for them by construction.</p>
+
+  <p>That was verified on live data: with a request pending, the system held one request and <b>zero</b> membership rows. The moment you approve, the membership is created and access begins.</p>
+
+  <div class="note warn">
+    <b>Declining is final for that request.</b> There is no "undo" — the person must be sent a fresh code and apply again. This is intentional so a decline cannot be quietly reversed.
+  </div>
+</section>
+
+<section id="levels">
+  <h2><span class="n">05</span> The four levels</h2>
+  <p class="lede">Exactly four. A fifth is rejected by the database, not by the app.</p>
+
+  <div class="levels">
+    <div class="lvl"><span class="tag">LEVEL 0</span><div><b>Enterprise</b><span>The company root.</span></div></div>
+    <div class="lvl"><span class="tag">LEVEL 1</span><div><b>Main</b><span>Your primary divisions. Every channel you create today lands here unless you nest it.</span></div></div>
+    <div class="lvl"><span class="tag">LEVEL 2</span><div><b>Sub</b><span>Teams inside a division.</span></div></div>
+    <div class="lvl"><span class="tag">LEVEL 3</span><div><b>Sub-sub</b><span>The deepest permitted. Anything below is refused.</span></div></div>
+  </div>
+
+  <p>One caveat on the labels. The database numbers the root level 1, while the channel list titles that group <strong>LEVEL 2 — MAIN</strong>. Every channel you create therefore appears under &ldquo;Level 2&rdquo;, and &ldquo;Level 1 — Enterprise&rdquo; never appears at all. The behaviour is correct and the hierarchy is sound; only the heading is off by one. It is flagged in the code as an open decision. You never set a level. You choose a <b>parent</b>, and the level is calculated from it. This matters: it means nobody — not the app, not a script, not a direct database edit — can flatten the tree or sneak in a fifth level. Attempting it is rejected outright.</p>
+
+  <div class="note">
+    <b>Channels cannot be moved between parents.</b> Deliberately, for now: moving a branch would leave everything beneath it holding a stale depth. Create it in the right place, or recreate it.
+  </div>
+</section>
+
+<section id="modes">
+  <h2><span class="n">06</span> Who can post</h2>
+  <p class="lede">Seeing a channel and being able to post in it are two separate decisions. The PDF is explicit: visibility never grants posting.</p>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Setting</th><th>Who sees it</th><th>Who posts</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><b>Standard</b></td><td>All members</td><td class="yes">Everyone</td><td>Ordinary team discussion</td></tr>
+      <tr><td><b>Read only</b></td><td>All members</td><td>Managers only</td><td>Notices staff must read but not reply to</td></tr>
+      <tr><td><b>Restricted</b></td><td class="no">Managers only</td><td>Managers only</td><td>Anything staff must never see</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note warn">
+    <b>Standard and Read only look identical in the database</b> — they differ only in the posting rule. An early version of the editor could not read that rule, so opening any channel and pressing Save silently promoted every member to poster. That is fixed, but it is why the setting is always shown explicitly rather than inferred.
+  </div>
+</section>
+
+<section id="broadcast">
+  <h2><span class="n">07</span> The #broadcast channel</h2>
+  <p class="lede">Created for you, at every level, and it cannot be removed.</p>
+
+  <ul class="tight">
+    <li><b>Automatic.</b> You never create one. Making your first channel at a level creates the <code>#broadcast</code> for that level too.</li>
+    <li><b>One per level.</b> A second is rejected by the database.</li>
+    <li><b>Announcement only.</b> Managers post; staff read. Attempting to relax this is overridden — the setting is pinned, not merely defaulted.</li>
+    <li><b>Undeletable.</b> Enforced at the database, so it holds regardless of which part of the app asks.</li>
+  </ul>
+
+  <div class="note bad">
+    <b>Every workspace now has one.</b> Automatic creation originally ran only when a channel was made, so organisations created before the feature had none. A one-off migration on 5 August 2026 created the missing channels and seeded their membership, taking staging from 1 of 18 organisations covered to <b>18 of 18</b>. Creating a workspace now seeds it as well, so a brand-new company has its <code>#broadcast</code> from the first moment — that gap was found by walking the flow on a device, not by a test.
+  </div>
+</section>
+
+<section id="control">
+  <h2><span class="n">08</span> Control matrix</h2>
+  <p class="lede">Who may do what. Enforced on the server — the app hiding a button is never the boundary.</p>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Action</th><th style="text-align:center">Owner</th><th style="text-align:center">Manager</th><th style="text-align:center">Staff</th></tr></thead>
+    <tbody>
+      <tr><td>Create the workspace</td><td class="c yes">Yes</td><td class="c no">No</td><td class="c no">No</td></tr>
+      <tr><td>Generate / revoke invite codes</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>Approve or decline requests</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>Create and configure channels</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>Post in a Standard channel</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+      <tr><td>Post in Read only / #broadcast</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>See a Restricted channel</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>Manage shifts and attendance</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c no">No</td></tr>
+      <tr><td>Submit their own attendance</td><td class="c yes">Yes</td><td class="c yes">Yes</td><td class="c yes">Yes</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="note warn">
+    <b>A branch manager is scoped to their branch.</b> They see and act on their own department only — including sensitive records such as sick leave. That scoping is applied on the server to every read, and to leave and day-status records it resolves through the person's own department rather than the shift's, so records with no shift attached stay protected.
+  </div>
+</section>
+
+<section id="attend">
+  <h2><span class="n">09</span> Attendance</h2>
+
+  <h3>Working now <span class="chip live">live</span></h3>
+  <ul class="tight">
+    <li><b>Shifts</b> — create, edit, assign staff, archive.</li>
+    <li><b>Day status</b> — mark someone Leave, Sick leave, Off duty or Absent.</li>
+    <li><b>Review queue</b> — approve or reject check-ins that fell outside the site or the time window.</li>
+    <li><b>Staff view</b> — each person sees their own shift and history.</li>
+  </ul>
+
+  <h3>Built on the server, no screen yet <span class="chip gap">not usable</span></h3>
+  <ul class="tight">
+    <li><b>Monthly roster</b> — plan a whole month as Draft, check it for double-bookings, then Publish. Drafts are invisible to staff until published. Complete and tested server-side; there is no calendar to drive it.</li>
+    <li><b>Corrections</b> — change an attendance record while keeping the original forever, with who changed it, when, and why. The record is permanent: it cannot be edited, deleted, or wiped, even by a direct database command.</li>
+  </ul>
+
+  <div class="note warn">
+    <b>Two statuses from the specification are missing:</b> Emergency Leave and Mission. Four of the six are implemented.
+  </div>
+</section>
+
+<section id="enforce">
+  <h2><span class="n">10</span> What cannot be bypassed</h2>
+  <p class="lede">These hold no matter what the app does, because they are enforced in the database or on the server. All were tested by attempting to break them.</p>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Rule</th><th>What happens if something tries</th></tr></thead>
+    <tbody>
+      <tr><td>No fifth level</td><td>Rejected. The depth is calculated from the parent, so it cannot be asserted.</td></tr>
+      <tr><td>One <code>#broadcast</code> per level</td><td>A second is rejected.</td></tr>
+      <tr><td><code>#broadcast</code> cannot be deleted</td><td>Rejected, from any code path.</td></tr>
+      <tr><td>Attendance corrections are permanent</td><td>Edit, delete and mass-wipe are all rejected.</td></tr>
+      <tr><td>One company cannot reach another</td><td>Refused on every route tested — members, edit, archive, add, promote, delete.</td></tr>
+      <tr><td>Pending applicants see nothing</td><td>No membership record exists, so there is nothing to leak.</td></tr>
+      <tr><td>Company data is not publicly readable</td><td>Direct database access from outside returns nothing.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="gaps">
+  <h2><span class="n">11</span> Before real customers</h2>
+  <p class="lede">Honest list, worst first. These came from testing the running system, not from reading the code.</p>
+
+  <ol class="steps">
+    <li><b>Roster planning and attendance corrections have no screens</b> <span class="chip gap">still open</span><p>Both are specified as mandatory and both are server-complete: the rules, the tables and the append-only audit trail all exist and are enforced. There is no calendar to plan a month with, and no form to make a correction. This is the largest remaining gap.</p></li>
+    <li><b>A workspace cannot be renamed or deleted</b> <span class="chip gap">still open</span><p>A typo in the company name is permanent, and every employee sees it. There is no route for either action.</p></li>
+    <li><b>If a subscription lapses, appointed managers keep full access</b> <span class="chip gap">needs a decision</span><p>The owner loses access and then cannot remove them, because revoking requires the controls they just lost. Awaiting a decision on what should happen to a lapsed owner's managers.</p></li>
+    <li><b>The channel list labels the first level "Level 2"</b><p>The database numbers the root level 1 while the heading reads <b>LEVEL 2 — MAIN</b>, so "Level 1 — Enterprise" never appears. Behaviour and hierarchy are correct; only the heading is off by one. Flagged in the code as an open decision rather than settled.</p></li>
+  </ol>
+
+  <h3 style="margin:34px 0 6px">Closed on 5 August 2026</h3>
+  <p class="lede">Each was fixed, deployed to staging and then verified against the running system — eighteen checks end to end, plus a walk through the app on two devices.</p>
+
+  <ol class="steps">
+    <li><b>The sign-up route now reaches the workspace screens</b><p>The create-or-join fork waits for the product tree to mount before navigating, because the paywall unmounts and the tree mounts in the same tick and an immediate navigate was silently dropped.</p></li>
+    <li><b>Buying the subscription no longer grants admin authority</b><p>Removed from both places that decided it. Verified live: an Enterprise account with no workspace reports <code>is_org_manager: false</code>, and creating the workspace is what makes them an admin.</p></li>
+    <li><b>Channel notifications open the department screen</b><p>Not the ordinary chat screen with its call buttons. The same rule now also decides the in-app list taps, so the two cannot drift apart.</p></li>
+    <li><b>Department channels no longer appear in the messenger lists</b><p>They were filtered by a network call, which cannot hide anything until it returns — so they were visible on every cold boot and all session when offline. The filter now reads local state.</p></li>
+    <li><b>Every workspace has its <code>#broadcast</code></b><p>Staging went from 1 of 18 organisations covered to 18 of 18, and new workspaces are seeded on creation.</p></li>
+    <li><b>Staff can no longer react, reply or edit in <code>#broadcast</code></b><p>Reactions and edits were sealed-sender fan-outs to every member and were ungated. Promoting a member to poster there is refused by the server with a 403.</p></li>
+    <li><b>The Professional plan is gone from Enterprise sign-up</b><p>Confirmed on a device: the plan list shows only Lite and Enterprise.</p></li>
+    <li><b>"CPO" and "Employee" wording replaced</b><p>Enterprise surfaces read "Member" throughout.</p></li>
+    <li><b>Channel lists are paged</b><p>Bounded with a cursor, verified against the live endpoint.</p></li>
+    <li><b>Lists show real errors instead of an empty screen</b><p>Offline, "no access" and a server fault now give three different answers with different actions, across ten lists.</p></li>
+
+  <div class="note">
+    <b>One thing worth knowing about failures.</b> Lists used to turn every error into an empty screen, so "no access", "offline" and "something broke" were indistinguishable from "nothing here" — the single most reliable way to get a fault misdiagnosed in the field. Ten lists now answer each case differently and offer the matching action. The screens listed as still open are the ones this has not reached.
+  </div>
+</section>
+
+<footer>
+  Compiled from the deployed staging system on 4 August 2026 and revised after the 5 August deploy — migrations verified against the live database, screens driven on three devices, and every enforcement rule tested by attempting to break it. Statuses reflect what ran, not what was planned.
+</footer>
+
+</main>
+</div>
+</div>
+
+</body>
+</html>

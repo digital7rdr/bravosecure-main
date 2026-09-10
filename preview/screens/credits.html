@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim-count { animation: count-up 0.5s ease-out 0.15s both; }
+
+  /* Package cards */
+  .pkg-card {
+    position: relative; border-radius: 16px; padding: 14px 16px;
+    border: 1.5px solid #1E2D45; background: #0D1929;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .pkg-card.selected {
+    border-color: #2563EB;
+    background: rgba(37,99,235,0.07);
+  }
+  .pkg-card:active { transform: scale(0.98); }
+  .pkg-best {
+    position: absolute; top: -9px; right: 14px;
+    font-size: 8px; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #fff;
+    background: linear-gradient(135deg,#2563EB,#1d4ed8);
+    padding: 2px 10px; border-radius: 20px;
+  }
+
+  /* Card inputs */
+  .pay-input {
+    background: #0A0F1E !important;
+    border: 1px solid #1E2D45 !important;
+    border-radius: 10px !important;
+    color: #f1f5f9 !important;
+    font-family: 'Manrope', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 12px 14px !important;
+    width: 100% !important;
+    outline: none !important;
+    transition: border-color 0.15s !important;
+  }
+  .pay-input:focus { border-color: #2563EB !important; }
+  .pay-input::placeholder { color: #475569 !important; font-weight: 500 !important; }
+
+  /* Tabs */
+  .tab-btn {
+    flex: 1; padding: 8px 0; border-radius: 10px;
+    font-size: 11px; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase; text-align: center;
+    color: #475569; cursor: pointer; transition: all 0.15s;
+    border: none; background: transparent;
+  }
+  .tab-btn.active { background: #0D1929; color: #f1f5f9; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center gap-3 px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="history.back()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+  </button>
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined filled text-yellow-400" style="font-size:18px;">stars</span>
+    <span class="text-sm font-bold tracking-wide text-slate-100">Bravo Credits</span>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="shrink-0 mx-4 mt-3 mb-1 flex gap-1 p-1 rounded-xl" style="background:#0A0F1E; border:1px solid #1E2D45;">
+  <button class="tab-btn active" id="tab-balance" onclick="switchTab('balance')">Balance</button>
+  <button class="tab-btn" id="tab-topup" onclick="switchTab('topup')">Top Up</button>
+</div>
+
+<!-- ── BALANCE TAB ── -->
+<div id="view-balance" class="flex-1 overflow-y-auto px-4 pb-8 pt-3 space-y-3">
+
+  <!-- Total Balance Card -->
+  <div class="rounded-2xl p-6 border flex flex-col items-center" style="background:#0D1929; border-color:#1E2D45;">
+    <p class="text-xs font-bold tracking-widest text-slate-500 mb-3">TOTAL BALANCE</p>
+    <div class="flex items-center gap-2 mb-1">
+      <span class="material-symbols-outlined filled text-yellow-400" style="font-size:32px;">stars</span>
+      <p class="anim-count font-bold leading-none" style="font-size:52px; letter-spacing:-2px; color:#f1f5f9;">2,640</p>
+    </div>
+    <p class="text-sm text-slate-400 mt-2 mb-4">Bravo Credits</p>
+    <div class="px-4 py-1.5 rounded-full border" style="background:rgba(245,158,11,0.08); border-color:#F59E0B;">
+      <p class="text-xs font-bold tracking-wide" style="color:#F59E0B;">⚠ EARLIEST EXPIRY: 30 JUN 2025</p>
+    </div>
+  </div>
+
+  <!-- Top Up shortcut -->
+  <button onclick="switchTab('topup')" class="w-full py-3 rounded-2xl font-bold text-sm tracking-wide text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(135deg,#2563EB,#1d4ed8); box-shadow:0 4px 16px rgba(37,99,235,0.3);">
+    <span class="material-symbols-outlined filled text-white" style="font-size:18px;">add_circle</span>
+    Top Up Credits
+  </button>
+
+  <!-- Section label -->
+  <p class="text-xs font-bold tracking-widest text-slate-500 pt-1">CREDIT BATCHES</p>
+
+  <!-- Batch: Nov 2025 (expiring soon) -->
+  <div class="rounded-2xl p-4 border flex items-start justify-between" style="background:#0D1929; border-color:#F59E0B;">
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-slate-100">Nov 2025 Batch</p>
+      <p class="text-xs text-slate-500 mt-1">Booking #A1B2C3D4 · Service earned</p>
+    </div>
+    <div class="text-right">
+      <p class="text-sm font-bold" style="color:#2563EB;">+1,400 credits</p>
+      <div class="flex items-center justify-end gap-1 mt-1">
+        <span class="text-xs" style="color:#F59E0B;">⚠ </span>
+        <span class="text-xs font-semibold" style="color:#F59E0B;">Exp: 30 JUN 2025</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch: Oct 2025 -->
+  <div class="rounded-2xl p-4 border flex items-start justify-between" style="background:#0D1929; border-color:#1E2D45;">
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-slate-100">Oct 2025 Batch</p>
+      <p class="text-xs text-slate-500 mt-1">Booking #E5F6G7H8 · Service earned</p>
+    </div>
+    <div class="text-right">
+      <p class="text-sm font-bold" style="color:#2563EB;">+880 credits</p>
+      <p class="text-xs text-slate-400 mt-1">Exp: 31 OCT 2025</p>
+    </div>
+  </div>
+
+  <!-- Batch: Top-up purchase -->
+  <div class="rounded-2xl p-4 border flex items-start justify-between" style="background:#0D1929; border-color:#1E2D45;">
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-slate-100">Top-up Purchase</p>
+      <p class="text-xs text-slate-500 mt-1">Purchased via card · Top-up</p>
+    </div>
+    <div class="text-right">
+      <p class="text-sm font-bold" style="color:#2563EB;">+360 credits</p>
+      <p class="text-xs text-slate-400 mt-1">Exp: 15 SEP 2025</p>
+    </div>
+  </div>
+
+  <!-- Batch: Expired -->
+  <div class="rounded-2xl p-4 border flex items-start justify-between opacity-40" style="background:#0D1929; border-color:#1E2D45;">
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-slate-400">Sep 2024 Batch</p>
+      <p class="text-xs text-slate-500 mt-1">Booking #Z9Y8X7W6 · Expired</p>
+    </div>
+    <div class="text-right">
+      <p class="text-sm font-bold text-slate-400">+520 credits</p>
+      <p class="text-xs text-slate-500 mt-1">EXPIRED · 28 FEB 2025</p>
+    </div>
+  </div>
+
+  <!-- Info note -->
+  <div class="rounded-xl p-4 border" style="background:rgba(37,99,235,0.05); border-color:#1E2D45;">
+    <p class="text-xs text-slate-400 leading-relaxed">Every credit spent on a Bravo service earns credits back. Credits can be used to pay for any Bravo service and expire based on their batch issue date.</p>
+  </div>
+
+</div>
+
+<!-- ── TOP UP TAB ── -->
+<div id="view-topup" class="flex-1 overflow-y-auto px-4 pb-8 pt-3 space-y-3 hidden">
+
+  <!-- Packages -->
+  <p class="text-xs font-bold tracking-widest text-slate-500">SELECT PACKAGE</p>
+
+  <div class="pkg-card" id="pkg-500" onclick="selectPkg(this,'500','AED 500')">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:20px;">stars</span>
+        <p class="text-base font-bold text-slate-100">500 Credits</p>
+      </div>
+      <p class="text-sm font-bold text-slate-100">AED 500</p>
+    </div>
+    <p class="text-xs text-slate-500 mt-1 ml-7">≈ 2 hrs Close Protection</p>
+  </div>
+
+  <div class="pkg-card selected" id="pkg-1000" onclick="selectPkg(this,'1000','AED 1,000')">
+    <span class="pkg-best">Most Popular</span>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:20px;">stars</span>
+        <p class="text-base font-bold text-slate-100">1,000 Credits</p>
+      </div>
+      <p class="text-sm font-bold text-slate-100">AED 1,000</p>
+    </div>
+    <p class="text-xs text-slate-500 mt-1 ml-7">≈ 4 hrs Close Protection</p>
+  </div>
+
+  <div class="pkg-card" id="pkg-2500" onclick="selectPkg(this,'2500','AED 2,500')">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:20px;">stars</span>
+        <p class="text-base font-bold text-slate-100">2,500 Credits</p>
+      </div>
+      <div class="text-right">
+        <p class="text-sm font-bold text-slate-100">AED 2,375</p>
+        <p class="text-xs font-bold" style="color:#34D399;">Save 5%</p>
+      </div>
+    </div>
+    <p class="text-xs text-slate-500 mt-1 ml-7">≈ 10 hrs Close Protection</p>
+  </div>
+
+  <div class="pkg-card" id="pkg-5000" onclick="selectPkg(this,'5000','AED 4,500')">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined filled text-yellow-400" style="font-size:20px;">stars</span>
+        <p class="text-base font-bold text-slate-100">5,000 Credits</p>
+      </div>
+      <div class="text-right">
+        <p class="text-sm font-bold text-slate-100">AED 4,500</p>
+        <p class="text-xs font-bold" style="color:#34D399;">Save 10%</p>
+      </div>
+    </div>
+    <p class="text-xs text-slate-500 mt-1 ml-7">≈ 20 hrs Close Protection</p>
+  </div>
+
+  <!-- Divider -->
+  <div class="h-px" style="background:#1E2D45;"></div>
+
+  <!-- Card Details — ONLY on this page -->
+  <p class="text-xs font-bold tracking-widest text-slate-500">CARD DETAILS</p>
+
+  <div class="rounded-2xl p-4 border space-y-3" style="background:#0D1929; border-color:#1E2D45;">
+
+    <!-- Saved card shortcut -->
+    <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl border" style="background:#0A0F1E; border-color:#2563EB;">
+      <span class="text-lg">💳</span>
+      <div class="flex-1">
+        <p class="text-xs font-bold text-slate-100">Visa •••• 4242</p>
+        <p class="text-xs text-slate-500">Expires 09/27 · Saved card</p>
+      </div>
+      <div class="size-2.5 rounded-full" style="background:#2563EB;"></div>
+    </div>
+
+    <!-- Or new card -->
+    <button id="toggle-new-card" onclick="toggleNewCard()" class="w-full text-left">
+      <p class="text-xs font-bold text-slate-500 flex items-center gap-2">
+        <span class="flex-1 h-px" style="background:#1E2D45; display:inline-block; vertical-align:middle;"></span>
+        <span>or enter new card</span>
+        <span class="flex-1 h-px" style="background:#1E2D45; display:inline-block; vertical-align:middle;"></span>
+      </p>
+    </button>
+
+    <div id="new-card-fields" class="hidden space-y-3">
+      <div>
+        <p class="text-xs font-semibold tracking-widest text-slate-500 mb-1.5">CARD NUMBER</p>
+        <input type="text" class="pay-input" placeholder=".... .... .... ...." maxlength="19" oninput="formatCard(this)"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <p class="text-xs font-semibold tracking-widest text-slate-500 mb-1.5">EXPIRY</p>
+          <input type="text" class="pay-input text-center" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)"/>
+        </div>
+        <div>
+          <p class="text-xs font-semibold tracking-widest text-slate-500 mb-1.5">CVV</p>
+          <input type="password" class="pay-input text-center" placeholder="···" maxlength="4"/>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold tracking-widest text-slate-500 mb-1.5">CARDHOLDER NAME</p>
+        <input type="text" class="pay-input" placeholder="FULL NAME"/>
+      </div>
+      <label class="flex items-center gap-3 cursor-pointer">
+        <div id="save-toggle" onclick="toggleSave()" class="relative shrink-0 w-11 h-6 rounded-full transition-colors" style="background:#2563EB; cursor:pointer;">
+          <div id="save-knob" class="absolute top-0.5 right-0.5 size-5 rounded-full bg-white transition-transform"></div>
+        </div>
+        <span class="text-sm text-slate-400">Save card for future top-ups</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Security note -->
+  <div class="flex items-center justify-center gap-2">
+    <span class="material-symbols-outlined filled text-slate-600" style="font-size:13px;">lock</span>
+    <p class="text-xs text-slate-600">Secured by Stripe · 3D Secure · PCI DSS compliant</p>
+  </div>
+
+  <!-- CTA -->
+  <button id="topup-cta" onclick="completeTopUp()" class="w-full py-4 rounded-2xl font-bold text-sm tracking-wide text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+    style="background:linear-gradient(135deg,#2563EB,#1d4ed8); box-shadow:0 6px 20px rgba(37,99,235,0.3);">
+    <span class="material-symbols-outlined filled text-white" style="font-size:18px;">stars</span>
+    BUY 1,000 CREDITS — AED 1,000
+  </button>
+
+</div>
+
+<script>
+  let selectedPkg = { credits: '1000', price: 'AED 1,000' };
+  let saveEnabled = true;
+  let newCardOpen = false;
+
+  function switchTab(tab) {
+    document.getElementById('view-balance').classList.toggle('hidden', tab !== 'balance');
+    document.getElementById('view-topup').classList.toggle('hidden', tab !== 'topup');
+    document.getElementById('tab-balance').classList.toggle('active', tab === 'balance');
+    document.getElementById('tab-topup').classList.toggle('active', tab === 'topup');
+  }
+
+  function selectPkg(el, credits, price) {
+    document.querySelectorAll('.pkg-card').forEach(c => {
+      c.classList.remove('selected');
+    });
+    el.classList.add('selected');
+    selectedPkg = { credits, price };
+    document.getElementById('topup-cta').innerHTML =
+      `<span class="material-symbols-outlined filled text-white" style="font-size:18px;">stars</span>
+       BUY ${Number(credits).toLocaleString()} CREDITS — ${price}`;
+  }
+
+  function toggleNewCard() {
+    newCardOpen = !newCardOpen;
+    document.getElementById('new-card-fields').classList.toggle('hidden', !newCardOpen);
+  }
+
+  function toggleSave() {
+    saveEnabled = !saveEnabled;
+    document.getElementById('save-toggle').style.background = saveEnabled ? '#2563EB' : '#1E2D45';
+    document.getElementById('save-knob').style.transform = saveEnabled ? 'translateX(0)' : 'translateX(-20px)';
+  }
+
+  function formatCard(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 16);
+    el.value = v.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  function formatExpiry(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 3) v = v.slice(0,2) + ' / ' + v.slice(2);
+    el.value = v;
+  }
+
+  function completeTopUp() {
+    // Show success — switch to balance tab with updated amount
+    switchTab('balance');
+    document.querySelector('.anim-count').textContent = '3,640';
+  }
+</script>
+
+</body></html>

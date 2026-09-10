@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Messenger — Chat Info</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ primary:"#2563EB","bg-dark":"#0A0F1E", surface:"#0D1929", border:"#1E2D45" },
+      fontFamily:{ display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  * { scrollbar-width:none; }
+  *::-webkit-scrollbar { display:none; }
+
+  .setting-row {
+    display:flex; align-items:center; gap:12px;
+    padding:14px 16px; cursor:pointer;
+    border-bottom:1px solid rgba(30,45,69,0.7);
+    transition:background 0.15s;
+  }
+  .setting-row:active { background:rgba(255,255,255,0.03); }
+
+  .quick-action {
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    flex:1; cursor:pointer;
+  }
+  .quick-circle {
+    width:50px; height:50px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .quick-label {
+    font-size:9px; font-weight:800; letter-spacing:1px;
+    text-transform:uppercase; color:#64748b;
+  }
+
+  .media-thumb {
+    aspect-ratio:1; border-radius:8px;
+    overflow:hidden; background:#0D1929;
+    border:1px solid #1E2D45;
+    display:flex; align-items:center; justify-content:center;
+    flex:1;
+  }
+
+  .section-header {
+    font-size:9px; font-weight:800; letter-spacing:3px;
+    text-transform:uppercase; color:#475569;
+    padding:14px 16px 8px;
+  }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 px-4 pt-10 pb-3 border-b flex items-center justify-between" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="nav('chat.html')" class="flex items-center gap-1.5 hover:text-blue-400 transition-colors">
+    <span class="material-symbols-outlined text-slate-400 text-[20px]">arrow_back</span>
+    <span class="text-[12px] font-bold uppercase tracking-wider text-slate-400">Chat Info</span>
+  </button>
+  <button class="text-[12px] font-bold uppercase tracking-wider text-blue-400 hover:text-blue-300 transition-colors">Edit</button>
+</header>
+
+<!-- Scrollable content -->
+<div class="flex-1 overflow-y-auto">
+
+  <!-- Profile section -->
+  <div class="flex flex-col items-center pt-8 pb-5 px-4">
+    <!-- Avatar -->
+    <div class="size-20 rounded-full flex items-center justify-center mb-4" style="background:linear-gradient(135deg,#7C3AED,#4F46E5); box-shadow:0 0 0 3px rgba(124,58,237,0.25), 0 8px 24px rgba(124,58,237,0.3);">
+      <span class="material-symbols-outlined filled text-white" style="font-size:40px;">person</span>
+    </div>
+    <!-- Name -->
+    <h1 class="text-[18px] font-extrabold uppercase tracking-[3px] text-slate-100 mb-1">Marcus Thornton</h1>
+    <!-- Phone -->
+    <p class="text-[12px] text-slate-500 mb-3">+971 50 123 4567</p>
+    <!-- E2E badge -->
+    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25);">
+      <span class="material-symbols-outlined filled text-green-400" style="font-size:13px;">lock</span>
+      <span class="text-[9px] font-bold uppercase tracking-widest text-green-400">AES-256 Encrypted</span>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="flex px-4 pb-5 gap-2">
+    <div class="quick-action" onclick="nav('calls-log.html')">
+      <div class="quick-circle" style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.25);">
+        <span class="material-symbols-outlined filled text-green-400" style="font-size:22px;">call</span>
+      </div>
+      <span class="quick-label">Call</span>
+    </div>
+    <div class="quick-action" onclick="nav('call.html')">
+      <div class="quick-circle" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.25);">
+        <span class="material-symbols-outlined filled text-blue-400" style="font-size:22px;">videocam</span>
+      </div>
+      <span class="quick-label">Video</span>
+    </div>
+    <div class="quick-action" onclick="void(0)">
+      <div class="quick-circle" style="background:rgba(100,116,139,0.12); border:1px solid rgba(100,116,139,0.25);">
+        <span class="material-symbols-outlined filled text-slate-400" style="font-size:22px;">notifications_off</span>
+      </div>
+      <span class="quick-label">Mute</span>
+    </div>
+    <div class="quick-action" onclick="void(0)">
+      <div class="quick-circle" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2);">
+        <span class="material-symbols-outlined filled text-red-400" style="font-size:22px;">block</span>
+      </div>
+      <span class="quick-label">Block</span>
+    </div>
+    <div class="quick-action" onclick="void(0)">
+      <div class="quick-circle" style="background:rgba(236,72,153,0.12); border:1px solid rgba(236,72,153,0.25);">
+        <span class="material-symbols-outlined filled text-pink-400" style="font-size:22px;">alternate_email</span>
+      </div>
+      <span class="quick-label">Mention</span>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div style="height:1px; background:#1E2D45; margin:0 16px;"></div>
+
+  <!-- Shared media grid -->
+  <div class="section-header">Shared Media</div>
+  <div class="px-4 pb-3">
+    <div class="flex gap-2 mb-2">
+      <div class="media-thumb">
+        <span class="material-symbols-outlined filled text-blue-900" style="font-size:22px;">description</span>
+      </div>
+      <div class="media-thumb" style="background:linear-gradient(135deg,#1a1f35,#0d1929);">
+        <span class="material-symbols-outlined filled text-slate-700" style="font-size:22px;">image</span>
+      </div>
+      <div class="media-thumb" style="background:linear-gradient(135deg,#1a2935,#0d1f29);">
+        <span class="material-symbols-outlined filled text-slate-700" style="font-size:22px;">play_circle</span>
+      </div>
+    </div>
+    <div class="flex gap-2 mb-3">
+      <div class="media-thumb" style="background:linear-gradient(135deg,#1f1a35,#190d29);">
+        <span class="material-symbols-outlined filled text-purple-900" style="font-size:22px;">image</span>
+      </div>
+      <div class="media-thumb" style="background:linear-gradient(135deg,#1a2f1a,#0d290d);">
+        <span class="material-symbols-outlined filled text-green-900" style="font-size:22px;">description</span>
+      </div>
+      <div class="media-thumb">
+        <span class="material-symbols-outlined filled text-blue-900" style="font-size:22px;">picture_as_pdf</span>
+      </div>
+    </div>
+    <button onclick="nav('files.html')" class="flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors">
+      <span class="text-[11px] font-bold uppercase tracking-wider">See All 34 Files</span>
+      <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+    </button>
+  </div>
+
+  <!-- Divider -->
+  <div style="height:1px; background:#1E2D45; margin:0 16px 0;"></div>
+
+  <!-- Settings -->
+  <div class="section-header">Settings</div>
+
+  <!-- Disappearing Messages -->
+  <div class="setting-row" onclick="void(0)">
+    <div class="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+      <span class="material-symbols-outlined text-blue-400" style="font-size:18px;">schedule_send</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-100">Disappearing Messages</p>
+    </div>
+    <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0" style="background:rgba(37,99,235,0.15); color:#60A5FA; border:1px solid rgba(37,99,235,0.25);">On</span>
+  </div>
+
+  <!-- Encryption Key -->
+  <div class="setting-row" onclick="void(0)">
+    <div class="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.2);">
+      <span class="material-symbols-outlined text-yellow-400" style="font-size:18px;">key</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-slate-100">Encryption Key</p>
+    </div>
+    <span class="text-[11px] font-bold text-blue-400 flex-shrink-0">View Fingerprint</span>
+  </div>
+
+  <!-- Block Contact -->
+  <div class="setting-row" onclick="void(0)">
+    <div class="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2);">
+      <span class="material-symbols-outlined text-red-400" style="font-size:18px;">block</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-red-400">Block Contact</p>
+    </div>
+  </div>
+
+  <!-- Clear Chat History -->
+  <div class="setting-row" onclick="void(0)">
+    <div class="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.15);">
+      <span class="material-symbols-outlined text-red-500" style="font-size:18px;">delete_sweep</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[13px] font-bold text-red-500">Clear Chat History</p>
+    </div>
+  </div>
+
+  <div class="h-10"></div>
+</div>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+</script>
+</body>
+</html>

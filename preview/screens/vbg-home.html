@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Virtual Bodyguard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+      fontFamily: { display: ["Manrope", "sans-serif"] }
+    }}
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; box-sizing: border-box; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; background: #0A0F1E; color: #F1F5F9; margin: 0; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-family: 'Material Symbols Outlined'; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  .tab-panel { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .tab-panel.active { display: flex; }
+
+  @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+  .live-pulse { animation: pulse-live 1.4s ease-in-out infinite; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Risk bar */
+  .risk-bar { height: 5px; border-radius: 9999px; background: #1E2D45; overflow: hidden; }
+  .risk-fill { height: 100%; border-radius: 9999px; }
+
+  /* Threat card */
+  .threat-card { background: #0D1929; border: 1px solid #1E2D45; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .threat-card.critical { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.04); }
+  .threat-card.high { border-color: rgba(249,115,22,0.3); }
+  .threat-card.medium { border-color: rgba(37,99,235,0.3); }
+
+  /* Nav */
+  .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; padding: 6px 0; border-top: 2px solid transparent; transition: all 0.15s; }
+  .nav-tab.active { border-top-color: #2563EB; }
+  .nav-tab.active .nav-icon { color: #2563EB; }
+  .nav-tab.active .nav-label { color: #60A5FA; }
+  .nav-icon { font-size: 20px; color: #475569; transition: color 0.15s; }
+  .nav-label { font-size: 9px; font-weight: 700; color: #475569; letter-spacing: 0.5px; transition: color 0.15s; }
+
+  /* Badge */
+  .badge { font-size: 7px; font-weight: 800; padding: 2px 5px; border-radius: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-crit { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #F87171; }
+  .badge-high { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.35); color: #FB923C; }
+  .badge-med  { background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.35); color: #60A5FA; }
+  .badge-info { background: rgba(100,116,139,0.12); border: 1px solid #1E2D45; color: #94A3B8; }
+
+  /* Geo chip */
+  .geo-chip { font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.3); color: #93C5FD; letter-spacing: 0.5px; flex-shrink: 0; }
+
+  /* Parameter buttons */
+  .param-btn { padding: 9px 4px; border-radius: 8px; border: 1px solid #1E2D45; background: #0A0F1E; color: #64748B; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; font-family: 'Manrope', sans-serif; }
+  .param-btn.active { background: #2563EB; border-color: #2563EB; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.35); }
+  .param-btn:active { transform: scale(0.96); }
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100%;">
+
+<!-- Header -->
+<header style="background:#060C18;border-bottom:1px solid #1E2D45;display:flex;align-items:center;justify-content:space-between;padding:50px 14px 12px;flex-shrink:0;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 80 80" fill="none" style="color:#2563EB;flex-shrink:0;">
+      <path d="M40 5L10 18.3V38.3C10 57.1 22.8 74.5 40 78.3C57.2 74.5 70 57.1 70 38.3V18.3L40 5Z" stroke="currentColor" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div style="font-size:7px;font-weight:700;letter-spacing:2px;color:#475569;text-transform:uppercase;">Bravo Secure</div>
+      <div style="font-size:13px;font-weight:800;color:#F1F5F9;letter-spacing:0.5px;">Virtual Bodyguard</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:9999px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);">
+    <span class="live-pulse" style="width:5px;height:5px;border-radius:50%;background:#10B981;display:block;"></span>
+    <span style="font-size:9px;font-weight:700;letter-spacing:1px;color:#10B981;">PROTECTED</span>
+  </div>
+</header>
+
+<!-- ── GEO RISK PANEL ───────────────────────────────── -->
+<div id="panel-georisk" class="tab-panel active" style="padding:12px;gap:10px;">
+
+  <!-- Location bar -->
+  <div style="background:#0D1929;border:1px solid #1E2D45;border-radius:12px;padding:12px;">
+    <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:#475569;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+      <span class="material-symbols-outlined filled" style="font-size:14px;color:#F59E0B;">location_on</span>
+      Detected Location
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#F1F5F9;" id="geo-city">Dhaka, Bangladesh</div>
+        <div style="font-size:10px;color:#64748B;margin-top:2px;" id="geo-coords">23°44'N · 90°22'E</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:8px;font-weight:700;color:#F87171;letter-spacing:1px;">RISK LEVEL</div>
+        <div style="font-size:18px;font-weight:800;color:#F87171;line-height:1.1;" id="risk-label">HIGH</div>
+      </div>
+    </div>
+    <div class="risk-bar" style="margin-top:10px;">
+      <div class="risk-fill" style="width:72%;background:linear-gradient(90deg,#EF4444,#F97316);" id="risk-bar-fill"></div>
+    </div>
+  </div>
+
+  <!-- Active alerts for location -->
+  <div style="font-size:8px;font-weight:700;letter-spacing:2px;color:#64748B;text-transform:uppercase;padding:2px 0 4px;">Active Alerts · Bangladesh</div>
+
+  <div class="threat-card critical">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span class="badge badge-crit">CRITICAL</span>
+      <span style="font-size:8px;color:#475569;">2h ago</span>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#F1F5F9;line-height:1.4;margin-bottom:4px;">Civil unrest reported in central Dhaka — road closures active</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="geo-chip">DHAKA</span>
+      <span style="font-size:9px;color:#64748B;">Security · Reuters</span>
+    </div>
+  </div>
+
+  <div class="threat-card high">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span class="badge badge-high">HIGH</span>
+      <span style="font-size:8px;color:#475569;">5h ago</span>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#F1F5F9;line-height:1.4;margin-bottom:4px;">Bangladesh security forces on elevated alert following border incident</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="geo-chip">BANGLADESH</span>
+      <span style="font-size:9px;color:#64748B;">Military · Guardian</span>
+    </div>
+  </div>
+
+  <div class="threat-card medium">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span class="badge badge-med">MEDIUM</span>
+      <span style="font-size:8px;color:#475569;">12h ago</span>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#F1F5F9;line-height:1.4;margin-bottom:4px;">Port of Chittagong logistics disruption — shipping delays expected</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="geo-chip">CHITTAGONG</span>
+      <span style="font-size:9px;color:#64748B;">Finance · Bloomberg</span>
+    </div>
+  </div>
+
+  <div class="threat-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span class="badge badge-info">INFO</span>
+      <span style="font-size:8px;color:#475569;">1d ago</span>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:#F1F5F9;line-height:1.4;margin-bottom:4px;">Bangladesh central bank raises interest rate amid regional currency pressure</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="geo-chip">BANGLADESH</span>
+      <span style="font-size:9px;color:#64748B;">Finance · AP</span>
+    </div>
+  </div>
+
+  <!-- Safety tips for location -->
+  <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.2);border-radius:12px;padding:12px;">
+    <div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:#475569;text-transform:uppercase;margin-bottom:8px;">
+      Bravo Advisory · Dhaka
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#CBD5E1;line-height:1.4;">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#F59E0B;flex-shrink:0;margin-top:1px;">warning</span>
+        Avoid Motijheel and Shahbagh areas until civil situation de-escalates
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#CBD5E1;line-height:1.4;">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#60A5FA;flex-shrink:0;margin-top:1px;">directions_car</span>
+        Use alternate routes — Mirpur Road has checkpoint delays
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#CBD5E1;line-height:1.4;">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#10B981;flex-shrink:0;margin-top:1px;">local_hospital</span>
+        Nearest secure medical: Square Hospital — 2.1 km NW
+      </div>
+    </div>
+  </div>
+
+  <!-- Analysis Parameters -->
+  <div style="background:#0D1929;border:1px solid #1E2D45;border-radius:12px;padding:12px;">
+    <div style="font-size:11px;font-weight:800;color:#F1F5F9;margin-bottom:10px;">Analysis Parameters</div>
+
+    <div style="font-size:9px;font-weight:600;color:#64748B;letter-spacing:0.5px;margin-bottom:6px;">Search Radius</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;" id="radius-group">
+      <button class="param-btn active" onclick="selectParam('radius-group',this)">5km</button>
+      <button class="param-btn" onclick="selectParam('radius-group',this)">50km</button>
+      <button class="param-btn" onclick="selectParam('radius-group',this)">200km</button>
+    </div>
+
+    <div style="font-size:9px;font-weight:600;color:#64748B;letter-spacing:0.5px;margin-bottom:6px;">Time Window</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;" id="time-group">
+      <button class="param-btn" onclick="selectParam('time-group',this)">Last 24h</button>
+      <button class="param-btn active" onclick="selectParam('time-group',this)">Last 48h</button>
+      <button class="param-btn" onclick="selectParam('time-group',this)">Last 72h</button>
+    </div>
+
+    <button style="width:100%;background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:0 3px 12px rgba(37,99,235,0.3);color:white;font-size:11px;font-weight:800;letter-spacing:0.08em;padding:11px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <span class="material-symbols-outlined" style="font-size:15px;">analytics</span>
+      RUN SECURITY ANALYSIS
+    </button>
+  </div>
+
+  <!-- Emergency Actions -->
+  <div style="display:flex;flex-direction:column;gap:8px;">
+
+    <!-- Panic hold button -->
+    <button id="panic-btn"
+      onmousedown="startPanic()" onmouseup="cancelPanic()" ontouchstart="startPanic()" ontouchend="cancelPanic()"
+      style="width:100%;padding:16px;border-radius:12px;border:1.5px solid rgba(239,68,68,0.6);background:rgba(239,68,68,0.06);color:#F87171;font-size:13px;font-weight:800;letter-spacing:0.05em;cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.15s;">
+      <span class="material-symbols-outlined filled" style="font-size:18px;">emergency</span>
+      <span id="panic-label">Hold to Alert Control Room</span>
+      <div id="panic-fill" style="position:absolute;left:0;top:0;height:100%;width:0%;background:rgba(239,68,68,0.2);transition:width 3s linear;pointer-events:none;border-radius:12px;"></div>
+    </button>
+
+    <!-- 2x2 quick actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button style="padding:11px 8px;border-radius:10px;border:1px solid #1E2D45;background:#0D1929;color:#94A3B8;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:0.03em;">
+        <span class="material-symbols-outlined" style="font-size:15px;">call</span>
+        Contact Emergency Services
+      </button>
+      <button style="padding:11px 8px;border-radius:10px;border:1px solid #1E2D45;background:#0D1929;color:#94A3B8;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:0.03em;">
+        <span class="material-symbols-outlined" style="font-size:15px;">group</span>
+        Phone Next of Kin
+      </button>
+      <button style="padding:11px 8px;border-radius:10px;border:1px solid #1E2D45;background:#0D1929;color:#94A3B8;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:0.03em;">
+        <span class="material-symbols-outlined" style="font-size:15px;">support_agent</span>
+        Request Support
+      </button>
+      <button onclick="openBravoLite()" style="padding:11px 8px;border-radius:10px;border:1px solid rgba(37,99,235,0.45);background:rgba(37,99,235,0.08);color:#60A5FA;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;letter-spacing:0.03em;">
+        <span class="material-symbols-outlined" style="font-size:15px;">cached</span>
+        Bravo Lite Services
+      </button>
+    </div>
+  </div>
+
+  <div style="height:16px;"></div>
+</div>
+
+<!-- ── NEWS FEED PANEL (redirects to intel wire) ────── -->
+<div id="panel-newsfeed" class="tab-panel" style="align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
+  <span class="material-symbols-outlined filled" style="font-size:48px;color:#2563EB;margin-bottom:16px;">newspaper</span>
+  <div style="font-size:16px;font-weight:800;color:#F1F5F9;margin-bottom:8px;">Intel Wire Feed</div>
+  <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:24px;">Live global intelligence stream — Guardian, Google News & more</div>
+  <button onclick="openWire()" style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:0 4px 16px rgba(37,99,235,0.3);color:white;font-size:13px;font-weight:800;letter-spacing:0.06em;padding:14px 32px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;">
+    <span class="material-symbols-outlined filled" style="font-size:18px;">rss_feed</span>
+    OPEN INTEL WIRE
+  </button>
+</div>
+
+<!-- ── MESSENGER PANEL ──────────────────────────────── -->
+<div id="panel-messenger" class="tab-panel" style="align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
+  <span class="material-symbols-outlined filled" style="font-size:48px;color:#2563EB;margin-bottom:16px;">chat_bubble</span>
+  <div style="font-size:16px;font-weight:800;color:#F1F5F9;margin-bottom:8px;">Secure Messenger</div>
+  <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:24px;">End-to-end encrypted comms with your Ops Room and contacts</div>
+  <button onclick="openMessenger()" style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:0 4px 16px rgba(37,99,235,0.3);color:white;font-size:13px;font-weight:800;letter-spacing:0.06em;padding:14px 32px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:0 auto;">
+    <span class="material-symbols-outlined filled" style="font-size:18px;">lock</span>
+    OPEN MESSENGER
+  </button>
+</div>
+
+<!-- Bottom Nav — 3 tabs only -->
+<nav style="height:58px;background:#060C18;border-top:1px solid #1E2D45;display:flex;align-items:stretch;flex-shrink:0;">
+  <div class="nav-tab" id="tab-georisk" onclick="switchTab('georisk')">
+    <span class="material-symbols-outlined filled nav-icon">my_location</span>
+    <span class="nav-label">GEORISK</span>
+  </div>
+  <div class="nav-tab" id="tab-newsfeed" onclick="switchTab('newsfeed')">
+    <span class="material-symbols-outlined nav-icon">rss_feed</span>
+    <span class="nav-label">NEWS FEED</span>
+  </div>
+  <div class="nav-tab" id="tab-messenger" onclick="switchTab('messenger')">
+    <span class="material-symbols-outlined nav-icon">chat_bubble</span>
+    <span class="nav-label">MESSENGER</span>
+  </div>
+</nav>
+
+<script>
+  // Default tab
+  let currentTab = 'georisk';
+  document.getElementById('tab-georisk').classList.add('active');
+
+  function switchTab(name) {
+    // If news feed tapped, go straight to intel wire
+    if (name === 'newsfeed') { openWire(); return; }
+
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+    currentTab = name;
+  }
+
+  function openWire() {
+    // Navigate to intel-feed.html and auto-switch to wire tab
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/intel-feed.html?tab=wire', null);
+    }
+    // Fallback: try to navigate directly
+    try {
+      sessionStorage.setItem('intel_open_tab', 'wire');
+    } catch(e) {}
+  }
+
+  function openMessenger() {
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/chat.html', null);
+    }
+  }
+
+  // Auto-detect location (use IP geolocation in real app)
+  function detectLocation() {
+    // In production: navigator.geolocation + reverse geocode API
+  }
+  detectLocation();
+
+  // Analysis parameter toggle
+  function selectParam(groupId, btn) {
+    document.querySelectorAll('#' + groupId + ' .param-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Panic hold — 3s hold triggers alert
+  let panicTimer = null;
+  function startPanic() {
+    const fill = document.getElementById('panic-fill');
+    const label = document.getElementById('panic-label');
+    fill.style.transition = 'width 3s linear';
+    fill.style.width = '100%';
+    panicTimer = setTimeout(() => {
+      label.textContent = '✓ Control Room Alerted';
+      document.getElementById('panic-btn').style.borderColor = 'rgba(239,68,68,0.9)';
+      document.getElementById('panic-btn').style.background = 'rgba(239,68,68,0.18)';
+      setTimeout(() => {
+        label.textContent = 'Hold to Alert Control Room';
+        fill.style.transition = 'none';
+        fill.style.width = '0%';
+        document.getElementById('panic-btn').style.borderColor = 'rgba(239,68,68,0.6)';
+        document.getElementById('panic-btn').style.background = 'rgba(239,68,68,0.06)';
+      }, 2500);
+    }, 3000);
+  }
+  function cancelPanic() {
+    clearTimeout(panicTimer);
+    panicTimer = null;
+    const fill = document.getElementById('panic-fill');
+    fill.style.transition = 'width 0.2s ease';
+    fill.style.width = '0%';
+  }
+
+  function openBravoLite() {
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/baseline-package.html', null);
+    }
+  }
+</script>
+</body></html>

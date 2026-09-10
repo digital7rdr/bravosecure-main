@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure — Verify</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "background-dark": "#0A0F1E" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  body { font-family: 'Manrope', sans-serif; height: 100dvh; overflow: hidden; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* ── Method cards ── */
+  .method-card {
+    display: flex; align-items: center; gap: 14px;
+    background: #0D1929; border: 1.5px solid #1E2D45;
+    border-radius: 14px; padding: 14px 16px;
+    cursor: pointer; width: 100%; text-align: left;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  .method-card:active { transform: scale(0.98); }
+  .method-card.selected {
+    border-color: #2563EB;
+    background: rgba(37,99,235,0.09);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.25), 0 0 18px rgba(37,99,235,0.15);
+  }
+  .method-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 20px;
+    background: rgba(37,99,235,0.14); color: #60A5FA;
+  }
+  .new-badge {
+    font-size: 8px; font-weight: 800; letter-spacing: 1px;
+    background: rgba(37,99,235,0.2); color: #60A5FA;
+    border-radius: 5px; padding: 2px 5px; text-transform: uppercase;
+  }
+  .section-label {
+    font-size: 9px; font-weight: 800; letter-spacing: 2.5px;
+    text-transform: uppercase; color: #475569;
+    margin-bottom: 8px; margin-top: 6px;
+  }
+
+  /* ── OTP boxes ── */
+  .otp-box {
+    width: 100% !important; aspect-ratio: 1;
+    text-align: center !important; font-size: 1.25rem !important; font-weight: 700 !important;
+    background: #0D1929 !important; border: 1px solid #1E2D45 !important; border-radius: 0.75rem !important;
+    color: #f1f5f9 !important; outline: none !important; transition: border-color 0.15s;
+    font-family: 'Manrope', sans-serif !important; box-shadow: none !important; padding: 0 !important;
+  }
+  .otp-box:focus   { border-color: #2563EB !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.2) !important; }
+  .otp-box.filled  { border-color: #2563EB !important; }
+
+  /* ── Countdown circle ── */
+  .timer-circle {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 3px solid #1E2D45; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .timer-circle svg {
+    position: absolute; top: -3px; left: -3px;
+    width: calc(100% + 6px); height: calc(100% + 6px);
+    transform: rotate(-90deg);
+  }
+  .timer-circle .timer-text {
+    font-size: 13px; font-weight: 800; color: #60A5FA; z-index: 1;
+  }
+
+  /* ── Method tabs ── */
+  .method-tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 6px 4px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s;
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #475569;
+    border: 1.5px solid transparent;
+  }
+  .method-tab .material-symbols-outlined { font-size: 18px; }
+  .method-tab.active {
+    background: rgba(37,99,235,0.12);
+    border-color: rgba(37,99,235,0.3);
+    color: #60A5FA;
+  }
+
+  /* ── Face ID oval ── */
+  @keyframes scanPulse {
+    0%, 100% { opacity: 0.4; transform: scaleX(1); }
+    50%       { opacity: 1;   transform: scaleX(0.95); }
+  }
+  .face-oval {
+    width: 130px; height: 170px; border-radius: 50%;
+    border: 2.5px solid #2563EB;
+    box-shadow: 0 0 20px rgba(37,99,235,0.3), inset 0 0 20px rgba(37,99,235,0.05);
+    display: flex; align-items: center; justify-content: center;
+    animation: scanPulse 2s ease-in-out infinite;
+    margin: 0 auto;
+  }
+  .scan-line {
+    position: absolute; width: 90%; height: 2px;
+    background: linear-gradient(90deg, transparent, #60A5FA, transparent);
+    border-radius: 9999px;
+    animation: scanMove 2s ease-in-out infinite;
+  }
+  @keyframes scanMove {
+    0%   { top: 20%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 80%; opacity: 0; }
+  }
+
+  /* ── Fingerprint pulse ── */
+  @keyframes fpPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1);    }
+    50%       { opacity: 1;   transform: scale(1.04); }
+  }
+  .fp-icon { animation: fpPulse 2s ease-in-out infinite; }
+
+  /* ── View transitions ── */
+  .view { display: none; }
+  .view.active { display: flex; flex-direction: column; height: 100%; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen">
+
+<!-- ══════════════════════════════════════════
+     VIEW 1 — VERIFY IDENTITY (method select)
+═══════════════════════════════════════════ -->
+<div id="view-select" class="view active flex-col h-full overflow-hidden">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 pt-12 pb-3 shrink-0">
+    <button onclick="goBack()" class="flex items-center justify-center size-10 rounded-full hover:bg-white/5 transition-colors">
+      <span class="material-symbols-outlined text-slate-100">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold text-slate-500 tracking-widest uppercase">2 / 4</span>
+    <div class="size-10"></div>
+  </header>
+
+  <!-- Scrollable body -->
+  <div class="flex-1 px-5 pb-4 overflow-y-auto">
+
+    <!-- Title -->
+    <h1 class="text-[22px] font-extrabold leading-tight tracking-tight mb-1.5">Verify Identity</h1>
+    <p class="text-slate-400 text-[12px] leading-snug mb-5">
+      Choose your preferred verification method.<br/>This is also used for File Vault access.
+    </p>
+
+    <!-- CODE-BASED -->
+    <p class="section-label">Code-based</p>
+    <div class="flex flex-col gap-2.5 mb-4">
+
+      <button class="method-card" id="card-otp" onclick="selectMethod('otp', this)">
+        <div class="method-icon">
+          <span class="material-symbols-outlined">sms</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-bold text-slate-100 mb-0.5">OTP Verification</p>
+          <p class="text-[11px] text-slate-500 leading-snug">One-time code via SMS or email</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-700 text-[18px] shrink-0" id="check-otp">radio_button_unchecked</span>
+      </button>
+
+      <button class="method-card" id="card-auth" onclick="selectMethod('auth', this)">
+        <div class="method-icon">
+          <span class="material-symbols-outlined">key</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-bold text-slate-100 mb-0.5">Authenticator App</p>
+          <p class="text-[11px] text-slate-500 leading-snug">TOTP — Google Authenticator / Authy</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-700 text-[18px] shrink-0" id="check-auth">radio_button_unchecked</span>
+      </button>
+
+    </div>
+
+    <!-- BIOMETRIC -->
+    <p class="section-label">Biometric <span class="text-blue-500">(Recommended)</span></p>
+    <div class="flex flex-col gap-2.5">
+
+      <button class="method-card selected" id="card-fp" onclick="selectMethod('fp', this)">
+        <div class="method-icon">
+          <span class="material-symbols-outlined">fingerprint</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <p class="text-[13px] font-bold text-slate-100">Fingerprint</p>
+            <span class="new-badge">New</span>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-snug">TouchID / device fingerprint sensor</p>
+        </div>
+        <span class="material-symbols-outlined text-[#2563EB] text-[18px] shrink-0" id="check-fp">radio_button_checked</span>
+      </button>
+
+      <button class="method-card" id="card-face" onclick="selectMethod('face', this)">
+        <div class="method-icon">
+          <span class="material-symbols-outlined">face</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[13px] font-bold text-slate-100 mb-0.5">Face Recognition</p>
+          <p class="text-[11px] text-slate-500 leading-snug">Biometric via front camera</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-700 text-[18px] shrink-0" id="check-face">radio_button_unchecked</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="shrink-0 px-5 pb-10 pt-3" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+    <button onclick="sendVerification()" class="w-full flex items-center justify-center gap-2 text-white font-bold text-[15px]"
+      style="padding:17px 24px;border-radius:18px;background:linear-gradient(135deg,#2563EB,#1d4ed8);box-shadow:0 10px 36px rgba(37,99,235,0.45),inset 0 1px 0 rgba(255,255,255,0.1);transition:transform 0.12s,filter 0.12s;">
+      Send Verification
+      <span class="material-symbols-outlined" style="font-size:19px">arrow_forward</span>
+    </button>
+  </div>
+
+</div><!-- /view-select -->
+
+
+<!-- ══════════════════════════════════════════
+     VIEW 2 — ENTER VERIFICATION CODE
+═══════════════════════════════════════════ -->
+<div id="view-enter" class="view flex-col h-full overflow-hidden">
+
+  <!-- Header -->
+  <header class="flex items-center px-4 pt-12 pb-3 shrink-0">
+    <button onclick="backToSelect()" class="flex items-center justify-center size-10 rounded-full hover:bg-white/5 transition-colors">
+      <span class="material-symbols-outlined text-slate-100">arrow_back</span>
+    </button>
+  </header>
+
+  <!-- Body -->
+  <div class="flex-1 px-5 flex flex-col overflow-hidden">
+
+    <!-- Title -->
+    <h1 class="text-[20px] font-extrabold leading-tight tracking-tight mb-1 text-center" id="code-title">Authenticator Code</h1>
+    <p class="text-slate-400 text-[12px] leading-snug mb-6 text-center" id="code-sub">
+      Enter the 6-digit code from your Authenticator app.<br/>The code refreshes every 30 seconds.
+    </p>
+
+    <!-- OTP Method — 6 boxes + timer -->
+    <div id="content-otp" class="hidden flex-col items-center gap-5">
+      <div class="grid grid-cols-6 gap-2 w-full">
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+      </div>
+      <p class="text-slate-400 text-sm">
+        Resend in <span id="resend-timer" class="text-primary font-bold">0:45</span>
+      </p>
+    </div>
+
+    <!-- Auth App — 6 boxes + TOTP ring -->
+    <div id="content-auth" class="hidden flex-col items-center gap-5">
+      <div class="flex items-center gap-4 w-full">
+        <div class="grid grid-cols-6 gap-2 flex-1">
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+          <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="otpNext(this)" onkeydown="otpBack(event,this)"/>
+        </div>
+        <!-- TOTP timer ring -->
+        <div class="timer-circle shrink-0">
+          <svg viewBox="0 0 52 52">
+            <circle cx="26" cy="26" r="23" fill="none" stroke="#1E2D45" stroke-width="3"/>
+            <circle id="totp-ring" cx="26" cy="26" r="23" fill="none"
+              stroke="#2563EB" stroke-width="3" stroke-linecap="round"
+              stroke-dasharray="144.5" stroke-dashoffset="0"/>
+          </svg>
+          <span class="timer-text" id="totp-count">30</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Face ID -->
+    <div id="content-face" class="hidden flex-col items-center gap-6">
+      <div class="relative">
+        <div class="face-oval">
+          <span class="material-symbols-outlined text-primary/30 text-5xl">face</span>
+        </div>
+        <div class="scan-line" style="position:absolute;left:5%;"></div>
+      </div>
+      <p class="text-slate-400 text-[13px] text-center leading-snug">
+        Position your face within the oval<br/>and hold still
+      </p>
+    </div>
+
+    <!-- Fingerprint -->
+    <div id="content-fp" class="hidden flex-col items-center gap-5">
+      <div class="fp-icon">
+        <span class="material-symbols-outlined text-primary" style="font-size:100px;font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 48">fingerprint</span>
+      </div>
+      <p class="text-slate-400 text-[13px] text-center leading-snug">
+        Place your finger on the<br/>TouchID sensor
+      </p>
+    </div>
+
+    <!-- Spacer -->
+    <div class="flex-1"></div>
+
+    <!-- Verify CTA -->
+    <div id="verify-cta" class="pb-2">
+      <button onclick="verify()" class="w-full flex items-center justify-center gap-2 text-white font-bold text-[15px]"
+        style="padding:17px 24px;border-radius:18px;background:linear-gradient(135deg,#2563EB,#1d4ed8);box-shadow:0 10px 36px rgba(37,99,235,0.45),inset 0 1px 0 rgba(255,255,255,0.1);transition:transform 0.12s,filter 0.12s;">
+        Verify
+        <span class="material-symbols-outlined" style="font-size:19px">arrow_forward</span>
+      </button>
+      <p class="text-center text-slate-600 text-[11px] mt-2">
+        Wrong method?
+        <button onclick="backToSelect()" class="text-blue-500 font-semibold hover:underline">Change method</button>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Method tabs bar -->
+  <div class="shrink-0 px-4 pb-8 pt-3 flex gap-2" style="background:#0A0F1E;border-top:1px solid #1E2D45">
+    <button class="method-tab" id="tab-otp"  onclick="switchTab('otp')">
+      <span class="material-symbols-outlined">sms</span>OTP
+    </button>
+    <button class="method-tab active" id="tab-auth" onclick="switchTab('auth')">
+      <span class="material-symbols-outlined">key</span>Auto App
+    </button>
+    <button class="method-tab" id="tab-face" onclick="switchTab('face')">
+      <span class="material-symbols-outlined">face</span>Face ID
+    </button>
+    <button class="method-tab" id="tab-fp"   onclick="switchTab('fp')">
+      <span class="material-symbols-outlined">fingerprint</span>Fingerprint
+    </button>
+  </div>
+
+</div><!-- /view-enter -->
+
+
+<script>
+  /* ── State ── */
+  let currentMethod = 'fp';   // default from method selection
+  const ALL_METHODS = ['otp','auth','face','fp'];
+
+  const METHOD_META = {
+    otp:  { title:'OTP Verification',    sub:'Enter the 6-digit code sent to your phone number.' },
+    auth: { title:'Authenticator Code',  sub:'Enter the 6-digit code from your Authenticator app.\nThe code refreshes every 30 seconds.' },
+    face: { title:'Face Recognition',    sub:'Look directly into the front camera for liveness detection.' },
+    fp:   { title:'Fingerprint Scan',    sub:'Place your registered finger on the sensor.' },
+  };
+
+  /* ── View 1: method selection ── */
+  function selectMethod(method, el) {
+    currentMethod = method;
+    ALL_METHODS.forEach(m => {
+      const card  = document.getElementById('card-' + m);
+      const check = document.getElementById('check-' + m);
+      if (m === method) {
+        card.classList.add('selected');
+        check.textContent = 'radio_button_checked';
+        check.style.color = '#2563EB';
+      } else {
+        card.classList.remove('selected');
+        check.textContent = 'radio_button_unchecked';
+        check.style.color = '';
+      }
+    });
+  }
+
+  function sendVerification() {
+    showView('view-enter');
+    switchTab(currentMethod);
+  }
+
+  /* ── View 2: code entry ── */
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => {
+      v.classList.remove('active');
+      v.style.display = 'none';
+    });
+    const v = document.getElementById(id);
+    v.style.display = 'flex';
+    v.classList.add('active');
+  }
+
+  function switchTab(method) {
+    currentMethod = method;
+
+    // Update tabs
+    ALL_METHODS.forEach(m => {
+      document.getElementById('tab-' + m).classList.toggle('active', m === method);
+    });
+
+    // Show correct content
+    ALL_METHODS.forEach(m => {
+      const el = document.getElementById('content-' + m);
+      el.style.display = m === method ? 'flex' : 'none';
+      el.classList.toggle('hidden', m !== method);
+    });
+
+    // Update title & subtitle
+    const meta = METHOD_META[method];
+    document.getElementById('code-title').textContent = meta.title;
+    document.getElementById('code-sub').textContent   = meta.sub;
+
+    // Hide verify CTA for biometric (auto-completes)
+    const isBio = method === 'face' || method === 'fp';
+    document.getElementById('verify-cta').style.display = isBio ? 'none' : 'block';
+
+    // Start timers
+    if (method === 'otp')  startResendTimer();
+    if (method === 'auth') startTotpTimer();
+
+    // Focus first otp box
+    if (method === 'otp' || method === 'auth') {
+      setTimeout(() => {
+        const first = document.querySelector('#content-' + method + ' .otp-box');
+        if (first) first.focus();
+      }, 50);
+    }
+
+    // Simulate biometric after 2.5s
+    if (isBio) {
+      setTimeout(() => {
+        verify();
+      }, 2500);
+    }
+  }
+
+  function backToSelect() {
+    showView('view-select');
+    stopTimers();
+  }
+
+  /* ── OTP helpers ── */
+  function otpNext(el) {
+    el.classList.toggle('filled', el.value.length > 0);
+    if (el.value && el.nextElementSibling) el.nextElementSibling.focus();
+  }
+  function otpBack(e, el) {
+    if (e.key === 'Backspace' && !el.value && el.previousElementSibling) {
+      el.previousElementSibling.focus();
+    }
+  }
+
+  /* ── Resend countdown (OTP) ── */
+  let resendInterval = null;
+  function startResendTimer() {
+    clearInterval(resendInterval);
+    let secs = 45;
+    const el = document.getElementById('resend-timer');
+    el.textContent = '0:' + String(secs).padStart(2,'0');
+    resendInterval = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(resendInterval);
+        el.textContent = 'now';
+        el.style.color = '#22c55e';
+        return;
+      }
+      el.textContent = '0:' + String(secs).padStart(2,'0');
+    }, 1000);
+  }
+
+  /* ── TOTP ring countdown ── */
+  let totpInterval = null;
+  const CIRCUMFERENCE = 2 * Math.PI * 23; // ~144.5
+
+  function startTotpTimer() {
+    clearInterval(totpInterval);
+    let secs = 30;
+    const ring  = document.getElementById('totp-ring');
+    const count = document.getElementById('totp-count');
+    ring.style.strokeDasharray  = CIRCUMFERENCE;
+    ring.style.strokeDashoffset = 0;
+    count.textContent = secs;
+
+    totpInterval = setInterval(() => {
+      secs--;
+      if (secs < 0) { secs = 30; }
+      count.textContent = secs;
+      const offset = CIRCUMFERENCE * (1 - secs / 30);
+      ring.style.strokeDashoffset = offset;
+      // Turn red in last 5 secs
+      ring.style.stroke = secs <= 5 ? '#EF4444' : '#2563EB';
+      count.style.color = secs <= 5 ? '#EF4444' : '#60A5FA';
+    }, 1000);
+  }
+
+  function stopTimers() {
+    clearInterval(resendInterval);
+    clearInterval(totpInterval);
+  }
+
+  /* ── Navigation ── */
+  function verify() {
+    stopTimers();
+    localStorage.setItem('bs_session', 'active');
+    const flow = sessionStorage.getItem('authFlow');
+    if (!window.parent || !window.parent.loadScreen) return;
+    if (flow === 'register') {
+      window.parent.loadScreen('screens/role-selection.html', document.createElement('div'));
+    } else {
+      window.parent.loadScreen('screens/dashboard.html', document.createElement('div'));
+    }
+  }
+
+  function goBack() {
+    if (!window.parent || !window.parent.loadScreen) return;
+    const flow = sessionStorage.getItem('authFlow');
+    const dest = (flow === 'register') ? 'screens/register.html' : 'screens/login.html';
+    window.parent.loadScreen(dest, document.createElement('div'));
+  }
+
+  /* ── Init: show method selection first ── */
+  showView('view-select');
+  // Fingerprint selected by default
+  selectMethod('fp', document.getElementById('card-fp'));
+</script>
+</body></html>

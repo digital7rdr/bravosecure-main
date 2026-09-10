@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bravo Secure — Screen Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f0f;
+      --panel:     #161616;
+      --border:    #252525;
+      --gold:      #2563EB;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --active-bg: #0d1829;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top Bar ──────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      height: 52px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .topbar-logo { display: flex; align-items: center; gap: 8px; }
+    .topbar-title {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; color: var(--text); text-transform: uppercase;
+    }
+    .topbar-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+    .topbar-sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+    .topbar-spacer { flex: 1; }
+
+    /* Hamburger — mobile only */
+    .hamburger {
+      display: none;
+      align-items: center; justify-content: center;
+      width: 36px; height: 36px;
+      border: none; background: rgba(255,255,255,0.05);
+      border-radius: 8px; cursor: pointer; flex-shrink: 0;
+    }
+    .hamburger span {
+      display: block; width: 18px; height: 2px;
+      background: var(--text); border-radius: 2px;
+      position: relative;
+    }
+    .hamburger span::before, .hamburger span::after {
+      content: ''; position: absolute; left: 0;
+      width: 18px; height: 2px;
+      background: var(--text); border-radius: 2px;
+    }
+    .hamburger span::before { top: -5px; }
+    .hamburger span::after  { top: 5px; }
+
+    /* ── Layout ───────────────────────────────────────── */
+    .workspace { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar overlay (mobile backdrop) ─────────────── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* ── Sidebar ──────────────────────────────────────── */
+    .sidebar {
+      width: 210px; flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto; padding: 12px 0;
+      transition: transform 0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+    .sidebar-header {
+      display: none;
+      align-items: center; justify-content: space-between;
+      padding: 10px 14px 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .sidebar-close {
+      background: none; border: none; color: var(--muted);
+      font-size: 18px; cursor: pointer; line-height: 1;
+      padding: 4px;
+    }
+    .sidebar-close:hover { color: var(--text); }
+    .sidebar-section {
+      padding: 4px 14px 2px;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); margin-top: 10px;
+    }
+    .sidebar-section:first-of-type { margin-top: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px; font-size: 12.5px; font-weight: 500;
+      color: var(--muted); cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: all 0.15s; user-select: none;
+    }
+    .nav-item:hover { background: rgba(37,99,235,0.06); color: var(--text); }
+    .nav-item.active {
+      color: var(--gold); background: var(--active-bg);
+      border-left-color: var(--gold);
+    }
+    .nav-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0; opacity: 0.5;
+    }
+    .nav-item.active .nav-dot { opacity: 1; }
+
+    /* ── Center: Phone Frame ──────────────────────────── */
+    .preview-area {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 14px; overflow: hidden; background: var(--bg);
+      background-image: radial-gradient(circle at 50% 40%, rgba(37,99,235,0.05) 0%, transparent 60%);
+    }
+    .device-label {
+      font-size: 10px; color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
+    }
+    .phone-wrapper { flex-shrink: 0; transform-origin: center center; }
+
+    /* iPhone shell */
+    .phone {
+      position: relative; width: 290px; height: 600px;
+      background: linear-gradient(145deg, #2e2e2e, #1a1a1a);
+      border-radius: 46px; border: 6px solid #3a3a3a;
+      box-shadow: 0 0 0 1px #555, inset 0 0 0 1px #222,
+        0 0 40px rgba(37,99,235,0.08), 0 50px 100px rgba(0,0,0,0.9);
+      overflow: visible; flex-shrink: 0;
+    }
+    .phone::before {
+      content: ''; position: absolute; left: -9px; top: 90px;
+      width: 4px; height: 28px; background: #3a3a3a;
+      border-radius: 3px 0 0 3px;
+      box-shadow: 0 40px 0 #3a3a3a, 0 78px 0 #3a3a3a;
+    }
+    .phone::after {
+      content: ''; position: absolute; right: -9px; top: 120px;
+      width: 4px; height: 56px; background: #3a3a3a;
+      border-radius: 0 3px 3px 0;
+    }
+    .phone-screen {
+      position: absolute; inset: 0; border-radius: 40px;
+      overflow: hidden; background: #0a0a0a;
+    }
+    .dynamic-island {
+      position: absolute; top: 10px; left: 50%;
+      transform: translateX(-50%); width: 100px; height: 28px;
+      background: #000; border-radius: 16px; z-index: 100;
+    }
+    .status-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 48px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      padding: 0 20px 7px; z-index: 99; pointer-events: none;
+    }
+    .status-time { font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+    .status-icons { display: flex; align-items: center; gap: 4px; }
+    .status-icons svg { color: #fff; }
+    .home-indicator {
+      position: absolute; bottom: 6px; left: 50%;
+      transform: translateX(-50%); width: 110px; height: 4px;
+      background: rgba(255,255,255,0.3); border-radius: 3px; z-index: 100;
+    }
+    .screen-iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    /* ── Right Panel ──────────────────────────────────── */
+    .right-panel {
+      width: 220px; flex-shrink: 0;
+      background: var(--panel); border-left: 1px solid var(--border);
+      padding: 16px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .panel-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .info-row {
+      display: flex; justify-content: space-between;
+      align-items: center; font-size: 12px; padding: 4px 0;
+    }
+    .info-label { color: var(--muted); }
+    .info-value { color: var(--text); font-weight: 500; }
+    .info-value.gold { color: var(--gold); }
+    .divider { height: 1px; background: var(--border); }
+    .device-switcher { display: flex; gap: 6px; }
+    .device-btn {
+      flex: 1; padding: 6px; border-radius: 6px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); font-family: 'Manrope', sans-serif;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      text-align: center; transition: all 0.15s;
+    }
+    .device-btn.active, .device-btn:hover {
+      border-color: var(--gold); color: var(--gold); background: var(--active-bg);
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 20px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    }
+    .badge-done { background: rgba(0,200,81,0.12); color: #00C851; }
+    .badge-todo { background: rgba(100,116,139,0.12); color: var(--muted); }
+    .badge-wip  { background: rgba(37,99,235,0.12); color: var(--gold); }
+
+    /* ── Mobile bottom info bar ───────────────────────── */
+    .mobile-bar {
+      display: none;
+      align-items: center; justify-content: space-between;
+      padding: 8px 16px; background: var(--panel);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0; gap: 12px;
+    }
+    .mobile-bar-name {
+      font-size: 13px; font-weight: 700; color: var(--gold);
+    }
+    .mobile-bar-route { font-size: 11px; color: var(--muted); }
+    .mobile-bar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    /* ── Scrollbar ────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Responsive breakpoints ───────────────────────── */
+
+    /* Tablet: hide right panel */
+    @media (max-width: 1024px) {
+      .right-panel { display: none; }
+    }
+
+    /* Mobile: sidebar becomes slide-in drawer */
+    @media (max-width: 640px) {
+      .hamburger { display: flex; }
+      .topbar-divider, .topbar-sub { display: none; }
+
+      .sidebar {
+        position: fixed; left: 0; top: 0; bottom: 0;
+        z-index: 300; width: 240px;
+        transform: translateX(-100%);
+        border-right: 1px solid var(--border);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-header { display: flex; }
+
+      .mobile-bar { display: flex; }
+
+      .device-label { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar overlay (mobile tap-to-close) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <button class="hamburger" onclick="openSidebar()" aria-label="Open menu">
+      <span></span>
+    </button>
+    <div class="topbar-logo">
+      <svg width="18" height="18" viewBox="0 0 80 80" fill="none" style="color:#2563EB">
+        <path d="M40 5L10 18.3333V38.3333C10 57.1333 22.8 74.4667 40 78.3333C57.2 74.4667 70 57.1333 70 38.3333V18.3333L40 5Z" stroke="currentColor" stroke-width="3" fill="none" stroke-linejoin="round"/>
+      </svg>
+      <span class="topbar-title">Bravo Secure</span>
+    </div>
+    <div class="topbar-divider"></div>
+    <span class="topbar-sub">Screen Preview</span>
+    <div class="topbar-spacer"></div>
+  </div>
+
+  <div class="workspace">
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <!-- Mobile close header -->
+      <div class="sidebar-header">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Screens</span>
+        <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+      </div>
+
+      <div class="sidebar-section">Auth</div>
+      <div class="nav-item active" onclick="loadScreen('screens/splash.html', this)">
+        <span class="nav-dot"></span> Splash
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/onboarding.html', this)">
+        <span class="nav-dot"></span> Onboarding
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/login.html', this)">
+        <span class="nav-dot"></span> Login
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/register.html', this)">
+        <span class="nav-dot"></span> Register
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/otp.html', this)">
+        <span class="nav-dot"></span> OTP Verification
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/role-selection.html', this)">
+        <span class="nav-dot"></span> Role Selection
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/permissions.html', this)">
+        <span class="nav-dot"></span> Permissions
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/home-selection.html', this)">
+        <span class="nav-dot"></span> Home Selection
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/profile-completion.html', this)">
+        <span class="nav-dot"></span> Profile Completion
+      </div>
+
+      <div class="sidebar-section">Dashboard</div>
+      <div class="nav-item" onclick="loadScreen('screens/dashboard.html', this)">
+        <span class="nav-dot"></span> Main Dashboard
+      </div>
+
+      <div class="sidebar-section">Bravo Secure Lite</div>
+      <div class="nav-item" onclick="loadScreen('screens/messenger-home.html', this)">
+        <span class="nav-dot"></span> Conversations
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/chat.html', this)">
+        <span class="nav-dot"></span> Chat
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/chat-info.html', this)">
+        <span class="nav-dot"></span> Chat Info
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/new-message.html', this)">
+        <span class="nav-dot"></span> New Message
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/group-info.html', this)">
+        <span class="nav-dot"></span> Group Chat
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/voice-call.html', this)">
+        <span class="nav-dot"></span> Voice Call
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/call.html', this)">
+        <span class="nav-dot"></span> Video Call
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/groups.html', this)">
+        <span class="nav-dot"></span> Groups Tab
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/calls-log.html', this)">
+        <span class="nav-dot"></span> Calls Log
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/files.html', this)">
+        <span class="nav-dot"></span> Files Tab
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/vault-lock.html', this)">
+        <span class="nav-dot"></span> Vault Lock
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/vault-forgot.html', this)">
+        <span class="nav-dot"></span> Vault — Forgot PIN
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/vault-otp-verify.html', this)">
+        <span class="nav-dot"></span> Vault — OTP Verify
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/vault-new-pin.html', this)">
+        <span class="nav-dot"></span> Vault — New PIN
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/vault.html', this)">
+        <span class="nav-dot"></span> Personal Vault
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/file-vault-purchase.html', this)">
+        <span class="nav-dot"></span> File Vault Storage
+      </div>
+
+      <div class="nav-item" onclick="loadScreen('screens/intel-feed.html', this)">
+        <span class="nav-dot"></span> Intel Feed (World Monitor)
+      </div>
+
+      <div class="sidebar-section">Wallet</div>
+      <div class="nav-item" onclick="loadScreen('screens/credits.html', this)">
+        <span class="nav-dot"></span> Bravo Credits
+      </div>
+
+      <div class="sidebar-section">Bravo Lite</div>
+      <div class="nav-item" onclick="loadScreen('screens/zone-map.html', this)">
+        <span class="nav-dot"></span> Zone Map
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/service-type.html', this)">
+        <span class="nav-dot"></span> Service Type
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/baseline-package.html', this)">
+        <span class="nav-dot"></span> Baseline Package
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/customize-addons.html', this)">
+        <span class="nav-dot"></span> Team &amp; Add-Ons
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/ops-room-review.html', this)">
+        <span class="nav-dot"></span> Ops Room Review
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/payment.html', this)">
+        <span class="nav-dot"></span> Pricing &amp; Payment
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/credit-paywall.html', this)">
+        <span class="nav-dot"></span> Credit Paywall / Top Up
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/confirmation.html', this)">
+        <span class="nav-dot"></span> Booking Confirmation
+      </div>
+
+      <div class="sidebar-section">Live Ops</div>
+      <div class="nav-item" onclick="loadScreen('screens/live-tracking.html', this)">
+        <span class="nav-dot"></span> Live Tracking
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/sos.html', this)">
+        <span class="nav-dot"></span> SOS
+      </div>
+
+      <div class="sidebar-section">Agent</div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-type-select.html', this)">
+        <span class="nav-dot"></span> Agent Type Select
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-register-wizard.html', this)">
+        <span class="nav-dot"></span> Registration Wizard
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-kyc.html', this)">
+        <span class="nav-dot"></span> KYC Verification
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-coverage.html', this)">
+        <span class="nav-dot"></span> Coverage &amp; Services
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-availability.html', this)">
+        <span class="nav-dot"></span> Availability Setup
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-docs-upload.html', this)">
+        <span class="nav-dot"></span> Document Upload
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-admin-approval.html', this)">
+        <span class="nav-dot"></span> Admin Approval
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-deployment-requirements.html', this)">
+        <span class="nav-dot"></span> Deployment Requirements
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-dashboard.html', this)">
+        <span class="nav-dot"></span> Agent Dashboard
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-register-step4.html', this)">
+        <span class="nav-dot"></span> Under Review</div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-verified.html', this)">
+        <span class="nav-dot"></span> Agent Verified
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-rejected.html', this)">
+        <span class="nav-dot"></span> Agent Rejected
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-home.html', this)">
+        <span class="nav-dot"></span> Agent Home
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/agent-order-confirm.html', this)">
+        <span class="nav-dot"></span> Order Confirmation
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/job-marketplace.html', this)">
+        <span class="nav-dot"></span> Job Marketplace
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/job-detail.html', this)">
+        <span class="nav-dot"></span> Job Detail &amp; Accept
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/earnings.html', this)">
+        <span class="nav-dot"></span> Earnings
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/mission-chat.html', this)">
+        <span class="nav-dot"></span> Mission Group Chat
+      </div>
+
+      <div class="sidebar-section">Ops Command</div>
+      <div class="nav-item" onclick="loadScreen('screens/ops-dashboard.html', this)">
+        <span class="nav-dot"></span> Ops Dashboard
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/ops-mission-detail.html', this)">
+        <span class="nav-dot"></span> Mission Detail &amp; Assign
+      </div>
+
+      <div class="sidebar-section">Bravo Pro</div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-landing.html', this)">
+        <span class="nav-dot"></span> Pro Landing / Subscribe
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-retainers.html', this)">
+        <span class="nav-dot"></span> Retainer Selection
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-team-config.html', this)">
+        <span class="nav-dot"></span> Team Config (Gender/Drivers)
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-client-profile.html', this)">
+        <span class="nav-dot"></span> Client Profile
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-itinerary.html', this)">
+        <span class="nav-dot"></span> Itinerary Upload
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-ai-scheduling.html', this)">
+        <span class="nav-dot"></span> AI Scheduling
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-risk-review.html', this)">
+        <span class="nav-dot"></span> Risk Review
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-assigned-team.html', this)">
+        <span class="nav-dot"></span> Assigned Team
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-live-mission.html', this)">
+        <span class="nav-dot"></span> Live Mission Monitor
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/bravo-pro-activity-history.html', this)">
+        <span class="nav-dot"></span> Activity &amp; INTEL
+      </div>
+
+      <div class="sidebar-section">Profiles</div>
+      <div class="nav-item" onclick="loadScreen('screens/individual-profile.html', this)">
+        <span class="nav-dot"></span> Individual Profile
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/corporate-profile.html', this)">
+        <span class="nav-dot"></span> Corporate Profile
+      </div>
+
+      <div class="sidebar-section">Department Channels</div>
+      <div class="nav-item" onclick="loadScreen('screens/department-channels.html', this)">
+        <span class="nav-dot"></span> Channels Hub
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/department-chat.html', this)">
+        <span class="nav-dot"></span> Channel Chat
+      </div>
+
+      <div class="sidebar-section">News</div>
+      <div class="nav-item" onclick="loadScreen('screens/news-hub.html', this)">
+        <span class="nav-dot"></span> News Hub
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/news-preferences.html', this)">
+        <span class="nav-dot"></span> News Preferences
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/news-feed.html', this)">
+        <span class="nav-dot"></span> Regional News Feed
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/news-article.html', this)">
+        <span class="nav-dot"></span> Article Detail
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/news-ads-cyber.html', this)">
+        <span class="nav-dot"></span> GEO Ad - Cyber
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/news-ads-jv.html', this)">
+        <span class="nav-dot"></span> GEO JV Adverts
+      </div>
+
+      <div class="sidebar-section">Virtual Bodyguard (VBG)</div>
+      <div class="nav-item" onclick="loadScreen('screens/vbg-home.html', this)">
+        <span class="nav-dot"></span> GeoRisk
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/intel-feed.html', this)">
+        <span class="nav-dot"></span> News Feed
+      </div>
+      <div class="nav-item" onclick="loadScreen('screens/messenger-home.html', this)">
+        <span class="nav-dot"></span> Messenger
+      </div>
+
+      <div class="sidebar-section">More</div>
+      <div class="nav-item" onclick="loadScreen('screens/profile.html', this)">
+        <span class="nav-dot"></span> Profile / Settings
+      </div>
+    </nav>
+
+    <!-- Phone Preview -->
+    <div class="preview-area">
+      <div class="device-label" id="device-label">iPhone 14 Pro · 393 × 852</div>
+      <div class="phone-wrapper" id="phone-wrapper">
+        <div class="phone" id="phone-frame">
+          <div class="phone-screen">
+            <div class="dynamic-island"></div>
+            <div class="status-bar">
+              <span class="status-time">9:41</span>
+              <div class="status-icons">
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+                  <rect x="0" y="8" width="3" height="4" rx="0.5" fill="currentColor"/>
+                  <rect x="4.5" y="5" width="3" height="7" rx="0.5" fill="currentColor"/>
+                  <rect x="9" y="2" width="3" height="10" rx="0.5" fill="currentColor"/>
+                  <rect x="13.5" y="0" width="2.5" height="12" rx="0.5" fill="currentColor" opacity="0.3"/>
+                </svg>
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+                  <path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" fill="currentColor"/>
+                  <path d="M3.5 6.5C5 5 6.4 4.2 8 4.2s3 .8 4.5 2.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                  <path d="M1 3.8C3.2 1.6 5.5.5 8 .5s4.8 1.1 7 3.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+                </svg>
+                <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+                  <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="currentColor" stroke-opacity="0.35"/>
+                  <rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/>
+                  <path d="M23 4v4a2 2 0 000-4z" fill="currentColor" opacity="0.4"/>
+                </svg>
+              </div>
+            </div>
+            <iframe id="screen-iframe" class="screen-iframe" src="screens/splash.html" title="Screen Preview"></iframe>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel (desktop only) -->
+    <div class="right-panel">
+      <div>
+        <div class="panel-title">Device</div>
+        <div class="device-switcher">
+          <button class="device-btn active" onclick="setDevice('ios', this)">iOS</button>
+          <button class="device-btn" onclick="setDevice('android', this)">Android</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="panel-title">Current Screen</div>
+        <div class="info-row">
+          <span class="info-label">Name</span>
+          <span class="info-value gold" id="info-name">Splash</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Route</span>
+          <span class="info-value" id="info-route">Auth/Splash</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="badge badge-done" id="info-status">✓ Done</span>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="panel-title">Progress</div>
+        <div class="info-row"><span class="info-label">Auth</span><span class="info-value">3 / 6</span></div>
+        <div class="info-row"><span class="info-label">Booking</span><span class="info-value">0 / 7</span></div>
+        <div class="info-row"><span class="info-label">Bravo Secure Lite</span><span class="info-value">3 / 5</span></div>
+        <div class="info-row"><span class="info-label">Agent</span><span class="info-value">0 / 3</span></div>
+        <div class="info-row"><span class="info-label">Live Ops</span><span class="info-value">0 / 2</span></div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div class="panel-title">Brand Tokens</div>
+        <div class="info-row">
+          <span class="info-label">Primary</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#2563EB;display:inline-block"></span>
+            <span class="info-value">#2563EB</span>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Background</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#0A0F1E;border:1px solid #333;display:inline-block"></span>
+            <span class="info-value">#0A0F1E</span>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Danger / SOS</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#ff3b3b;display:inline-block"></span>
+            <span class="info-value">#FF3B3B</span>
+          </span>
+        </div>
+        <div class="info-row"><span class="info-label">Font</span><span class="info-value">Manrope</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mobile bottom bar -->
+  <div class="mobile-bar">
+    <div>
+      <div class="mobile-bar-name" id="mobile-name">Splash</div>
+      <div class="mobile-bar-route" id="mobile-route">Auth/Splash</div>
+    </div>
+    <div class="mobile-bar-right">
+      <span class="badge badge-done" id="mobile-status">✓ Done</span>
+      <div class="device-switcher" style="gap:5px">
+        <button class="device-btn active" onclick="setDevice('ios', this)" style="padding:4px 8px;font-size:10px;">iOS</button>
+        <button class="device-btn" onclick="setDevice('android', this)" style="padding:4px 8px;font-size:10px;">And</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const screenMeta = {
+      'screens/splash.html':             { name: 'Splash',            route: 'Auth/Splash',            status: 'done' },
+      'screens/onboarding.html':         { name: 'Path Selection',    route: 'Auth/PathSelection',     status: 'done' },
+      'screens/login.html':              { name: 'Login',             route: 'Auth/Login',             status: 'done' },
+      'screens/register.html':           { name: 'Register',          route: 'Auth/Register',          status: 'done' },
+      'screens/otp.html':                { name: 'Verify Identity',   route: 'Auth/VerifyIdentity',    status: 'done' },
+      'screens/role-selection.html':     { name: 'Role Selection',    route: 'Auth/RoleSelection',     status: 'done'  },
+      'screens/agent-type-select.html':    { name: 'Agent Type Select',    route: 'Agent/TypeSelect',       status: 'done' },
+      'screens/agent-register-wizard.html':{ name: 'Registration Wizard',   route: 'Agent/Register/Wizard',  status: 'done' },
+      'screens/agent-kyc.html':            { name: 'KYC Verification',       route: 'Agent/KYC',              status: 'done' },
+      'screens/agent-coverage.html':       { name: 'Coverage & Services',    route: 'Agent/Coverage',         status: 'done' },
+      'screens/agent-availability.html':   { name: 'Availability Setup',     route: 'Agent/Availability',     status: 'done' },
+      'screens/agent-register-step4.html': { name: 'Under Review',           route: 'Agent/UnderReview',      status: 'done' },
+      'screens/agent-verified.html':      { name: 'Agent Verified',           route: 'Agent/Verified',         status: 'done' },
+      'screens/agent-rejected.html':      { name: 'Agent Rejected',           route: 'Agent/Rejected',         status: 'done' },
+      'screens/agent-docs-upload.html':    { name: 'Document Upload',          route: 'Agent/DocsUpload',       status: 'done' },
+      'screens/agent-admin-approval.html': { name: 'Admin Approval',           route: 'Agent/AdminApproval',    status: 'done' },
+      'screens/agent-deployment-requirements.html': { name: 'Deployment Requirements', route: 'Agent/Deployment', status: 'done' },
+      'screens/agent-dashboard.html':      { name: 'Agent Dashboard',          route: 'Agent/Dashboard',        status: 'done' },
+      'screens/permissions.html':        { name: 'App Permissions',   route: 'Auth/Permissions',       status: 'done' },
+      'screens/home-selection.html':     { name: 'Home Selection',    route: 'Auth/HomeSelection',     status: 'done' },
+      'screens/profile-completion.html': { name: 'Profile Completion',route: 'Auth/ProfileCompletion', status: 'done' },
+      'screens/dashboard.html':          { name: 'Dashboard',         route: 'Main/Dashboard',         status: 'done' },
+      'screens/messenger-home.html':     { name: 'Conversations',     route: 'BravoSecureLite/Home',         status: 'done' },
+      'screens/chat.html':               { name: 'Chat',              route: 'BravoSecureLite/Chat',         status: 'done' },
+      'screens/call.html':               { name: 'Video Call',        route: 'BravoSecureLite/VideoCall',    status: 'done' },
+      'screens/voice-call.html':         { name: 'Voice Call',        route: 'BravoSecureLite/VoiceCall',    status: 'done' },
+      'screens/chat-info.html':          { name: 'Chat Info',         route: 'BravoSecureLite/ChatInfo',     status: 'done' },
+      'screens/group-info.html':         { name: 'Group Chat',        route: 'BravoSecureLite/GroupChat',    status: 'done' },
+      'screens/new-message.html':        { name: 'New Message',       route: 'BravoSecureLite/NewMessage',   status: 'done' },
+      'screens/groups.html':             { name: 'Groups Tab',        route: 'BravoSecureLite/Groups',       status: 'done' },
+      'screens/calls-log.html':          { name: 'Calls Log',         route: 'BravoSecureLite/CallsLog',     status: 'done' },
+      'screens/files.html':              { name: 'Files Tab',         route: 'BravoSecureLite/Files',        status: 'done' },
+      'screens/vault-lock.html':         { name: 'Vault Lock',        route: 'Vault/Lock',             status: 'done' },
+      'screens/vault-forgot.html':       { name: 'Vault — Forgot PIN', route: 'Vault/ForgotPIN',       status: 'done' },
+      'screens/vault-otp-verify.html':   { name: 'Vault — OTP Verify', route: 'Vault/OTPVerify',      status: 'done' },
+      'screens/vault-new-pin.html':      { name: 'Vault — New PIN',   route: 'Vault/NewPIN',           status: 'done' },
+      'screens/vault.html':              { name: 'Personal Vault',    route: 'Vault/Personal',         status: 'done' },
+      'screens/file-vault-purchase.html':{ name: 'File Vault Storage', route: 'BravoSecureLite/FileVaultPurchase', status: 'done' },
+      'screens/credits.html':            { name: 'Bravo Credits',      route: 'Wallet/Credits',          status: 'done' },
+      'screens/zone-map.html':           { name: 'Zone Map',              route: 'BravoLite/ZoneMap',      status: 'done' },
+      'screens/service-type.html':       { name: 'Service Type',          route: 'BravoLite/ServiceType',  status: 'done' },
+      'screens/baseline-package.html':   { name: 'Baseline Package',      route: 'BravoLite/Baseline',     status: 'done' },
+      'screens/customize-addons.html':   { name: 'Team & Add-Ons',        route: 'BravoLite/AddOns',       status: 'done' },
+      'screens/ops-room-review.html':    { name: 'Ops Room Review',       route: 'BravoLite/OpsReview',    status: 'done' },
+      'screens/payment.html':            { name: 'Pricing & Payment',     route: 'BravoLite/Payment',      status: 'done' },
+      'screens/credit-paywall.html':     { name: 'Credit Paywall',        route: 'BravoLite/CreditPaywall', status: 'done' },
+      'screens/confirmation.html':       { name: 'Booking Confirmation',  route: 'BravoLite/Confirmation', status: 'done' },
+      'screens/live-tracking.html':      { name: 'Live Tracking',     route: 'LiveOps/Tracking',       status: 'done' },
+      'screens/sos.html':                { name: 'SOS',               route: 'LiveOps/SOS',            status: 'done' },
+      'screens/news-article.html':       { name: 'News Article',      route: 'Main/NewsArticle',       status: 'done' },
+      'screens/agent-dashboard.html':    { name: 'Agent Dashboard',   route: 'Agent/Dashboard',        status: 'done' },
+      'screens/bravo-pro-landing.html':      { name: 'Pro — Subscribe',       route: 'BravoPro/Landing',       status: 'done' },
+      'screens/bravo-pro-retainers.html':    { name: 'Pro — Retainers',       route: 'BravoPro/Retainers',     status: 'done' },
+      'screens/bravo-pro-client-profile.html':{ name: 'Pro — Client Profile', route: 'BravoPro/ClientProfile', status: 'done' },
+      'screens/bravo-pro-itinerary.html':    { name: 'Pro — Itinerary',       route: 'BravoPro/Itinerary',     status: 'done' },
+      'screens/bravo-pro-ai-scheduling.html':{ name: 'Pro — AI Scheduling',   route: 'BravoPro/AIScheduling',  status: 'done' },
+      'screens/bravo-pro-risk-review.html':  { name: 'Pro — Risk Review',     route: 'BravoPro/RiskReview',    status: 'done' },
+      'screens/bravo-pro-assigned-team.html':{ name: 'Pro — Assigned Team',   route: 'BravoPro/AssignedTeam',  status: 'done' },
+      'screens/bravo-pro-live-mission.html': { name: 'Pro — Live Mission',    route: 'BravoPro/LiveMission',   status: 'done' },
+      'screens/bravo-pro-activity-history.html':{ name: 'Pro — Activity & INTEL', route: 'BravoPro/ActivityHistory', status: 'done' },
+      'screens/bravo-pro-team-config.html':  { name: 'Pro — Team Config',      route: 'BravoPro/TeamConfig',     status: 'done' },
+      'screens/individual-profile.html':     { name: 'Individual Profile',      route: 'Profile/Individual',      status: 'done' },
+      'screens/corporate-profile.html':      { name: 'Corporate Profile',       route: 'Profile/Corporate',       status: 'done' },
+      'screens/department-channels.html':    { name: 'Dept Channels Hub',       route: 'Dept/Channels',           status: 'done' },
+      'screens/department-chat.html':        { name: 'Dept Channel Chat',       route: 'Dept/Chat',               status: 'done' },
+      'screens/news-hub.html':             { name: 'News Hub',           route: 'News/Hub',               status: 'done' },
+      'screens/news-preferences.html':     { name: 'News Preferences',   route: 'News/Preferences',       status: 'done' },
+      'screens/news-ads-cyber.html':       { name: 'GEO Ad - Cyber',     route: 'News/AdCyber',           status: 'done' },
+      'screens/news-ads-jv.html':          { name: 'GEO JV Adverts',     route: 'News/AdJV',              status: 'done' },
+      'screens/agent-order-confirm.html': { name: 'Order Confirmation', route: 'Agent/OrderConfirm',    status: 'done' },
+      'screens/agent-home.html':          { name: 'Agent Home',         route: 'Agent/Home',             status: 'done' },
+      'screens/job-marketplace.html':    { name: 'Job Marketplace',   route: 'Agent/Jobs',             status: 'done' },
+      'screens/job-detail.html':         { name: 'Job Detail',         route: 'Agent/JobDetail',        status: 'done' },
+      'screens/earnings.html':           { name: 'Earnings',          route: 'Agent/Earnings',         status: 'done' },
+      'screens/mission-chat.html':       { name: 'Mission Chat',      route: 'Agent/MissionChat',      status: 'done' },
+      'screens/ops-dashboard.html':      { name: 'Ops Dashboard',     route: 'Ops/Command',            status: 'done' },
+      'screens/ops-mission-detail.html': { name: 'Ops Mission Detail', route: 'Ops/MissionDetail',     status: 'done' },
+      'screens/news-feed.html':          { name: 'Intel Feed',        route: 'Main/News',              status: 'done' },
+      'screens/profile.html':            { name: 'Profile / Drawer',  route: 'Main/Profile',           status: 'done' },
+    };
+
+    function loadScreen(src, el) {
+      document.getElementById('screen-iframe').src = src;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+
+      const meta = screenMeta[src] || { name: src, route: src, status: 'todo' };
+      const badgeClass = meta.status === 'done' ? 'badge-done' : meta.status === 'wip' ? 'badge-wip' : 'badge-todo';
+      const badgeText  = meta.status === 'done' ? '✓ Done' : meta.status === 'wip' ? '⋯ In Progress' : '○ To Do';
+
+      // Update desktop right panel
+      document.getElementById('info-name').textContent  = meta.name;
+      document.getElementById('info-route').textContent = meta.route;
+      const badge = document.getElementById('info-status');
+      badge.className = 'badge ' + badgeClass;
+      badge.textContent = badgeText;
+
+      // Update mobile bar
+      document.getElementById('mobile-name').textContent  = meta.name;
+      document.getElementById('mobile-route').textContent = meta.route;
+      const mbadge = document.getElementById('mobile-status');
+      mbadge.className = 'badge ' + badgeClass;
+      mbadge.textContent = badgeText;
+
+      closeSidebar();
+    }
+
+    function setDevice(type, btn) {
+      document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+      // activate both buttons with same type (desktop + mobile bar)
+      document.querySelectorAll('.device-btn').forEach(b => {
+        if ((type === 'ios' && b.textContent.trim() === 'iOS') ||
+            (type === 'android' && (b.textContent.trim() === 'Android' || b.textContent.trim() === 'And'))) {
+          b.classList.add('active');
+        }
+      });
+      const label = document.getElementById('device-label');
+      const phone = document.getElementById('phone-frame');
+      if (type === 'android') {
+        phone.style.borderRadius = '28px';
+        label.textContent = 'Android · 360 × 800';
+      } else {
+        phone.style.borderRadius = '46px';
+        label.textContent = 'iPhone 14 Pro · 393 × 852';
+      }
+      scalePhone();
+    }
+
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebar-overlay').classList.add('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('open');
+    }
+
+    function scalePhone() {
+      const wrapper = document.getElementById('phone-wrapper');
+      const area    = document.querySelector('.preview-area');
+      const phone   = document.getElementById('phone-frame');
+      const areaH   = area.clientHeight - 60;
+      const areaW   = area.clientWidth  - 40;
+      const phoneH  = phone.offsetHeight;
+      const phoneW  = phone.offsetWidth;
+      const scale   = Math.min(1, areaH / phoneH, areaW / phoneW);
+      wrapper.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', scalePhone);
+    window.addEventListener('load',   scalePhone);
+  </script>
+</body>
+</html>

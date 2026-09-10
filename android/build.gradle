@@ -1,0 +1,98 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+  ext {
+    // Pin play-services-location so the `FusedLocationProviderClient` kind
+    // (class vs interface) stays consistent across firebase-messaging and
+    // react-native-geolocation-service. Without this, geolocation-service
+    // falls back to 18.0.0 (class) while firebase pulls 21.x (interface)
+    // → runtime `IncompatibleClassChangeError` on Locate Me.
+    playServicesLocationVersion = "21.3.0"
+    googlePlayServicesVersion   = "21.3.0"
+  }
+
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath('com.android.tools.build:gradle')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    // Google Services Gradle plugin — reads google-services.json and
+    // generates the resources Firebase SDKs need at runtime (project id,
+    // sender id, API key, app id). Required for FCM push wake-ups so
+    // group/1:1 ring frames can wake locked phones.
+    classpath('com.google.gms:google-services:4.4.4')
+    // Firebase App Distribution — uploads release APKs to a tester
+    // group with one Gradle task. Avoids the manual "build APK → upload
+    // to Drive → paste link in WhatsApp" loop. Run with:
+    //   ./gradlew assembleRelease appDistributionUploadRelease
+    // Auth for the upload comes from FIREBASE_SERVICE_ACCOUNT env var
+    // (path to the service-account JSON we already use for FCM admin).
+    classpath('com.google.firebase:firebase-appdistribution-gradle:5.0.0')
+    // Crashlytics gradle plugin — uploads native + JS symbol mappings
+    // (deobfuscation files, NDK symbols) to Firebase so stack traces
+    // in the Crashlytics dashboard are deobfuscated automatically.
+    // Without this plugin we'd see `a.b.c -> :42` from R8/Hermes
+    // instead of `MessengerRuntime.sendText -> :142`.
+    classpath('com.google.firebase:firebase-crashlytics-gradle:3.0.7')
+  }
+}
+
+allprojects {
+  repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+    // Notifee — newer versions of @notifee/react-native ship the
+    // `app.notifee:core` AAR directly inside the package's
+    // android/libs directory (the old `notifee.app/build/maven`
+    // remote returns 404 / is unreachable from many networks). Point
+    // Gradle at the bundled local repo so the artifact resolves
+    // offline + survives notifee.app outages.
+    maven { url "${rootProject.projectDir}/../node_modules/@notifee/react-native/android/libs" }
+  }
+
+  configurations.all {
+    resolutionStrategy {
+      force "com.google.android.gms:play-services-location:21.3.0"
+    }
+  }
+}
+
+// @generated begin @rnmapbox/maps-v2-maven — added BY HAND, deliberately.
+//
+// Why not `expo prebuild`: prebuild regenerates MainApplication.kt from the
+// Expo template, which would DELETE the five hand-registered native packages
+// (BravoFrameCryptorPackage, BravoCallForegroundPackage, BravoRingtonePackage,
+// BravoBatteryOptimizationPackage, BravoCallVolumePackage). None of them is
+// injected by a config plugin, so a prebuild silently breaks E2EE call frame
+// crypto, the call foreground service, ringtones, battery optimisation and
+// call volume. This block is byte-equivalent to what the @rnmapbox/maps plugin
+// would have written, so a future prebuild is idempotent rather than a
+// conflict.
+//
+// The token is OPTIONAL — Mapbox dropped the download-token requirement for
+// the Maps SDK (see node_modules/@rnmapbox/maps/plugin/build/withMapbox.js).
+// When supplied it must come from ~/.gradle/gradle.properties or the
+// environment, NEVER from android/gradle.properties, which is tracked in git.
+allprojects {
+  repositories {
+    maven {
+      url 'https://api.mapbox.com/downloads/v2/releases/maven'
+      def token = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: System.getenv('RNMAPBOX_MAPS_DOWNLOAD_TOKEN')
+      if (token) {
+        authentication { basic(BasicAuthentication) }
+        credentials {
+          username = 'mapbox'
+          password = token
+        }
+      }
+    }
+  }
+}
+// @generated end @rnmapbox/maps-v2-maven
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"

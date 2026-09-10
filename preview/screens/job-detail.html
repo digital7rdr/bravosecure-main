@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "primary":"#7C3AED","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .fu1{animation:fade-up 0.35s ease 0.05s both;}
+  .fu2{animation:fade-up 0.35s ease 0.15s both;}
+  .fu3{animation:fade-up 0.35s ease 0.25s both;}
+  .fu4{animation:fade-up 0.35s ease 0.35s both;}
+  .fu5{animation:fade-up 0.35s ease 0.45s both;}
+
+  /* Route animation */
+  @keyframes dash { to{stroke-dashoffset:0} }
+  .route-dash { stroke-dasharray:180; stroke-dashoffset:180; animation:dash 1.8s ease 0.6s forwards; }
+
+  /* Moving dot along route */
+  @keyframes move-car {
+    0%{offset-distance:0%} 100%{offset-distance:100%}
+  }
+
+  /* Timer pulse */
+  @keyframes timer-pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .timer-pulse { animation:timer-pulse 1s ease-in-out infinite; }
+
+  /* Accept button press */
+  .accept-btn:active { transform:scale(0.97); }
+  .decline-btn:active { transform:scale(0.97); }
+
+  /* Accepted state */
+  @keyframes pop { 0%{transform:scale(0.8)} 60%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  .pop { animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h2 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Job #BR-8829</h2>
+  <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">more_vert</span>
+  </button>
+</header>
+
+<main class="flex-1 overflow-y-auto px-5 pb-32">
+
+  <!-- Map visual -->
+  <div class="fu1 rounded-2xl overflow-hidden mb-4" style="background:#0D1929;border:1px solid #1E2D45">
+    <svg width="100%" height="160" viewBox="0 0 340 160" preserveAspectRatio="xMidYMid slice">
+      <!-- Dark map bg -->
+      <rect width="340" height="160" fill="#080E1C"/>
+      <!-- Grid -->
+      <line x1="0" y1="40" x2="340" y2="40" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="0" y1="80" x2="340" y2="80" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="0" y1="120" x2="340" y2="120" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="68" y1="0" x2="68" y2="160" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="136" y1="0" x2="136" y2="160" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="204" y1="0" x2="204" y2="160" stroke="#0F1E35" stroke-width="1"/>
+      <line x1="272" y1="0" x2="272" y2="160" stroke="#0F1E35" stroke-width="1"/>
+      <!-- Roads (major) -->
+      <rect x="0" y="74" width="340" height="12" fill="#0D1929" rx="2"/>
+      <rect x="130" y="0" width="12" height="160" fill="#0D1929" rx="2"/>
+      <rect x="200" y="0" width="10" height="160" fill="#0D1929" rx="2"/>
+      <!-- Road markings -->
+      <line x1="0" y1="80" x2="340" y2="80" stroke="rgba(30,45,69,0.8)" stroke-width="1" stroke-dasharray="16 10"/>
+      <!-- Route path (curved) -->
+      <path id="route-path" d="M40,80 C80,80 100,50 140,50 C180,50 200,80 240,80 C270,80 295,65 310,80" stroke="#7C3AED" stroke-width="2.5" fill="none" class="route-dash" stroke-linecap="round"/>
+      <!-- Origin -->
+      <circle cx="40" cy="80" r="7" fill="#7C3AED"/>
+      <circle cx="40" cy="80" r="12" fill="rgba(124,58,237,0.2)" class="pulse-dot"/>
+      <text x="40" y="102" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Manrope" font-weight="700">Mayfair</text>
+      <!-- Destination -->
+      <circle cx="310" cy="80" r="7" fill="#a78bfa"/>
+      <circle cx="310" cy="80" r="12" fill="rgba(167,139,250,0.2)"/>
+      <text x="310" y="102" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Manrope" font-weight="700">St James</text>
+      <!-- Moving asset dot (at 68% of path) -->
+      <circle cx="230" cy="80" r="5" fill="white"/>
+      <circle cx="230" cy="80" r="9" fill="rgba(255,255,255,0.15)"/>
+      <!-- Buildings silhouette -->
+      <rect x="60" y="55" width="18" height="18" fill="rgba(13,25,41,0.8)"/>
+      <rect x="82" y="50" width="12" height="23" fill="rgba(13,25,41,0.8)"/>
+      <rect x="98" y="57" width="22" height="16" fill="rgba(13,25,41,0.8)"/>
+      <rect x="240" y="53" width="14" height="20" fill="rgba(13,25,41,0.8)"/>
+      <rect x="258" y="48" width="10" height="25" fill="rgba(13,25,41,0.8)"/>
+      <rect x="272" y="55" width="18" height="18" fill="rgba(13,25,41,0.8)"/>
+      <!-- Corner brackets -->
+      <path d="M8,8 L8,20 M8,8 L20,8" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M332,8 L332,20 M332,8 L320,8" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M8,152 L8,140 M8,152 L20,152" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M332,152 L332,140 M332,152 L320,152" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Distance label -->
+      <rect x="132" y="32" width="80" height="16" rx="8" fill="rgba(124,58,237,0.2)" stroke="rgba(124,58,237,0.4)" stroke-width="1"/>
+      <text x="172" y="43" text-anchor="middle" font-size="9" fill="#a78bfa" font-family="Manrope" font-weight="700">3.2 km · 14 min</text>
+    </svg>
+  </div>
+
+  <!-- Timer banner -->
+  <div class="fu2 flex items-center justify-center gap-3 p-3 rounded-xl mb-4" style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3)">
+    <span class="material-symbols-outlined text-amber-400 timer-pulse" style="font-size:20px">timer</span>
+    <p class="text-amber-400 font-bold text-sm">Accept within <span id="countdown" class="tabular-nums">00:12:45</span></p>
+  </div>
+
+  <!-- Job brief card -->
+  <div class="fu3 rounded-2xl overflow-hidden mb-4" style="background:#0D1929;border-left:3px solid #7C3AED;border-top:1px solid #1E2D45;border-right:1px solid #1E2D45;border-bottom:1px solid #1E2D45">
+    <div class="p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2" style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3)">High Priority</span>
+          <h3 class="text-lg font-extrabold text-slate-100">Professional Security Detail</h3>
+        </div>
+        <div class="text-right shrink-0 ml-3">
+          <p class="text-[10px] uppercase font-bold text-slate-500">Payout</p>
+          <p class="text-2xl font-extrabold" style="color:#D4AF37">1,175 credits</p>
+        </div>
+      </div>
+
+      <!-- Detail grid -->
+      <div class="grid grid-cols-2 gap-3 pt-3" style="border-top:1px solid #1E2D45">
+        <div class="flex items-center gap-2.5">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.12)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#a78bfa">calendar_today</span>
+          </div>
+          <div>
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Date</p>
+            <p class="text-xs font-bold text-slate-200">Mon, 18 March</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.12)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#a78bfa">schedule</span>
+          </div>
+          <div>
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Duration</p>
+            <p class="text-xs font-bold text-slate-200">8 Hours</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.12)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#a78bfa">location_on</span>
+          </div>
+          <div>
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Location</p>
+            <p class="text-xs font-bold text-slate-200">Mayfair District</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.12)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#a78bfa">shield_person</span>
+          </div>
+          <div>
+            <p class="text-[9px] text-slate-500 font-bold uppercase">Type</p>
+            <p class="text-xs font-bold text-slate-200">Close Protection</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client row -->
+      <div class="flex items-center gap-3 mt-3 pt-3" style="border-top:1px solid #1E2D45">
+        <div class="size-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);color:white">AL</div>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-slate-200">Abdullah Al-Rashid</p>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined filled text-amber-400" style="font-size:12px">star</span>
+            <span class="text-[10px] text-slate-400 font-semibold">4.9 · 47 assignments</span>
+          </div>
+        </div>
+        <span class="px-2 py-1 rounded-full text-[9px] font-bold uppercase" style="background:rgba(212,175,55,0.12);color:#D4AF37;border:1px solid rgba(212,175,55,0.25)">VIP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requirements -->
+  <div class="fu4 mb-4">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 px-1">Job Requirements</p>
+    <div class="rounded-xl overflow-hidden" style="background:#0D1929;border:1px solid #1E2D45">
+      <div class="flex items-start gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <span class="material-symbols-outlined filled text-emerald-400 shrink-0 mt-0.5" style="font-size:18px">check_circle</span>
+        <p class="text-sm text-slate-300 leading-relaxed">Must have active SIA license and formal attire (Suit &amp; Tie).</p>
+      </div>
+      <div class="flex items-start gap-3 px-4 py-3.5 border-b" style="border-color:#1E2D45">
+        <span class="material-symbols-outlined filled text-emerald-400 shrink-0 mt-0.5" style="font-size:18px">check_circle</span>
+        <p class="text-sm text-slate-300 leading-relaxed">Provide transport for the client between 09:00–11:00 AM.</p>
+      </div>
+      <div class="flex items-start gap-3 px-4 py-3.5">
+        <span class="material-symbols-outlined filled text-emerald-400 shrink-0 mt-0.5" style="font-size:18px">check_circle</span>
+        <p class="text-sm text-slate-300 leading-relaxed">Communication via encrypted radio channels (provided on-site).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payout breakdown -->
+  <div class="fu5 p-4 rounded-xl" style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2)">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="material-symbols-outlined filled" style="font-size:16px;color:#D4AF37">payments</span>
+      <p class="text-[10px] font-bold uppercase tracking-widest" style="color:#D4AF37">Payout Breakdown</p>
+    </div>
+    <div class="space-y-2">
+      <div class="flex justify-between">
+        <p class="text-xs text-slate-400">Base rate (8h × 120 cr/hr)</p>
+        <p class="text-xs font-bold text-slate-200">960 cr</p>
+      </div>
+      <div class="flex justify-between">
+        <p class="text-xs text-slate-400">Priority bonus</p>
+        <p class="text-xs font-bold text-emerald-400">+150 cr</p>
+      </div>
+      <div class="flex justify-between">
+        <p class="text-xs text-slate-400">Platform fee</p>
+        <p class="text-xs font-bold text-red-400">−96 cr</p>
+      </div>
+      <div class="flex justify-between pt-2" style="border-top:1px solid rgba(212,175,55,0.2)">
+        <p class="text-xs font-bold text-slate-300">Total payout</p>
+        <p class="text-sm font-extrabold" style="color:#D4AF37">1,014 credits</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer: Decline + Accept -->
+<footer class="fixed bottom-0 left-0 right-0 px-5 pb-6 pt-3 flex gap-3" style="background:linear-gradient(to top,#0A0F1E 75%,transparent)">
+  <button id="decline-btn" onclick="declineJob()" class="decline-btn flex-1 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.3);color:#f87171">
+    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+    Decline
+  </button>
+  <button id="accept-btn" onclick="acceptJob()" class="accept-btn flex-[2] py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all" style="background:linear-gradient(160deg,#9333ea,#7C3AED,#5b21b6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 18px rgba(124,58,237,0.35),0 1px 3px rgba(0,0,0,0.3);color:white;letter-spacing:0.04em">
+    <span class="material-symbols-outlined" style="font-size:18px">check</span>
+    Accept Job
+  </button>
+</footer>
+
+<script>
+  // Countdown timer
+  let totalSeconds = 12 * 60 + 45;
+  const countdown = document.getElementById('countdown');
+  const timer = setInterval(() => {
+    if (totalSeconds <= 0) { clearInterval(timer); countdown.textContent = '00:00:00'; return; }
+    totalSeconds--;
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2,'0');
+    const s = (totalSeconds % 60).toString().padStart(2,'0');
+    countdown.textContent = `00:${m}:${s}`;
+  }, 1000);
+
+  function acceptJob() {
+    const btn = document.getElementById('accept-btn');
+    btn.innerHTML = '<svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Confirming...';
+    btn.style.pointerEvents = 'none';
+    setTimeout(() => {
+      clearInterval(timer);
+      btn.innerHTML = '<span class="material-symbols-outlined filled pop" style="font-size:18px">check_circle</span>Job Accepted!';
+      btn.style.background = 'linear-gradient(135deg,#16a34a,#15803d)';
+      btn.style.boxShadow = '0 8px 24px rgba(34,197,94,0.35)';
+      document.getElementById('decline-btn').style.display = 'none';
+      setTimeout(() => {
+        if(window.parent && window.parent.loadScreen){
+          const nav = window.parent.document.querySelector('[onclick*="mission-chat"]')||
+                      window.parent.document.querySelector('.nav-item.active');
+          window.parent.loadScreen('screens/mission-chat.html', nav||document.createElement('div'));
+        }
+      }, 1200);
+    }, 1500);
+  }
+
+  function declineJob() {
+    goBack();
+  }
+
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="job-marketplace"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/job-marketplace.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

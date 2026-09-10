@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"bg-dark":"#0A0F1E",surface:"#0D1929","border-dim":"#1E2D45"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .section-card{background:#0D1929;border:1px solid #1E2D45;border-radius:1rem;overflow:hidden;cursor:pointer;transition:border-color 0.15s;}
+  .section-card:active{opacity:0.85;}
+  .mini-article{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1E2D45;}
+  .mini-article:last-child{border-bottom:none;}
+  .browse-btn{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;margin:0 0 0 0;border-top:1px solid #1E2D45;font-size:11px;font-weight:800;letter-spacing:0.04em;color:#60a5fa;transition:background 0.15s;}
+  .browse-btn:active{background:rgba(37,99,235,0.07);}
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<header class="shrink-0 px-4 pt-[50px] pb-3 flex items-center justify-between" style="background:#0A0F1E;border-bottom:1px solid #1E2D45">
+  <div>
+    <p class="text-[9px] font-bold tracking-[0.2em] text-slate-600 uppercase">Bravo Messenger</p>
+    <h1 class="text-[20px] font-extrabold tracking-tight text-slate-100 mt-0.5">News Feed</h1>
+  </div>
+  <button onclick="nav('news-preferences.html')" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">tune</span>
+  </button>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-28 pt-4 space-y-3">
+
+  <!-- Bravo Intel Feed -->
+  <div class="section-card" onclick="nav('intel-feed.html')">
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#60a5fa">public</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-extrabold text-slate-100">Bravo Intel</p>
+            <p class="text-[10px] text-slate-500">Global intelligence · OSINT · Signals</p>
+          </div>
+        </div>
+        <span class="flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3)">
+          <span class="size-1.5 rounded-full inline-block animate-pulse" style="background:#22c55e"></span>LIVE
+        </span>
+      </div>
+      <!-- Mini wire items -->
+      <div class="mt-2 space-y-0">
+        <div class="mini-article">
+          <span style="font-size:7px;font-weight:800;padding:1px 4px;border-radius:2px;background:rgba(255,59,48,0.15);color:#FF3B30;border:1px solid rgba(255,59,48,0.3);letter-spacing:1px;flex-shrink:0;">CRIT</span>
+          <p class="text-[11px] text-slate-300 font-semibold flex-1 min-w-0 truncate">Ballistic alert — Red Sea corridor ACTIVE</p>
+        </div>
+        <div class="mini-article">
+          <span style="font-size:7px;font-weight:800;padding:1px 4px;border-radius:2px;background:rgba(255,184,0,0.12);color:#FFB800;border:1px solid rgba(255,184,0,0.3);letter-spacing:1px;flex-shrink:0;">HIGH</span>
+          <p class="text-[11px] text-slate-300 font-semibold flex-1 min-w-0 truncate">Riyadh protest zone — 400+ crowd, police deployed</p>
+        </div>
+      </div>
+    </div>
+    <div class="browse-btn" onclick="event.stopPropagation();nav('intel-feed.html')">
+      OPEN INTEL FEED
+      <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </div>
+  </div>
+
+  <!-- My Feed (personalised) -->
+  <div class="section-card" onclick="nav('news-feed.html')">
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#60a5fa">tune</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-extrabold text-slate-100">My Feed</p>
+            <p class="text-[10px] text-slate-500">Personalised by your preferences</p>
+          </div>
+        </div>
+        <button onclick="event.stopPropagation();nav('news-preferences.html')"
+          class="text-[9px] font-bold px-2 py-1 rounded-lg flex items-center gap-0.5 transition-colors"
+          style="background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2);color:#60a5fa">
+          <span class="material-symbols-outlined" style="font-size:12px">edit</span> EDIT
+        </button>
+      </div>
+
+      <!-- Active preference tags -->
+      <div id="pref-tags" class="flex flex-wrap gap-1.5 mb-3"></div>
+
+      <!-- Preview articles -->
+      <div id="feed-preview">
+        <div class="mini-article">
+          <span class="text-[8px] font-black px-1.5 py-0.5 rounded shrink-0" style="background:rgba(37,99,235,0.15);color:#93c5fd">UAE</span>
+          <p class="text-[11px] text-slate-300 font-semibold flex-1 min-w-0 truncate">UAE DIFC records highest Q1 volume in financial services</p>
+        </div>
+        <div class="mini-article">
+          <span class="text-[8px] font-black px-1.5 py-0.5 rounded shrink-0" style="background:rgba(37,99,235,0.15);color:#93c5fd">KSA</span>
+          <p class="text-[11px] text-slate-300 font-semibold flex-1 min-w-0 truncate">Saudi Aramco Q1 earnings beat forecast on energy demand</p>
+        </div>
+      </div>
+    </div>
+    <div class="browse-btn" onclick="event.stopPropagation();nav('news-feed.html')">
+      OPEN MY FEED
+      <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </div>
+  </div>
+
+  <!-- Advertisements -->
+  <div class="section-card" onclick="nav('news-ads-cyber.html')">
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#a78bfa">campaign</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-extrabold text-slate-100">Advertisements</p>
+            <p class="text-[10px] text-slate-500">Bravo Secure products · Partner offers</p>
+          </div>
+        </div>
+        <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3)">PARTNER</span>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">Earn commission on every subscription activated through in-app links.</p>
+    </div>
+    <div class="browse-btn" onclick="event.stopPropagation();nav('news-ads-cyber.html')">
+      BROWSE ALL
+      <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </div>
+  </div>
+
+  <!-- Bravo Services -->
+  <div class="section-card" onclick="nav('news-ads-jv.html')">
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <div class="size-8 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+            <span class="material-symbols-outlined filled" style="font-size:16px;color:#60a5fa">shield</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-extrabold text-slate-100">Bravo Services</p>
+            <p class="text-[10px] text-slate-500">Security · 3rd Party · Risk Assessments</p>
+          </div>
+        </div>
+        <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.3)">MEMBER</span>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">GEO JV partner opportunities across UAE, KSA, UK and East Africa.</p>
+    </div>
+    <div class="browse-btn" onclick="event.stopPropagation();nav('news-ads-jv.html')">
+      BROWSE ALL
+      <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- Virtual Body Guard -->
+<div class="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button class="w-full font-extrabold py-3.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#9333ea,#7C3AED,#5b21b6);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(124,58,237,0.3);color:white;letter-spacing:0.06em;font-size:0.82rem">
+    <span class="material-symbols-outlined filled" style="font-size:18px">shield_person</span>
+    VIRTUAL BODY GUARD
+  </button>
+</div>
+
+<script>
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+
+  // Render preference tags from saved prefs (or defaults)
+  (function renderPrefTags(){
+    const DEFAULT_TOPICS = ['Business','Finance','Security','Technology'];
+    const DEFAULT_REGIONS = ['UAE','KSA','GLOBAL'];
+    let topics = DEFAULT_TOPICS, regions = DEFAULT_REGIONS;
+    try {
+      const t = sessionStorage.getItem('news_topics');
+      const r = sessionStorage.getItem('news_regions');
+      if(t) topics = JSON.parse(t).slice(0,4);
+      if(r) regions = JSON.parse(r).map(x=>x.toUpperCase()).slice(0,3);
+    } catch(e){}
+    const container = document.getElementById('pref-tags');
+    if(!container) return;
+    const all = [...regions, ...topics];
+    container.innerHTML = all.map(tag =>
+      `<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:9999px;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);color:#93c5fd;letter-spacing:0.04em;">${tag}</span>`
+    ).join('');
+  })();
+</script>
+</body></html>

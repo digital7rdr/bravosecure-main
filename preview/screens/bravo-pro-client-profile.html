@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "pro":"#6366F1","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  .field-row {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 14px; border-radius:0.75rem;
+    background:#0D1929; border:1px solid #1E2D45;
+    transition: border-color 0.15s;
+  }
+  .field-row.editing { border-color:#6366F1; box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
+
+  /* Input always dark — override Tailwind forms plugin */
+  .field-edit {
+    background:#0D1929 !important;
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+    color:#f1f5f9 !important;
+    font-family:'Manrope',sans-serif !important;
+    font-size:0.875rem !important;
+    font-weight:500 !important;
+    width:100% !important;
+    padding:0 !important;
+    border-radius:0 !important;
+    cursor:default;
+    pointer-events:none;
+  }
+  .field-edit.active {
+    cursor:text;
+    pointer-events:auto;
+    color:#a5b4fc !important;
+  }
+
+  .edit-btn { cursor:pointer; transition:color 0.15s; flex-shrink:0; }
+  .edit-btn:hover { color:#6366F1; }
+  .edit-btn.active { color:#6366F1; }
+
+  .tab-btn { flex:1; padding:9px; border-radius:0.6rem; font-size:0.8125rem; font-weight:600; transition:all 0.2s; cursor:pointer; }
+  .tab-btn.active { background:#6366F1; color:white; }
+  .tab-btn:not(.active) { background:transparent; color:#64748b; }
+
+  .risk-bar { height:6px; border-radius:9999px; background:#1E2D45; overflow:hidden; }
+  .risk-fill { height:100%; border-radius:9999px; background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444); width:52%; transition:width 0.6s; }
+
+  .dot-progress { display:flex; gap:5px; align-items:center; }
+  .dot { width:6px; height:6px; border-radius:50%; background:#1E2D45; }
+  .dot.active { background:#6366F1; width:18px; border-radius:3px; }
+  .dot.done { background:#6366F1; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <span class="text-xs font-bold tracking-widest uppercase" style="color:#6366F1">Client Profile</span>
+  </div>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full border" style="color:#6366F1;border-color:rgba(99,102,241,0.3);background:rgba(99,102,241,0.08)">STEP 2/10</span>
+</header>
+
+<!-- Dot progress -->
+<div class="px-5 pb-4">
+  <div class="dot-progress">
+    <div class="dot done"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div>
+  </div>
+</div>
+
+<main class="flex-1 px-4 pb-28 overflow-y-auto space-y-4">
+
+  <!-- Avatar card -->
+  <div class="p-4 rounded-xl flex items-center gap-4" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="size-14 rounded-full flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">
+      <span class="material-symbols-outlined text-white text-2xl">person</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h2 class="font-bold text-base leading-tight">Khalid Al-Mansouri</h2>
+      <p class="text-xs text-slate-400 mb-2">Chief Executive Officer</p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)">🥇 GOLD RETAINER</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)">
+          <span class="material-symbols-outlined text-[11px]">verified</span> VERIFIED
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Individual / Corporate toggle -->
+  <div class="flex p-1 rounded-xl gap-1" style="background:#0D1929;border:1px solid #1E2D45">
+    <button class="tab-btn active" id="tab-individual" onclick="switchTab('individual')">Individual</button>
+    <button class="tab-btn" id="tab-corporate" onclick="switchTab('corporate')">Corporate</button>
+  </div>
+
+  <!-- Risk classification -->
+  <div class="p-3.5 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Risk Classification</p>
+      <span class="text-[10px] font-bold text-amber-400">MEDIUM · 52</span>
+    </div>
+    <div class="risk-bar"><div class="risk-fill" id="risk-fill"></div></div>
+    <div class="flex justify-between mt-1">
+      <span class="text-[9px] text-slate-600">Low</span>
+      <span class="text-[9px] text-slate-600">Critical</span>
+    </div>
+  </div>
+
+  <!-- Profile Fields -->
+  <div>
+    <p class="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-1">Profile Details</p>
+    <div class="space-y-2">
+
+      <div class="field-row" id="row-name">
+        <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:18px">person</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Full Name</p>
+          <input class="field-edit" id="inp-name" value="Khalid Al-Mansouri" type="text"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('name')">edit</span>
+      </div>
+
+      <div class="field-row" id="row-phone">
+        <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:18px">phone</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Primary Mobile</p>
+          <input class="field-edit" id="inp-phone" value="+971 50 123 4567" type="tel"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('phone')">edit</span>
+      </div>
+
+      <div class="field-row" id="row-email">
+        <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:18px">lock</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Secure Email</p>
+          <input class="field-edit" id="inp-email" value="khalid@amcorp.ae" type="email"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('email')">edit</span>
+      </div>
+
+      <div class="field-row" id="row-passport">
+        <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:18px">badge</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Passport / Emirates ID</p>
+          <input class="field-edit" id="inp-passport" value="UAE-784-1985-···" type="text"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('passport')">edit</span>
+      </div>
+
+      <div class="field-row" id="row-residence">
+        <span class="material-symbols-outlined text-slate-500 shrink-0" style="font-size:18px">home</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Primary Residence</p>
+          <input class="field-edit" id="inp-residence" value="Palm Jumeirah, Dubai" type="text"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('residence')">edit</span>
+      </div>
+
+      <div class="field-row" id="row-medical" style="border-color:rgba(245,158,11,0.25)">
+        <span class="material-symbols-outlined text-amber-400 shrink-0" style="font-size:18px">warning</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide mb-0.5">Medical Alerts</p>
+          <input class="field-edit" id="inp-medical" value="None declared" type="text"/>
+        </div>
+        <span class="material-symbols-outlined edit-btn text-slate-600" style="font-size:16px" onclick="toggleEdit('medical')">edit</span>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all"
+    style="background:linear-gradient(160deg,#818cf8,#6366F1,#4338ca);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(99,102,241,0.3);color:white;letter-spacing:0.05em;font-size:0.8125rem">
+    CONFIRM PROFILE → ITINERARY
+  </button>
+</footer>
+
+<script>
+  const editingFields = {};
+
+  function toggleEdit(key) {
+    const inp = document.getElementById('inp-'+key);
+    const row = document.getElementById('row-'+key);
+    const btn = row.querySelector('.edit-btn');
+
+    const isEditing = editingFields[key];
+    if (isEditing) {
+      // Save — lock it
+      inp.classList.remove('active');
+      row.classList.remove('editing');
+      btn.classList.remove('active');
+      btn.textContent = 'edit';
+      editingFields[key] = false;
+    } else {
+      // Enable editing
+      inp.classList.add('active');
+      row.classList.add('editing');
+      btn.classList.add('active');
+      btn.textContent = 'check';
+      inp.focus();
+      // Move cursor to end
+      const val = inp.value;
+      inp.value = '';
+      inp.value = val;
+      editingFields[key] = true;
+    }
+  }
+
+  function switchTab(tab) {
+    ['individual','corporate'].forEach(t => {
+      document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    });
+  }
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="bravo-pro-retainers"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/bravo-pro-retainers.html', nav||document.createElement('div'));
+    }
+  }
+  function goNext() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="bravo-pro-itinerary"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/bravo-pro-itinerary.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

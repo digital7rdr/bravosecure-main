@@ -1,0 +1,67 @@
+# ──────────────────────────────────────────────────────────────────────
+# bravo-auth.service
+#
+# Audit reference: DEPLOY_PLAN.md §B.2 / .github/workflows/deploy-auth.yml
+#
+# Runs the auth-service Docker image referenced by /etc/bravo/auth.image
+# with the env in /etc/bravo/auth.env. The CI workflow writes the
+# fresh image tag to /etc/bravo/auth.image then `systemctl restart`s
+# this unit; the ExecStartPre below reads that file so we don't have
+# to template it into the unit on every deploy.
+#
+# Network mode `host` so the service binds 127.0.0.1:3001 directly —
+# the host's nginx (or Caddy / ALB) reverse-proxies auth.<host>.sslip.io
+# to that port. Same convention as messenger-service.
+#
+# Restart=always with a 5s backoff so a transient ECR pull failure or
+# a Postgres reconnect blip recovers without intervention.
+#
+# Install via:
+#   sudo cp infra/systemd/bravo-auth.service /etc/systemd/system/
+#   sudo mkdir -p /etc/bravo && sudo touch /etc/bravo/auth.image
+#   sudo cp infra/env/auth.env.example /etc/bravo/auth.env
+#   # edit /etc/bravo/auth.env to set real secrets
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now bravo-auth.service
+# ──────────────────────────────────────────────────────────────────────
+[Unit]
+Description=Bravo Secure — auth-service (Docker)
+Documentation=https://github.com/<org>/bravo-secure/blob/main/DEPLOY_PLAN.md
+After=docker.service network-online.target
+Wants=docker.service network-online.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+TimeoutStartSec=120s
+# StandardOutput=journal so `journalctl -u bravo-auth` works.
+StandardOutput=journal
+StandardError=journal
+
+# Stop+rm any orphan container from a crashed-mid-deploy restart.
+# `|| true` so the first-ever start (no prior container) doesn't fail.
+ExecStartPre=-/usr/bin/docker rm -f bravo-auth
+# Pull is a defence-in-depth — the deploy workflow already pulled, but
+# a manual `systemctl restart` from the host shouldn't fail because
+# the image was garbage-collected.
+ExecStartPre=/bin/bash -c '/usr/bin/docker pull "$(cat /etc/bravo/auth.image)"'
+
+# `--rm` so the container is gone on stop and a fresh start always
+# pulls + runs the current /etc/bravo/auth.image tag.
+# `--env-file` keeps secrets off the image and off the host's process
+# table (vs. `-e` which would surface them via `ps`).
+ExecStart=/bin/bash -c '/usr/bin/docker run --rm \
+  --name bravo-auth \
+  --network host \
+  --env-file /etc/bravo/auth.env \
+  "$(cat /etc/bravo/auth.image)"'
+
+ExecStop=/usr/bin/docker stop -t 15 bravo-auth
+
+# A failing pull (ECR throttling) shouldn't pin systemd in a tight loop.
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Install]
+WantedBy=multi-user.target

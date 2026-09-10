@@ -1,0 +1,189 @@
+# Bravo Secure — production stack for bravosecure.cloud (31.97.126.211)
+#
+# WHY THIS FILE EXISTS IN GIT
+# The staging box ran a `docker-compose.staging.yml` that was NEVER committed —
+# it lived only on the Contabo host. That made the box unreproducible: a lost
+# disk meant reconstructing the topology from memory. This one is tracked.
+# Secrets are NOT here; they come from `.env` beside this file (gitignored).
+#
+# Self-hosted only. No Stripe, no Twilio, no hosted Supabase, no cloud S3.
+# Supabase runs from its own official compose in ./supabase (see README §2)
+# and exposes the network `supabase_default`, which we join below.
+#
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Build contexts differ per service and are NOT interchangeable:
+#   auth-service      → apps/auth-service      (self-contained)
+#   messenger-service → apps/messenger-service (self-contained)
+#   ops-console       → REPO ROOT, -f apps/ops-console/Dockerfile
+#                       (it imports @bravo/messenger-core via a tsconfig path
+#                        alias into ../../packages/messenger-core/src, so the
+#                        package source must be inside the build context)
+
+name: bravo
+
+networks:
+  supabase_default:
+    external: true          # created by the Supabase compose; see README §2
+  bravo:
+    driver: bridge
+
+volumes:
+  redis-data:
+  auth-uploads:
+  minio-data:
+
+services:
+  # ── Auth service — users, OTP/TOTP, JWT, Signal keys, sender certs, ops API ──
+  auth-service:
+    build:
+      context: ../../apps/auth-service
+      dockerfile: Dockerfile
+    image: bravo/auth-service:prod
+    container_name: bravo-auth
+    restart: unless-stopped
+    env_file: [.env.auth]
+    volumes:
+      - auth-uploads:/app/uploads
+    ports:
+      - '127.0.0.1:3001:3001'   # loopback only — Caddy is the only ingress
+    networks: [bravo, supabase_default]
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Messenger service — envelope relay, WS gateway, media presign, push ──
+  messenger-service:
+    build:
+      context: ../../apps/messenger-service
+      dockerfile: Dockerfile
+    image: bravo/messenger-service:prod
+    container_name: bravo-msgr
+    restart: unless-stopped
+    env_file: [.env.messenger]
+    volumes:
+      # FCM stays — the only reliable killed-app wake path on stock Android.
+      - ./secrets/firebase-service-account.json:/app/firebase-service-account.json:ro
+    ports:
+      - '127.0.0.1:3100:3100'
+    networks: [bravo, supabase_default]
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Ops console — Next.js admin UI ──
+  ops-console:
+    build:
+      context: ../..                          # REPO ROOT — see header note
+      dockerfile: apps/ops-console/Dockerfile
+      args:
+        # NEXT_PUBLIC_* are baked at BUILD time, not read at runtime. Changing
+        # any of these requires a rebuild, not a restart.
+        NEXT_PUBLIC_API_BASE_URL: https://auth.bravosecure.cloud
+        NEXT_PUBLIC_MSG_BASE_URL: https://relay.bravosecure.cloud
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN}
+        NEXT_PUBLIC_MAPBOX_STYLE: ${NEXT_PUBLIC_MAPBOX_STYLE}
+        NEXT_PUBLIC_DASHBOARD_POLL_MS: '5000'
+        NEXT_PUBLIC_MISSION_POLL_MS: '2000'
+        # Public half of the sender-cert keypair make-env.sh generated. Without it
+        # the /messenger page verifies sealed-sender certs against a DEV key.
+        NEXT_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64: ${NEXT_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64}
+    image: bravo/ops-console:prod
+    container_name: bravo-ops
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3002:3002'
+    networks: [bravo]
+
+  # ── Redis — WS adapter, JTI allowlist, envelope dwell ──
+  redis:
+    image: redis:7-alpine
+    container_name: bravo-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--requirepass', '${REDIS_PASSWORD}']
+    volumes:
+      - redis-data:/data
+    networks: [bravo]
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── MinIO — S3-compatible media store, replaces Cloudflare R2 ──
+  # Drop-in: messenger-service already honours MEDIA_S3_ENDPOINT
+  # (configuration.ts:245). Presigned URLs are handed to phones, so this
+  # must be publicly reachable — Caddy fronts it at media.bravosecure.cloud.
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: bravo-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: '${MINIO_ROOT_USER}'
+      MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD}'
+      # Presign signatures are computed over the PUBLIC hostname; without this
+      # every presigned URL a phone receives fails SignatureDoesNotMatch.
+      MINIO_SERVER_URL: 'https://media.bravosecure.cloud'
+    volumes:
+      - minio-data:/data
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    networks: [bravo]
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── coturn — TURN/STUN relay for WebRTC ──
+  # host networking is REQUIRED: on a bridge network coturn advertises its
+  # container IP as the relay address, which no phone can reach.
+  coturn:
+    image: coturn/coturn:4.6
+    container_name: bravo-coturn
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --no-cli
+      - --listening-port=3478
+      - --tls-listening-port=5349
+      - --min-port=49160
+      - --max-port=49200
+      - --realm=bravosecure.cloud
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_STATIC_AUTH_SECRET}
+      - --external-ip=31.97.126.211
+      - --cert=/etc/coturn/certs/turn.bravosecure.cloud.crt
+      - --pkey=/etc/coturn/certs/turn.bravosecure.cloud.key
+      - --fingerprint
+      - --no-multicast-peers
+      # Audit P0-C4 — without these, every authed account is a 24h SSRF tunnel
+      # into the host's private space and the cloud metadata endpoint.
+      - --no-loopback-peers
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      - --denied-peer-ip=0.0.0.0-0.255.255.255
+      - --denied-peer-ip=100.64.0.0-100.127.255.255
+      - --denied-peer-ip=192.0.0.0-192.0.0.255
+      - --denied-peer-ip=192.0.2.0-192.0.2.255
+      - --denied-peer-ip=198.18.0.0-198.19.255.255
+      - --denied-peer-ip=198.51.100.0-198.51.100.255
+      - --denied-peer-ip=203.0.113.0-203.0.113.255
+      - --denied-peer-ip=224.0.0.0-239.255.255.255
+      - --denied-peer-ip=240.0.0.0-255.255.255.255
+      - --denied-peer-ip=::-::
+      - --denied-peer-ip=::1-::1
+      - --denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+      - --denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+      - --log-file=stdout
+      - --simple-log
+    volumes:
+      # Caddy writes its Let's Encrypt cert here; see README §5 for the hook
+      # that copies + reloads coturn on renewal.
+      - ./secrets/coturn-certs:/etc/coturn/certs:ro

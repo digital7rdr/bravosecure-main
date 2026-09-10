@@ -1,0 +1,44 @@
+{
+  "Comment": "Least-privilege IAM policy for the Bravo Secure deploy user / OIDC role. Audit reference: docs/planning/DEPLOY_PLAN.md §C.2/§C.3. Scope is narrowed to: (1) push to two ECR repos, (2) optionally run SSM commands on the staging EC2 host. Does NOT grant ec2:RunInstances, ec2:StopInstances, iam:*, s3:*, or anything else. If the deploy needs S3 (e.g. media bucket), add a separate policy block and document why here.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrAuthForAllRepos",
+      "Effect": "Allow",
+      "Action": ["ecr:GetAuthorizationToken"],
+      "Resource": "*",
+      "Note_Action": "GetAuthorizationToken cannot be scoped to a resource — AWS requires '*'. The actual push/pull operations below ARE scoped."
+    },
+    {
+      "Sid": "EcrPushToBravoRepos",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:CompleteLayerUpload",
+        "ecr:InitiateLayerUpload",
+        "ecr:PutImage",
+        "ecr:UploadLayerPart",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:DescribeImages",
+        "ecr:DescribeRepositories"
+      ],
+      "Resource": [
+        "arn:aws:ecr:ap-south-1:<ACCOUNT_ID>:repository/bravo-auth",
+        "arn:aws:ecr:ap-south-1:<ACCOUNT_ID>:repository/bravo-messenger"
+      ],
+      "Note": "Replace <ACCOUNT_ID> with the AWS account that owns the ECR registry. If the registry lives in a different region, adjust both the region in the ARN and AWS_REGION in the GitHub workflow env."
+    }
+  ],
+  "Recommendation_GitHub_OIDC": "Strongly prefer GitHub OIDC over long-term IAM keys. Configure the GitHub OIDC provider in IAM (https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services), then create a role with this trust policy: { 'Effect': 'Allow', 'Principal': { 'Federated': 'arn:aws:iam::<ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com' }, 'Action': 'sts:AssumeRoleWithWebIdentity', 'Condition': { 'StringEquals': { 'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com' }, 'StringLike': { 'token.actions.githubusercontent.com:sub': 'repo:<org>/<repo>:ref:refs/heads/main' } } }. The GitHub workflows then use aws-actions/configure-aws-credentials@v4 with role-to-assume + role-session-name — NO long-term key in the repo at all.",
+  "Optional_SSM_Run_Command": {
+    "Sid": "SsmRunCommandIfYouDropSsh",
+    "Effect": "Allow",
+    "Action": ["ssm:SendCommand", "ssm:GetCommandInvocation", "ssm:ListCommandInvocations"],
+    "Resource": [
+      "arn:aws:ssm:ap-south-1:<ACCOUNT_ID>:document/AWS-RunShellScript",
+      "arn:aws:ec2:ap-south-1:<ACCOUNT_ID>:instance/i-<INSTANCE_ID>"
+    ],
+    "Note": "If you want to drop the SSH path in deploy-auth.yml entirely and use AWS SSM Run Command instead, add this statement. SSM is auditable (every command shows up in CloudTrail with the workflow's session id) and removes the need for an EC2_SSH_KEY secret."
+  }
+}

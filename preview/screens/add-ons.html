@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Custom checkbox */
+  .addon-check {
+    appearance: none; -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 1.5px solid #1E2D45;
+    background: #0A0F1E;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .addon-check:checked {
+    background: #2563EB;
+    border-color: #2563EB;
+  }
+  .addon-check:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px; top: 2px;
+    width: 7px; height: 11px;
+    border: 2px solid #fff;
+    border-top: none; border-left: none;
+    transform: rotate(45deg);
+  }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+    </button>
+    <span class="text-[11px] font-bold uppercase tracking-[2px] text-slate-400">Package Builder</span>
+  </div>
+  <div></div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+
+  <!-- Booking summary card -->
+  <div class="rounded-2xl p-4 space-y-3" style="background:#0D1929; border:1px solid #1E2D45;">
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Booking Summary</p>
+        <h2 class="text-[15px] font-extrabold text-slate-100">Executive Protection</h2>
+        <p class="text-[12px] text-slate-500">Tier 1 Close Protection</p>
+      </div>
+      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase text-primary" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">Standard</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3 pt-1 border-t" style="border-color:#1E2D45;">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">Location</p>
+        <p class="text-[12px] font-semibold text-slate-200">Mayfair, London</p>
+      </div>
+      <div class="text-right">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">Date &amp; Time</p>
+        <p id="summary-datetime" class="text-[12px] font-semibold text-slate-200">Mar 26 · 10:00 AM</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Base package -->
+  <div>
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Base Package</p>
+    <div class="rounded-2xl p-5 relative overflow-hidden" style="background:#0D1929; border:2px solid #2563EB; box-shadow:0 0 20px rgba(37,99,235,0.08);">
+      <!-- Included badge -->
+      <div class="absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-[10px] font-extrabold text-white uppercase tracking-wider" style="background:#2563EB;">Included</div>
+
+      <ul class="space-y-4 mt-1">
+        <!-- CPO -->
+        <li class="flex items-center gap-3">
+          <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+            <span class="material-symbols-outlined text-primary" style="font-size:20px;">person</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-bold text-slate-100">1× Lead CPO</p>
+            <p class="text-[11px] text-slate-500">SIA Licensed Close Protection Officer</p>
+          </div>
+        </li>
+        <!-- Driver -->
+        <li class="flex items-center gap-3">
+          <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+            <span class="material-symbols-outlined text-primary" style="font-size:20px;">directions_car</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-bold text-slate-100">1× Security Driver</p>
+            <p class="text-[11px] text-slate-500">Advanced Tactical Driving certified</p>
+          </div>
+        </li>
+        <!-- Vehicle -->
+        <li class="flex items-center gap-3">
+          <div class="size-10 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.1); border:1px solid rgba(37,99,235,0.2);">
+            <span class="material-symbols-outlined text-primary" style="font-size:20px;">airport_shuttle</span>
+          </div>
+          <div>
+            <p class="text-[13px] font-bold text-slate-100">1× Luxury Support Vehicle</p>
+            <p class="text-[11px] text-slate-500">Black Sedan / SUV (Non-Armoured)</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Add-ons -->
+  <div>
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Available Add-Ons</p>
+    <div class="space-y-2">
+
+      <!-- Additional CPO -->
+      <div id="row-cpo" class="addon-row flex items-center justify-between p-4 rounded-xl transition-all" style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <div class="addon-icon size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:18px;">person_add</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[13px] font-semibold text-slate-100">Additional CPO</p>
+            <p class="text-[11px] text-slate-500">+120 cr/hr per agent</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 ml-3 shrink-0">
+          <button onclick="decrement('cpo')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:14px;">remove</span>
+          </button>
+          <span id="count-cpo" class="text-[14px] font-extrabold text-slate-100 w-5 text-center">0</span>
+          <button onclick="increment('cpo')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+            <span class="material-symbols-outlined text-primary" style="font-size:14px;">add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Armoured Vehicle -->
+      <div id="row-armour" class="addon-row flex items-start justify-between p-4 rounded-xl transition-all" style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="flex items-start gap-3 flex-1 min-w-0">
+          <div class="addon-icon size-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style="background:rgba(255,255,255,0.04); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:18px;">shield</span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="text-[13px] font-semibold text-slate-100">Armoured Vehicle (VR7+)</p>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase text-amber-400" style="background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.2);">Ops approval</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Price on application</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 ml-3 shrink-0 mt-0.5">
+          <button onclick="decrement('armour')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:14px;">remove</span>
+          </button>
+          <span id="count-armour" class="text-[14px] font-extrabold text-slate-100 w-5 text-center">0</span>
+          <button onclick="increment('armour')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+            <span class="material-symbols-outlined text-primary" style="font-size:14px;">add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Armoured Vehicle price input (shown when count > 0) -->
+      <div id="armour-price-row" class="hidden px-1">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl" style="background:rgba(251,191,36,0.05); border:1px solid rgba(251,191,36,0.2);">
+          <span class="material-symbols-outlined shrink-0" style="font-size:16px; color:#FBBF24;">attach_money</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:#FBBF24;">Custom Price (per hr)</p>
+            <input
+              id="armour-price-input"
+              type="number"
+              min="0"
+              placeholder="Enter agreed price..."
+              oninput="updateArmourPrice()"
+              class="w-full bg-transparent text-[14px] font-bold text-slate-100 placeholder:text-slate-600 focus:outline-none border-none"
+              style="appearance:textfield;"
+            />
+          </div>
+          <span class="text-[12px] font-semibold text-slate-500">/ hr</span>
+        </div>
+      </div>
+
+      <!-- Surveillance Unit -->
+      <div id="row-surv" class="addon-row flex items-center justify-between p-4 rounded-xl transition-all" style="background:#0D1929; border:1px solid #1E2D45;">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <div class="addon-icon size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:18px;">visibility</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[13px] font-semibold text-slate-100">Surveillance Unit</p>
+            <p class="text-[11px] text-slate-500">Pre-route &amp; counter-intel +85 cr/hr</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 ml-3 shrink-0">
+          <button onclick="decrement('surv')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:14px;">remove</span>
+          </button>
+          <span id="count-surv" class="text-[14px] font-extrabold text-slate-100 w-5 text-center">0</span>
+          <button onclick="increment('surv')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+            <span class="material-symbols-outlined text-primary" style="font-size:14px;">add</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Secure Comms — starts at 1 -->
+      <div id="row-comms" class="addon-row flex items-center justify-between p-4 rounded-xl transition-all" style="background:#0D1929; border:1px solid #2563EB; box-shadow:0 0 0 1px rgba(37,99,235,0.15);">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <div class="addon-icon size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+            <span class="material-symbols-outlined text-primary" style="font-size:18px;">radio</span>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[13px] font-semibold text-slate-100">Secure Communication Kit</p>
+            <p class="text-[11px] text-slate-500">Encrypted radios &amp; satellite +40 cr/hr</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 ml-3 shrink-0">
+          <button onclick="decrement('comms')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid #1E2D45;">
+            <span class="material-symbols-outlined text-slate-400" style="font-size:14px;">remove</span>
+          </button>
+          <span id="count-comms" class="text-[14px] font-extrabold text-primary w-5 text-center">1</span>
+          <button onclick="increment('comms')" class="size-7 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.3);">
+            <span class="material-symbols-outlined text-primary" style="font-size:14px;">add</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="pb-2"></div>
+
+</main>
+
+<!-- Footer -->
+<div class="shrink-0 px-4 pt-3 pb-4 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-end justify-between mb-3 px-1">
+    <div>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Estimated Total</p>
+      <div class="flex items-baseline gap-1">
+        <span id="total-price" class="text-[22px] font-extrabold text-slate-100">345</span><span class="text-[14px] font-bold text-slate-400"> cr</span>
+        <span class="text-[12px] text-slate-500">/ hr</span>
+      </div>
+    </div>
+    <div class="text-right">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Min. Duration</p>
+      <p class="text-[12px] font-semibold text-slate-300">4 Hours</p>
+    </div>
+  </div>
+  <button onclick="goNext()" class="w-full py-4 rounded-xl font-extrabold text-[14px] text-white tracking-wide transition-all active:scale-[0.98]"
+    style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+    <span id="cta-text">Continue — 345 cr/hr</span>
+  </button>
+</div>
+
+<!-- Ops Approval Modal -->
+<div id="ops-modal" class="fixed inset-0 z-50 hidden flex-col items-center justify-end" style="background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);">
+  <div id="ops-sheet" class="w-full rounded-t-[24px] px-5 pt-5 pb-8 shadow-2xl flex flex-col items-center text-center"
+    style="background:#0D1929; border-top:1px solid #1E2D45; transform:translateY(100%); transition:transform 0.3s ease; max-height:90vh; overflow-y:auto;">
+
+    <!-- Handle -->
+    <div class="w-10 h-1 rounded-full mb-5" style="background:rgba(37,99,235,0.3);"></div>
+
+    <!-- Icon -->
+    <div class="size-16 rounded-2xl flex items-center justify-center mb-4" style="background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.2);">
+      <span class="material-symbols-outlined" style="font-size:32px; color:#FBBF24;">warning</span>
+    </div>
+
+    <!-- Title -->
+    <h2 class="text-[18px] font-extrabold text-slate-100 mb-2">Ops Room Approval Required</h2>
+
+    <!-- Description -->
+    <p class="text-[13px] text-slate-400 leading-relaxed mb-5">
+      This add-on requires a manual review by the Bravo Ops Team before activation. You may continue — your booking will enter the approval queue.
+    </p>
+
+    <!-- Pending items -->
+    <div class="w-full rounded-xl px-4 py-3 mb-6 text-left" style="background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.2);">
+      <p class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:#FBBF24;">Pending Approval</p>
+      <ul class="space-y-2">
+        <li class="flex items-center gap-2 text-[13px]" style="color:#FDE68A;">
+          <span class="size-1.5 rounded-full shrink-0" style="background:#FBBF24;"></span>
+          Armoured Vehicle (VR7+)
+        </li>
+      </ul>
+    </div>
+
+    <!-- Buttons -->
+    <div class="w-full space-y-3">
+      <button onclick="confirmOps()" class="w-full py-4 rounded-xl font-extrabold text-[14px] text-white tracking-wide transition-all active:scale-[0.98]"
+        style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+        I Understand — Continue
+      </button>
+      <button onclick="removeArmour()" class="w-full py-3 text-[13px] font-semibold text-slate-500 hover:text-slate-300 transition-colors">
+        Remove add-on
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Restore selected date & time from previous screen
+  const _dt = sessionStorage.getItem('bs_datetime');
+  if (_dt) document.getElementById('summary-datetime').textContent = _dt;
+
+  const BASE = 345;
+  const counts = { cpo: 0, armour: 0, surv: 0, comms: 1 };
+  const prices = { cpo: 120, armour: 0, surv: 85, comms: 40 };
+
+  let armourPricePerHr = 0;
+
+  function increment(key) {
+    const wasZero = counts[key] === 0;
+    counts[key]++;
+    refresh(key);
+    if (key === 'armour' && wasZero) openOpsModal();
+  }
+
+  function decrement(key) {
+    if (counts[key] <= 0) return;
+    counts[key]--;
+    refresh(key);
+  }
+
+  function refresh(key) {
+    const count = counts[key];
+    const countEl = document.getElementById('count-' + key);
+    const row = document.getElementById('row-' + key);
+    const iconWrap = row.querySelector('.addon-icon');
+    const icon = iconWrap.querySelector('.material-symbols-outlined');
+
+    countEl.textContent = count;
+
+    if (count > 0) {
+      countEl.style.color = '#2563EB';
+      row.style.borderColor = '#2563EB';
+      row.style.boxShadow = '0 0 0 1px rgba(37,99,235,0.15)';
+      iconWrap.style.background = 'rgba(37,99,235,0.12)';
+      iconWrap.style.borderColor = 'rgba(37,99,235,0.2)';
+      icon.style.color = '#2563EB';
+    } else {
+      countEl.style.color = '';
+      row.style.borderColor = '#1E2D45';
+      row.style.boxShadow = 'none';
+      iconWrap.style.background = 'rgba(255,255,255,0.04)';
+      iconWrap.style.borderColor = '#1E2D45';
+      icon.style.color = '';
+    }
+
+    if (key === 'armour') {
+      const priceRow = document.getElementById('armour-price-row');
+      if (count > 0) {
+        priceRow.classList.remove('hidden');
+      } else {
+        priceRow.classList.add('hidden');
+        document.getElementById('armour-price-input').value = '';
+        armourPricePerHr = 0;
+      }
+    }
+
+    updateTotal();
+  }
+
+  function updateArmourPrice() {
+    armourPricePerHr = parseFloat(document.getElementById('armour-price-input').value) || 0;
+    updateTotal();
+  }
+
+  function openOpsModal() {
+    const modal = document.getElementById('ops-modal');
+    const sheet = document.getElementById('ops-sheet');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+  }
+
+  function closeOpsModal() {
+    const sheet = document.getElementById('ops-sheet');
+    sheet.style.transform = 'translateY(100%)';
+    setTimeout(() => {
+      const modal = document.getElementById('ops-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }, 300);
+  }
+
+  function confirmOps() {
+    closeOpsModal();
+  }
+
+  function removeArmour() {
+    counts['armour'] = 0;
+    refresh('armour');
+    closeOpsModal();
+  }
+
+  function updateTotal() {
+    let total = BASE;
+    Object.keys(counts).forEach(k => {
+      if (k === 'armour') {
+        total += counts[k] * armourPricePerHr;
+      } else {
+        total += counts[k] * prices[k];
+      }
+    });
+    document.getElementById('total-price').textContent = total;
+    document.getElementById('cta-text').textContent = 'Continue — ' + total + ' cr/hr';
+  }
+
+  function goNext() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('ops-room-review'));
+      window.parent.loadScreen('screens/ops-room-review.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('baseline-package'));
+      window.parent.loadScreen('screens/baseline-package.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  // Init comms row (starts at 1)
+  refresh('comms');
+</script>
+
+</body></html>

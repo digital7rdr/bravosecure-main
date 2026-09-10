@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# Pre-commit gate — runs on every `git commit` before the commit lands.
+#
+# What this enforces:
+#   1. lint-staged: ESLint --fix + Prettier on staged files only (fast)
+#   2. gitleaks-detect-staged: scans staged content for leaked secrets
+#      (JWTs, AWS keys, .env values). If found, blocks the commit.
+#
+# Bypass: `git commit --no-verify` (only when you really know — try not).
+#
+# This intentionally skips full typecheck + jest. Those are slow and run
+# in pre-push (changed-file scoped) and CI. The pre-commit gate stays
+# under ~10s so it doesn't break flow.
+
+set -e
+
+echo "[pre-commit] lint-staged…"
+npx --no-install lint-staged
+
+# Block secrets at commit time too, not just CI. The CI catch is the
+# safety net; this catches them before they touch the remote.
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "[pre-commit] gitleaks (staged)…"
+  gitleaks protect --staged --config=.gitleaks.toml --redact --no-banner --verbose --exit-code=1 || {
+    echo ""
+    echo "[pre-commit] secrets detected in staged content — fix or rebase out before committing."
+    echo "             To intentionally bypass once: git commit --no-verify"
+    exit 1
+  }
+else
+  echo "[pre-commit] gitleaks not installed — skipping local secret scan (CI still runs it)."
+fi

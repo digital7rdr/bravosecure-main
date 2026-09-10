@@ -1,0 +1,55 @@
+name: Bundle Size
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'index.js'
+      - 'App.tsx'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  size:
+    name: Bundle size budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: Export production bundle
+        run: |
+          npx expo export --platform android --output-dir dist || true
+          ls -lhR dist/_expo 2>/dev/null || echo "dist not produced — soft-fail"
+
+      - name: Install size-limit
+        run: npm install --no-save size-limit @size-limit/file
+
+      - name: Check bundle size
+        run: npx size-limit
+        continue-on-error: true
+
+      - name: Compute and post bundle delta
+        if: github.event_name == 'pull_request'
+        run: node scripts/bundle-size-report.mjs
+        continue-on-error: true
+
+      - name: Post sticky comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: bundle-size
+          path: bundle-size-comment.md

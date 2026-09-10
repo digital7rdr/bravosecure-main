@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{primary:"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;font-family:'Manrope',sans-serif;background:#0A0F1E;color:#f1f5f9;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;line-height:1;display:inline-block;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  /* Permission card */
+  .perm-card{
+    display:flex;align-items:center;gap:12px;
+    background:#0D1929;border:1px solid #1E2D45;
+    border-radius:14px;padding:11px 14px;
+    cursor:pointer;transition:border-color 0.18s,background 0.18s;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  .perm-card.checked{
+    border-color:rgba(37,99,235,0.45);
+    background:rgba(37,99,235,0.05);
+  }
+  .perm-card:active{opacity:0.82;}
+
+  /* Custom checkbox */
+  .cb-box{
+    width:22px;height:22px;border-radius:7px;flex-shrink:0;
+    border:2px solid #1E2D45;
+    display:flex;align-items:center;justify-content:center;
+    transition:background 0.15s,border-color 0.15s;
+    background:#0A0F1E;
+  }
+  .perm-card.checked .cb-box{
+    background:#2563EB;border-color:#2563EB;
+    box-shadow:0 0 10px rgba(37,99,235,0.4);
+  }
+  .cb-tick{
+    font-size:14px;color:#fff;opacity:0;
+    transform:scale(0.5);
+    transition:opacity 0.15s,transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .perm-card.checked .cb-tick{opacity:1;transform:scale(1);}
+
+  /* CTA */
+  .cta-btn{
+    width:100%;padding:15px 24px;
+    background:linear-gradient(135deg,#2563EB 0%,#1d4ed8 100%);
+    box-shadow:0 8px 28px rgba(37,99,235,0.45),inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius:16px;color:#fff;
+    font-size:14px;font-weight:700;letter-spacing:0.02em;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:transform 0.12s,filter 0.12s;
+  }
+  .cta-btn:active{transform:scale(0.97);}
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100%;">
+
+<!-- Header -->
+<div style="padding:44px 20px 12px;flex-shrink:0;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <button onclick="goBack()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;">
+      <span class="material-symbols-outlined" style="font-size:18px;color:#94a3b8;">arrow_back</span>
+    </button>
+    <span style="font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#475569;">3 / 4</span>
+    <div style="width:34px;"></div>
+  </div>
+
+  <p style="font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#60a5fa;margin-bottom:5px;">App Permissions</p>
+  <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.5px;color:#f1f5f9;margin-bottom:4px;">Allow Access</h1>
+  <p style="font-size:11px;color:#64748b;line-height:1.5;">Allow these for the best experience. You can change them anytime in Settings.</p>
+</div>
+
+<!-- Permission list -->
+<div style="flex:1;padding:0 20px;display:flex;flex-direction:column;gap:9px;overflow:hidden;">
+
+  <!-- Location -->
+  <div class="perm-card checked" id="card-location" onclick="togglePerm('location')">
+    <div style="width:38px;height:38px;border-radius:11px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span class="material-symbols-outlined filled" style="font-size:19px;color:#f87171;">location_on</span>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:1px;">Location Access</p>
+      <p style="font-size:10px;color:#64748b;line-height:1.4;">Geo-specific content, coverage zones &amp; asset tracking</p>
+    </div>
+    <div class="cb-box">
+      <span class="material-symbols-outlined filled cb-tick">check</span>
+    </div>
+  </div>
+
+  <!-- Contacts -->
+  <div class="perm-card checked" id="card-contacts" onclick="togglePerm('contacts')">
+    <div style="width:38px;height:38px;border-radius:11px;background:rgba(168,85,247,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span class="material-symbols-outlined filled" style="font-size:19px;color:#c084fc;">contacts</span>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:1px;">Contacts Access</p>
+      <p style="font-size:10px;color:#64748b;line-height:1.4;">Messenger contact discovery</p>
+    </div>
+    <div class="cb-box">
+      <span class="material-symbols-outlined filled cb-tick">check</span>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="perm-card checked" id="card-notif" onclick="togglePerm('notif')">
+    <div style="width:38px;height:38px;border-radius:11px;background:rgba(234,179,8,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span class="material-symbols-outlined filled" style="font-size:19px;color:#fbbf24;">notifications</span>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:1px;">Notifications</p>
+      <p style="font-size:10px;color:#64748b;line-height:1.4;">Job alerts, booking updates &amp; emergency broadcasts</p>
+    </div>
+    <div class="cb-box">
+      <span class="material-symbols-outlined filled cb-tick">check</span>
+    </div>
+  </div>
+
+  <!-- Camera -->
+  <div class="perm-card" id="card-camera" onclick="togglePerm('camera')">
+    <div style="width:38px;height:38px;border-radius:11px;background:rgba(14,165,233,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span class="material-symbols-outlined filled" style="font-size:19px;color:#38bdf8;">photo_camera</span>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:1px;">Camera &amp; Microphone</p>
+      <p style="font-size:10px;color:#64748b;line-height:1.4;">Video calls and face verification</p>
+    </div>
+    <div class="cb-box">
+      <span class="material-symbols-outlined filled cb-tick">check</span>
+    </div>
+  </div>
+
+  <!-- Storage -->
+  <div class="perm-card" id="card-storage" onclick="togglePerm('storage')">
+    <div style="width:38px;height:38px;border-radius:11px;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <span class="material-symbols-outlined filled" style="font-size:19px;color:#4ade80;">storage</span>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <p style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:1px;">Phone Storage</p>
+      <p style="font-size:10px;color:#64748b;line-height:1.4;">File sharing, document upload &amp; media management</p>
+    </div>
+    <div class="cb-box">
+      <span class="material-symbols-outlined filled cb-tick">check</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- CTA -->
+<div style="padding:16px 20px 32px;flex-shrink:0;">
+  <button onclick="goNext()" class="cta-btn">
+    Allow Selected &amp; Continue
+    <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+  </button>
+</div>
+
+<script>
+  const state = { location:true, contacts:true, notif:true, camera:false, storage:false };
+
+  function togglePerm(key) {
+    state[key] = !state[key];
+    const card = document.getElementById('card-' + key);
+    card.classList.toggle('checked', state[key]);
+  }
+
+  function goNext() {
+    sessionStorage.setItem('permissions', JSON.stringify(state));
+    nav('role-selection.html');
+  }
+
+  function goBack() { nav('otp.html'); }
+
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+</script>
+</body></html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  .pkg-card {
+    position: relative; border-radius: 16px; padding: 14px 16px;
+    border: 1.5px solid #1E2D45; background: #0D1929;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .pkg-card.selected { border-color: #2563EB; background: rgba(37,99,235,0.08); }
+  .pkg-card.recommended { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.05); }
+  .pkg-card.recommended.selected { border-color: #2563EB; background: rgba(37,99,235,0.08); }
+  .pkg-card:active { transform: scale(0.98); }
+  .pkg-badge {
+    position: absolute; top: -9px; right: 14px;
+    font-size: 8px; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #fff;
+    padding: 2px 10px; border-radius: 20px;
+  }
+
+  .pay-input {
+    background: #0A0F1E; border: 1px solid #1E2D45; border-radius: 10px;
+    color: #f1f5f9; font-family: 'Manrope', sans-serif;
+    font-size: 13px; font-weight: 600; padding: 11px 13px;
+    width: 100%; outline: none; transition: border-color 0.15s;
+  }
+  .pay-input:focus { border-color: #2563EB; }
+  .pay-input::placeholder { color: #475569; font-weight: 500; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide-up { animation: slideUp 0.4s ease-out both; }
+
+  @keyframes pulse-ring {
+    0%   { transform: scale(1);   opacity: 0.6; }
+    100% { transform: scale(1.55); opacity: 0; }
+  }
+  .pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center gap-3 px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+    <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+  </button>
+  <div class="flex-1">
+    <p class="text-[13px] font-extrabold tracking-wide text-slate-100">Top Up Bravo Credits</p>
+    <p class="text-[10px] text-slate-500 font-medium">Booking paused · insufficient balance</p>
+  </div>
+  <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25);">
+    <span class="size-1.5 rounded-full bg-red-500 animate-pulse"></span>
+    <span class="text-[9px] font-bold text-red-400 uppercase tracking-widest">Blocked</span>
+  </div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 pb-6 pt-4 space-y-3">
+
+  <!-- Shortfall card -->
+  <div class="slide-up rounded-2xl overflow-hidden" style="background:#0D1929; border:1px solid rgba(239,68,68,0.3);">
+    <div class="h-1" style="background:linear-gradient(90deg,#ef4444,#f97316);"></div>
+    <div class="px-4 pt-4 pb-3">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined filled text-red-400" style="font-size:16px;">warning</span>
+        <p class="text-[10px] font-bold tracking-widest text-red-400 uppercase">Insufficient Bravo Credits</p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="rounded-xl py-3 px-2" style="background:#07111f; border:1px solid #1E2D45;">
+          <p class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Required</p>
+          <p class="text-[15px] font-extrabold text-slate-100">1,880</p>
+          <p class="text-[9px] text-slate-500 mt-0.5">Bravo Credits</p>
+        </div>
+        <div class="rounded-xl py-3 px-2" style="background:#07111f; border:1px solid rgba(239,68,68,0.2);">
+          <p class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">You Have</p>
+          <p class="text-[15px] font-extrabold text-red-400">760</p>
+          <p class="text-[9px] text-slate-500 mt-0.5">Bravo Credits</p>
+        </div>
+        <div class="rounded-xl py-3 px-2" style="background:#07111f; border:1px solid rgba(245,158,11,0.25);">
+          <p class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">You Need</p>
+          <p class="text-[15px] font-extrabold" style="color:#F59E0B;">1,120</p>
+          <p class="text-[9px] text-slate-500 mt-0.5">More credits</p>
+        </div>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div class="px-4 pb-4">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Balance progress</span>
+        <span class="text-[9px] font-bold text-red-400">40% of required</span>
+      </div>
+      <div class="h-2 rounded-full overflow-hidden" style="background:#1E2D45;">
+        <div class="h-full rounded-full" style="width:40%; background:linear-gradient(90deg,#ef4444,#f97316);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section label -->
+  <p class="text-[10px] font-bold tracking-widest text-slate-500 pt-1">SELECT TOP-UP AMOUNT</p>
+
+  <!-- Package: 500 BC -->
+  <div id="pkg-500" class="pkg-card" onclick="selectPkg(this,'500',500)">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+          <p class="text-[15px] font-extrabold text-slate-100">500 <span class="text-slate-400 font-semibold text-[13px]">Bravo Credits</span></p>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">AED 500 · Top-up only</p>
+      </div>
+      <div id="check-500" class="size-5 rounded-full border-2 flex items-center justify-center shrink-0" style="border-color:#1E2D45;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Package: 1,000 BC (auto-selected — covers shortfall of 1,120? No, 1,000 < 1,120, so not enough alone) -->
+  <div id="pkg-1000" class="pkg-card" onclick="selectPkg(this,'1000',1000)">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+          <p class="text-[15px] font-extrabold text-slate-100">1,000 <span class="text-slate-400 font-semibold text-[13px]">Bravo Credits</span></p>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">AED 1,000 · Top-up only</p>
+      </div>
+      <div id="check-1000" class="size-5 rounded-full border-2 flex items-center justify-center shrink-0" style="border-color:#1E2D45;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Package: 1,500 BC (RECOMMENDED — covers 1,120 shortfall + leaves buffer) -->
+  <div id="pkg-1500" class="pkg-card recommended selected" onclick="selectPkg(this,'1500',1500)">
+    <span class="pkg-badge" style="background:linear-gradient(135deg,#22c55e,#16a34a);">Covers Booking</span>
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+          <p class="text-[15px] font-extrabold text-slate-100">1,500 <span class="text-slate-400 font-semibold text-[13px]">Bravo Credits</span></p>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">AED 1,500 · +380 cr buffer</p>
+      </div>
+      <div id="check-1500" class="size-5 rounded-full flex items-center justify-center shrink-0" style="background:#2563EB; border:2px solid #2563EB;">
+        <span class="material-symbols-outlined filled text-white" style="font-size:13px;">check</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Package: 2,500 BC -->
+  <div id="pkg-2500" class="pkg-card" onclick="selectPkg(this,'2500',2500)">
+    <span class="pkg-badge" style="background:linear-gradient(135deg,#2563EB,#1d4ed8);">Best Value</span>
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+          <p class="text-[15px] font-extrabold text-slate-100">2,500 <span class="text-slate-400 font-semibold text-[13px]">Bravo Credits</span></p>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <p class="text-[11px] text-slate-500">AED 2,375</p>
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(37,99,235,0.12); color:#60A5FA;">5% off</span>
+        </div>
+      </div>
+      <div id="check-2500" class="size-5 rounded-full border-2 flex items-center justify-center shrink-0" style="border-color:#1E2D45;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment method -->
+  <p class="text-[10px] font-bold tracking-widest text-slate-500 pt-1">PAYMENT METHOD</p>
+
+  <!-- Saved card -->
+  <div id="saved-card-row" class="rounded-2xl px-4 py-3.5 border flex items-center gap-3 cursor-pointer transition-all" style="background:#0D1929; border-color:#2563EB; box-shadow:0 0 0 1px rgba(37,99,235,0.15);" onclick="toggleNewCard(false)">
+    <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+      <span class="material-symbols-outlined filled text-primary" style="font-size:18px;">credit_card</span>
+    </div>
+    <div class="flex-1">
+      <p class="text-[13px] font-bold text-slate-100">Visa ••••4242</p>
+      <p class="text-[10px] text-slate-500">Expires 09/27 · Saved card</p>
+    </div>
+    <div id="saved-check" class="size-5 rounded-full flex items-center justify-center shrink-0" style="background:#2563EB;">
+      <span class="material-symbols-outlined filled text-white" style="font-size:13px;">check</span>
+    </div>
+  </div>
+
+  <!-- Add new card toggle -->
+  <button onclick="toggleNewCard(true)" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all" style="background:#0D1929; border-color:#1E2D45;">
+    <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(255,255,255,0.04); border:1px solid #1E2D45;">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:18px;">add_card</span>
+    </div>
+    <p class="text-[13px] font-semibold text-slate-400">Use a different card</p>
+    <span id="new-card-chevron" class="material-symbols-outlined text-slate-600 ml-auto" style="font-size:18px;">expand_more</span>
+  </button>
+
+  <!-- New card form (hidden by default) -->
+  <div id="new-card-form" class="hidden space-y-2">
+    <input class="pay-input" type="text" placeholder="Card number" maxlength="19" oninput="fmtCard(this)"/>
+    <div class="grid grid-cols-2 gap-2">
+      <input class="pay-input" type="text" placeholder="MM / YY" maxlength="7" oninput="fmtExpiry(this)"/>
+      <input class="pay-input" type="text" placeholder="CVV" maxlength="4" inputmode="numeric"/>
+    </div>
+    <input class="pay-input" type="text" placeholder="Cardholder name"/>
+    <div class="flex items-center gap-2 px-1 pt-1">
+      <div id="save-toggle" onclick="toggleSave()" class="relative w-9 h-5 rounded-full cursor-pointer transition-all shrink-0" style="background:#1E2D45;">
+        <div id="save-thumb" class="absolute top-0.5 left-0.5 size-4 rounded-full bg-slate-500 transition-all"></div>
+      </div>
+      <p class="text-[11px] text-slate-400">Save card for future bookings</p>
+    </div>
+  </div>
+
+  <!-- Security note -->
+  <div class="flex items-center gap-2 px-1">
+    <span class="material-symbols-outlined filled text-slate-600" style="font-size:13px;">lock</span>
+    <p class="text-[10px] text-slate-600">Secured by Stripe · 3D Secure · PCI DSS compliant</p>
+  </div>
+
+  <!-- Balance after top-up preview -->
+  <div id="balance-preview" class="rounded-xl px-4 py-3 border flex items-center justify-between" style="background:rgba(34,197,94,0.05); border-color:rgba(34,197,94,0.2);">
+    <div>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Balance after top-up</p>
+      <p id="after-balance" class="text-[15px] font-extrabold text-emerald-400 mt-0.5">2,260 Bravo Credits</p>
+    </div>
+    <div class="text-right">
+      <p class="text-[10px] font-bold text-emerald-400">✓ Booking can proceed</p>
+      <p class="text-[10px] text-slate-500 mt-0.5">+380 cr buffer remaining</p>
+    </div>
+  </div>
+
+  <div class="pb-2"></div>
+
+</main>
+
+<!-- Footer -->
+<div class="shrink-0 px-4 pt-3 pb-5 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button id="topup-btn" onclick="handleTopUp()"
+    class="w-full py-4 rounded-2xl font-extrabold text-[14px] text-white tracking-wide transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8); box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 20px rgba(37,99,235,0.35); letter-spacing:0.04em;">
+    <span class="material-symbols-outlined filled" style="font-size:18px;">stars</span>
+    <span id="topup-label">TOP UP 1,500 BRAVO CREDITS</span>
+  </button>
+  <p class="text-center text-[10px] text-slate-600 mt-2">You'll return to your booking immediately after top-up</p>
+</div>
+
+<!-- Success overlay -->
+<div id="success-overlay" class="fixed inset-0 z-50 flex-col items-center justify-center hidden" style="background:#0A0F1E;">
+  <div class="relative flex items-center justify-center mb-6">
+    <div class="absolute size-32 rounded-full pulse-ring" style="background:rgba(34,197,94,0.15);"></div>
+    <div class="absolute size-24 rounded-full pulse-ring" style="background:rgba(34,197,94,0.1); animation-delay:0.6s;"></div>
+    <div class="size-20 rounded-full flex items-center justify-center z-10" style="background:rgba(34,197,94,0.15); border:2px solid rgba(34,197,94,0.35);">
+      <span class="material-symbols-outlined filled text-emerald-400" style="font-size:42px;">check_circle</span>
+    </div>
+  </div>
+  <p class="text-[22px] font-extrabold text-slate-100 mb-1">Credits Added!</p>
+  <p class="text-[13px] text-slate-400 mb-2">Your Bravo Credits balance has been updated</p>
+  <div class="flex items-center gap-2 px-5 py-2.5 rounded-full mb-8" style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2);">
+    <span class="material-symbols-outlined filled text-yellow-400" style="font-size:16px;">stars</span>
+    <span class="text-[14px] font-extrabold text-emerald-400">2,260 Bravo Credits</span>
+  </div>
+  <button onclick="returnToPayment()" class="px-8 py-3.5 rounded-xl font-extrabold text-[14px] text-white"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB); box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+    Continue Booking →
+  </button>
+</div>
+
+<script>
+  const CURRENT_BALANCE = 760;
+  const REQUIRED = 1880;
+  const SHORTFALL = REQUIRED - CURRENT_BALANCE; // 1120
+
+  const PACKAGES = {
+    '500':  { credits: 500,  price: 'AED 500',   after: CURRENT_BALANCE + 500 },
+    '1000': { credits: 1000, price: 'AED 1,000',  after: CURRENT_BALANCE + 1000 },
+    '1500': { credits: 1500, price: 'AED 1,500',  after: CURRENT_BALANCE + 1500 },
+    '2500': { credits: 2500, price: 'AED 2,375',  after: CURRENT_BALANCE + 2500 },
+  };
+
+  let selected = '1500';
+  let useNewCard = false;
+  let saveCard = false;
+
+  function selectPkg(el, key, credits) {
+    selected = key;
+    // Reset all
+    Object.keys(PACKAGES).forEach(k => {
+      const card = document.getElementById('pkg-' + k);
+      const check = document.getElementById('check-' + k);
+      card.classList.remove('selected');
+      check.innerHTML = '';
+      check.style.background = 'transparent';
+      check.style.borderColor = '#1E2D45';
+      check.style.borderWidth = '2px';
+      check.style.borderStyle = 'solid';
+    });
+    // Select current
+    el.classList.add('selected');
+    const check = document.getElementById('check-' + key);
+    check.style.background = '#2563EB';
+    check.style.borderColor = '#2563EB';
+    check.innerHTML = '<span class="material-symbols-outlined filled text-white" style="font-size:13px;">check</span>';
+
+    updatePreview();
+  }
+
+  function updatePreview() {
+    const pkg = PACKAGES[selected];
+    const afterBalance = pkg.after;
+    const canProceed = afterBalance >= REQUIRED;
+
+    document.getElementById('after-balance').textContent = afterBalance.toLocaleString() + ' Bravo Credits';
+    document.getElementById('topup-label').textContent = 'TOP UP ' + pkg.credits.toLocaleString() + ' BRAVO CREDITS';
+
+    const preview = document.getElementById('balance-preview');
+    const bufferEl = preview.querySelector('p:last-child');
+    if (canProceed) {
+      preview.style.borderColor = 'rgba(34,197,94,0.2)';
+      preview.style.background = 'rgba(34,197,94,0.05)';
+      document.getElementById('after-balance').style.color = '#34d399';
+      preview.querySelector('.text-emerald-400.text-\\[10px\\]') && (preview.querySelector('p.text-emerald-400').textContent = '✓ Booking can proceed');
+      const buffer = afterBalance - REQUIRED;
+      bufferEl.textContent = '+' + buffer.toLocaleString() + ' cr buffer remaining';
+      bufferEl.style.color = '';
+    } else {
+      preview.style.borderColor = 'rgba(239,68,68,0.25)';
+      preview.style.background = 'rgba(239,68,68,0.05)';
+      document.getElementById('after-balance').style.color = '#f87171';
+      const stillShort = REQUIRED - afterBalance;
+      bufferEl.textContent = 'Still short by ' + stillShort.toLocaleString() + ' credits';
+      bufferEl.style.color = '#f87171';
+    }
+  }
+
+  function toggleNewCard(show) {
+    useNewCard = show;
+    const form = document.getElementById('new-card-form');
+    const savedRow = document.getElementById('saved-card-row');
+    const chevron = document.getElementById('new-card-chevron');
+    const savedCheck = document.getElementById('saved-check');
+    if (show) {
+      form.classList.remove('hidden');
+      chevron.textContent = 'expand_less';
+      savedRow.style.borderColor = '#1E2D45';
+      savedRow.style.boxShadow = 'none';
+      savedCheck.style.display = 'none';
+    } else {
+      form.classList.add('hidden');
+      chevron.textContent = 'expand_more';
+      savedRow.style.borderColor = '#2563EB';
+      savedRow.style.boxShadow = '0 0 0 1px rgba(37,99,235,0.15)';
+      savedCheck.style.display = 'flex';
+    }
+  }
+
+  function toggleSave() {
+    saveCard = !saveCard;
+    const track = document.getElementById('save-toggle');
+    const thumb = document.getElementById('save-thumb');
+    track.style.background = saveCard ? '#2563EB' : '#1E2D45';
+    thumb.style.transform = saveCard ? 'translateX(16px)' : 'translateX(0)';
+    thumb.style.background = saveCard ? '#fff' : '#64748b';
+  }
+
+  function fmtCard(el) {
+    let v = el.value.replace(/\D/g,'').substring(0,16);
+    el.value = v.replace(/(.{4})/g,'$1 ').trim();
+  }
+  function fmtExpiry(el) {
+    let v = el.value.replace(/\D/g,'');
+    if (v.length >= 3) v = v.substring(0,2) + ' / ' + v.substring(2,4);
+    el.value = v;
+  }
+
+  function handleTopUp() {
+    const btn = document.getElementById('topup-btn');
+    btn.style.opacity = '0.6';
+    btn.style.pointerEvents = 'none';
+    btn.innerHTML = '<span class="material-symbols-outlined filled" style="font-size:18px;">hourglass_top</span><span>Processing...</span>';
+    setTimeout(() => {
+      const overlay = document.getElementById('success-overlay');
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }, 1800);
+  }
+
+  function returnToPayment() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('payment'));
+      window.parent.loadScreen('screens/payment.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('payment'));
+      window.parent.loadScreen('screens/payment.html', navItem || window.parent.document.querySelector('.nav-item'));
+    } else { history.back(); }
+  }
+
+  // Init
+  updatePreview();
+</script>
+</body></html>

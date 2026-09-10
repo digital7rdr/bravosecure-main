@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .toggle-track{width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+  .toggle-track.on{background:#2563EB;}
+  .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform 0.2s;}
+  .toggle-track.on .toggle-thumb{transform:translateX(20px);}
+  .region-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #1E2D45;}
+  .region-row:last-child{border-bottom:none;}
+  .svc-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #1E2D45;}
+  .svc-row:last-child{border-bottom:none;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Coverage &amp; Services</h1>
+  <span class="text-[10px] font-bold px-2 py-1 rounded-full" style="color:#2563EB;border:1px solid rgba(37,99,235,0.3);background:rgba(37,99,235,0.08)">STEP 4/6</span>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 pt-2 space-y-4">
+
+  <!-- Map -->
+  <div class="rounded-2xl overflow-hidden relative" style="height:130px;background:#06101e;border:1px solid #1E2D45">
+    <svg width="100%" height="100%" viewBox="0 0 360 130" preserveAspectRatio="xMidYMid meet">
+      <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(37,99,235,0.07)" stroke-width="0.5"/></pattern></defs>
+      <rect width="100%" height="100%" fill="url(#g)"/>
+      <circle cx="215" cy="60" r="22" fill="rgba(37,99,235,0.06)" stroke="rgba(37,99,235,0.15)" stroke-width="1"/>
+      <circle cx="170" cy="55" r="14" fill="rgba(37,99,235,0.05)" stroke="rgba(37,99,235,0.1)" stroke-width="1"/>
+      <!-- Active dots -->
+      <circle cx="215" cy="60" r="4" fill="#2563EB" opacity="0.9"/>
+      <circle cx="170" cy="55" r="3.5" fill="#2563EB" opacity="0.7"/>
+      <circle cx="148" cy="48" r="3" fill="#2563EB" opacity="0.5"/>
+      <!-- Inactive dots -->
+      <circle cx="108" cy="58" r="2.5" fill="#1E2D45"/>
+      <circle cx="265" cy="72" r="2.5" fill="#1E2D45"/>
+      <!-- Labels -->
+      <text x="213" y="48" fill="#93c5fd" font-size="7" font-family="Manrope" font-weight="700" text-anchor="middle">AE</text>
+      <text x="168" y="43" fill="#93c5fd" font-size="7" font-family="Manrope" font-weight="700" text-anchor="middle">SA</text>
+      <text x="146" y="36" fill="#93c5fd" font-size="7" font-family="Manrope" font-weight="700" text-anchor="middle">GB</text>
+    </svg>
+    <div class="absolute bottom-2 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full" style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25)">
+      <span class="size-1.5 rounded-full animate-pulse inline-block" style="background:#2563EB"></span>
+      <span id="active-count" class="text-[10px] font-bold" style="color:#93c5fd">2 REGIONS ACTIVE</span>
+    </div>
+  </div>
+
+  <!-- Regions -->
+  <div class="rounded-2xl px-4 py-1" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase pt-3 pb-1">Coverage Regions</p>
+    <div class="region-row">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(37,99,235,0.1);color:#93c5fd;border:1px solid rgba(37,99,235,0.2)">AE</span>
+      <span class="text-[13px] font-bold text-slate-200 flex-1">UAE</span>
+      <div id="tog-ae" class="toggle-track on" onclick="toggleRegion('ae')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="region-row">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">SA</span>
+      <span id="lbl-sa" class="text-[13px] font-bold text-slate-400 flex-1">Saudi Arabia</span>
+      <div id="tog-sa" class="toggle-track" onclick="toggleRegion('sa')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="region-row">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:rgba(37,99,235,0.1);color:#93c5fd;border:1px solid rgba(37,99,235,0.2)">GB</span>
+      <span class="text-[13px] font-bold text-slate-200 flex-1">UK</span>
+      <div id="tog-gb" class="toggle-track on" onclick="toggleRegion('gb')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="region-row">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">US</span>
+      <span id="lbl-us" class="text-[13px] font-bold text-slate-400 flex-1">US</span>
+      <div id="tog-us" class="toggle-track" onclick="toggleRegion('us')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="region-row">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">EU</span>
+      <span id="lbl-eu" class="text-[13px] font-bold text-slate-400 flex-1">European Union</span>
+      <div id="tog-eu" class="toggle-track" onclick="toggleRegion('eu')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="region-row" style="border:none">
+      <span class="text-[10px] font-bold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">AF</span>
+      <span id="lbl-af" class="text-[13px] font-bold text-slate-400 flex-1">Africa</span>
+      <div id="tog-af" class="toggle-track" onclick="toggleRegion('af')"><div class="toggle-thumb"></div></div>
+    </div>
+  </div>
+
+  <!-- Service Types -->
+  <div class="rounded-2xl px-4 py-1" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase pt-3 pb-1">Service Types</p>
+    <div class="svc-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">shield_person</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Close Protection</p>
+        <p class="text-[11px] text-slate-500">350 cr/hr</p>
+      </div>
+      <div id="tog-cp" class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="svc-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">directions_car</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Security Driving</p>
+        <p class="text-[11px] text-slate-500">180 cr/hr</p>
+      </div>
+      <div id="tog-sd" class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="svc-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(30,45,69,0.8)">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">radar</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-400">Advance Team</p>
+        <p class="text-[11px] text-slate-600">325 cr/hr</p>
+      </div>
+      <div id="tog-at" class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem">
+    SAVE &amp; CONTINUE
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  const regions={ae:true,sa:false,gb:true,us:false,eu:false,af:false};
+  function toggleRegion(r){
+    regions[r]=!regions[r];
+    document.getElementById('tog-'+r).classList.toggle('on',regions[r]);
+    const lbl=document.getElementById('lbl-'+r);
+    if(lbl) lbl.style.color=regions[r]?'#e2e8f0':'#6b7280';
+    const count=Object.values(regions).filter(Boolean).length;
+    document.getElementById('active-count').textContent=count+' REGION'+(count===1?'':'S')+' ACTIVE';
+  }
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('agent-kyc.html');}
+  function goNext(){nav('agent-availability.html');}
+</script>
+</body></html>

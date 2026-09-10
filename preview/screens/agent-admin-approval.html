@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spin-icon{animation:spin 1.2s linear infinite;display:inline-block;}
+
+  .state-tab{flex:1;padding:7px 4px;text-align:center;font-size:10px;font-weight:800;letter-spacing:0.08em;border-radius:8px;cursor:pointer;transition:all 0.2s;color:#475569;border:1px solid transparent;}
+  .state-tab.active-review{background:rgba(245,158,11,0.12);color:#fbbf24;border-color:rgba(245,158,11,0.3);}
+  .state-tab.active-approved{background:rgba(34,197,94,0.12);color:#4ade80;border-color:rgba(34,197,94,0.3);}
+  .state-tab.active-rejected{background:rgba(239,68,68,0.12);color:#f87171;border-color:rgba(239,68,68,0.3);}
+
+  .pipeline-step{display:flex;align-items:flex-start;gap:12px;position:relative;}
+  .pipeline-step:not(:last-child)::after{content:'';position:absolute;left:15px;top:32px;width:2px;height:calc(100% + 4px);background:#1E2D45;}
+  .pipeline-step.done::after{background:rgba(37,99,235,0.4);}
+  .step-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;border:2px solid #1E2D45;background:#0A0F1E;}
+  .pipeline-step.done .step-dot{background:rgba(37,99,235,0.15);border-color:rgba(37,99,235,0.5);}
+  .pipeline-step.current .step-dot{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.5);}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Admin Approval</h1>
+  <span id="status-badge" class="text-[10px] font-bold px-2 py-1 rounded-full" style="color:#fbbf24;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.1)">UNDER REVIEW</span>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 pt-2 space-y-4">
+
+  <!-- Status hero -->
+  <div class="rounded-2xl p-5 text-center" style="background:#0D1929;border:1px solid #1E2D45">
+    <div id="hero-icon" class="size-16 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25)">
+      <span class="material-symbols-outlined filled text-amber-400 spin-icon" style="font-size:32px">hourglass_top</span>
+    </div>
+    <p id="hero-title" class="text-[15px] font-extrabold text-slate-100 uppercase tracking-wide">Application Under Review</p>
+    <p id="hero-sub" class="text-[11px] text-slate-500 mt-1">Your application is being reviewed. Typically 24–48 hrs.</p>
+  </div>
+
+  <!-- State switcher (preview helper) -->
+  <div class="flex gap-1.5 p-1 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+    <div id="tab-review" class="state-tab active-review" onclick="setState('review')">REVIEW</div>
+    <div id="tab-approved" class="state-tab" onclick="setState('approved')">APPROVED</div>
+    <div id="tab-rejected" class="state-tab" onclick="setState('rejected')">REJECTED</div>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="rounded-2xl px-4 py-4 space-y-4" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-slate-500 uppercase">Review Pipeline</p>
+
+    <div id="step1" class="pipeline-step done pb-4">
+      <div class="step-dot">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">check</span>
+      </div>
+      <div class="pt-1 flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Application Submitted</p>
+        <p class="text-[10px] text-violet-400 font-semibold mt-0.5">✓ DONE</p>
+      </div>
+    </div>
+
+    <div id="step2" class="pipeline-step done pb-4">
+      <div class="step-dot">
+        <span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">check</span>
+      </div>
+      <div class="pt-1 flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Document Review</p>
+        <p class="text-[10px] text-violet-400 font-semibold mt-0.5">✓ DONE</p>
+      </div>
+    </div>
+
+    <div id="step3" class="pipeline-step current pb-4">
+      <div class="step-dot">
+        <span class="material-symbols-outlined text-amber-400 spin-icon" style="font-size:14px">autorenew</span>
+      </div>
+      <div class="pt-1 flex-1">
+        <p class="text-[13px] font-bold text-slate-300">KYC Background Check</p>
+        <p class="text-[10px] text-amber-500 mt-0.5">In progress…</p>
+      </div>
+    </div>
+
+    <div id="step4" class="pipeline-step pb-4">
+      <div class="step-dot">
+        <span class="material-symbols-outlined text-slate-600" style="font-size:14px">radio_button_unchecked</span>
+      </div>
+      <div class="pt-1 flex-1">
+        <p class="text-[13px] font-bold text-slate-500">Ops Team Assessment</p>
+        <p class="text-[10px] text-slate-600 mt-0.5">Pending</p>
+      </div>
+    </div>
+
+    <div id="step5" class="pipeline-step">
+      <div class="step-dot">
+        <span class="material-symbols-outlined text-slate-600" style="font-size:14px">radio_button_unchecked</span>
+      </div>
+      <div class="pt-1 flex-1">
+        <p class="text-[13px] font-bold text-slate-500">Partner Approved</p>
+        <p class="text-[10px] text-slate-600 mt-0.5">Pending</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Compliance Officer -->
+  <div class="rounded-2xl px-4 py-3 flex items-center gap-3" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="size-10 rounded-full flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25)">
+      <span class="material-symbols-outlined filled" style="font-size:20px;color:#2563EB">manage_accounts</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[12px] font-bold text-slate-200">Compliance Officer</p>
+      <p class="text-[10px] text-slate-500">Bravo Secure · Vetting Team</p>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <span id="officer-dot" class="size-2 rounded-full inline-block animate-pulse" style="background:#fbbf24"></span>
+      <span id="officer-status" class="text-[10px] font-bold text-amber-400">REVIEWING</span>
+    </div>
+  </div>
+
+  <!-- Rejection reason (hidden by default) -->
+  <div id="rejection-panel" class="rounded-2xl px-4 py-3 hidden" style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2)">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-red-400 uppercase mb-2">Rejection Reason</p>
+    <p class="text-[12px] text-slate-300 leading-relaxed">Police clearance document could not be verified. Please re-upload a valid DBS Enhanced certificate issued within the last 12 months.</p>
+    <button onclick="resubmit()" class="mt-3 w-full text-[11px] font-bold py-2.5 rounded-xl" style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.3)">
+      RE-UPLOAD DOCUMENTS
+    </button>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <p id="footer-note" class="text-center text-[10px] text-slate-600 mb-2">Unlocks after approval</p>
+  <button id="dashboard-btn" onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem;opacity:0.3;pointer-events:none">
+    ACCESS DASHBOARD
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  function setState(s){
+    ['review','approved','rejected'].forEach(t=>{
+      const tab=document.getElementById('tab-'+t);
+      tab.classList.remove('active-review','active-approved','active-rejected');
+      if(t===s) tab.classList.add('active-'+s);
+    });
+
+    const badge=document.getElementById('status-badge');
+    const heroIcon=document.getElementById('hero-icon');
+    const heroTitle=document.getElementById('hero-title');
+    const heroSub=document.getElementById('hero-sub');
+    const officerDot=document.getElementById('officer-dot');
+    const officerStatus=document.getElementById('officer-status');
+    const btn=document.getElementById('dashboard-btn');
+    const note=document.getElementById('footer-note');
+    const rejPanel=document.getElementById('rejection-panel');
+    const heroIconEl=heroIcon.querySelector('.material-symbols-outlined');
+
+    if(s==='review'){
+      badge.textContent='UNDER REVIEW';
+      badge.style.cssText='color:#fbbf24;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.1)';
+      heroIcon.style.cssText='size:64px;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto;margin-bottom:0.75rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);width:64px;height:64px;';
+      heroIconEl.textContent='hourglass_top'; heroIconEl.className='material-symbols-outlined filled text-amber-400 spin-icon'; heroIconEl.style.fontSize='32px';
+      heroTitle.textContent='Application Under Review';
+      heroSub.textContent='Your application is being reviewed. Typically 24–48 hrs.';
+      officerDot.style.background='#fbbf24'; officerStatus.textContent='REVIEWING'; officerStatus.style.color='#fbbf24';
+      btn.style.opacity='0.3'; btn.style.pointerEvents='none';
+      note.style.display=''; rejPanel.classList.add('hidden');
+    } else if(s==='approved'){
+      badge.textContent='APPROVED';
+      badge.style.cssText='color:#4ade80;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.1)';
+      heroIcon.style.cssText='width:64px;height:64px;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto;margin-bottom:0.75rem;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);';
+      heroIconEl.textContent='verified'; heroIconEl.className='material-symbols-outlined filled text-emerald-400'; heroIconEl.style.fontSize='32px';
+      heroTitle.textContent='Application Approved';
+      heroSub.textContent='Welcome to the Bravo partner network. Access your dashboard below.';
+      officerDot.style.background='#4ade80'; officerStatus.textContent='APPROVED'; officerStatus.style.color='#4ade80';
+      btn.style.opacity='1'; btn.style.pointerEvents='auto';
+      note.style.display='none'; rejPanel.classList.add('hidden');
+      // mark all steps done
+      [3,4,5].forEach(n=>{ const s=document.getElementById('step'+n); s.classList.remove('current'); s.classList.add('done'); s.querySelector('.step-dot').innerHTML='<span class="material-symbols-outlined filled" style="font-size:14px;color:#2563EB">check</span>'; s.querySelectorAll('p')[0].style.color='#e2e8f0'; s.querySelectorAll('p')[1].textContent='✓ DONE'; s.querySelectorAll('p')[1].style.color='#93c5fd'; });
+    } else {
+      badge.textContent='REJECTED';
+      badge.style.cssText='color:#f87171;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.1)';
+      heroIcon.style.cssText='width:64px;height:64px;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto;margin-bottom:0.75rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);';
+      heroIconEl.textContent='cancel'; heroIconEl.className='material-symbols-outlined filled text-red-400'; heroIconEl.style.fontSize='32px';
+      heroTitle.textContent='Application Rejected';
+      heroSub.textContent='Please review the reason below and re-upload the required document.';
+      officerDot.style.background='#f87171'; officerStatus.textContent='REJECTED'; officerStatus.style.color='#f87171';
+      btn.style.opacity='0.3'; btn.style.pointerEvents='none';
+      note.style.display=''; rejPanel.classList.remove('hidden');
+    }
+  }
+
+  function resubmit(){nav('agent-docs-upload.html');}
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('agent-docs-upload.html');}
+  function goNext(){nav('agent-deployment-requirements.html');}
+</script>
+</body></html>

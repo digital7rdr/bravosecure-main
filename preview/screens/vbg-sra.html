@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VBG — SRA</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; background: #0A0F1E; color: #F1F5F9; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .scroll-body { overflow-y: auto; height: calc(100% - 44px - 56px); }
+
+  /* Risk score bar */
+  .score-bar { height: 6px; border-radius: 9999px; background: rgba(239,68,68,0.2); }
+  .score-fill { height: 100%; width: 88%; border-radius: 9999px; background: linear-gradient(90deg, #EF4444, #F97316); }
+
+  /* Pulse */
+  @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+  .live-pulse { animation: pulse-live 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body style="height:100%; display:flex; flex-direction:column;">
+
+<!-- 4-Tab navigation -->
+<div style="background:#060C18; border-bottom:1px solid #1E2D45; display:flex; align-items:center; flex-shrink:0; padding-top:50px;">
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-home.html', null)" style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Dashboard</div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Intel Reports</div>
+  <div style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:700; color:#2563EB; border-bottom:2px solid #2563EB;">SRA</div>
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/live-tracking.html', null)" style="flex:1; display:flex; align-items:center; justify-content:center; height:100%; cursor:pointer; font-size:10px; font-weight:600; color:#475569; border-bottom:2px solid transparent;">Tracking</div>
+</div>
+
+<!-- Scroll body -->
+<div class="scroll-body" style="padding:12px;">
+
+  <!-- Executive Summary -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:12px; margin-bottom:10px;">
+    <div style="font-size:8px; font-weight:700; letter-spacing:2px; color:#475569; text-transform:uppercase; margin-bottom:8px;">Executive Summary</div>
+    <p style="font-size:10px; color:#CBD5E1; line-height:1.6; margin-bottom:10px;">
+      You are in a <strong style="color:#FCA5A5;">high-risk area for theft and hijacking</strong>. It is essential to stay alert and take precautionary measures at all times.
+    </p>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;">
+      <span style="font-size:9px; font-weight:600; color:#94A3B8;">RISK SCORE</span>
+      <span style="font-size:10px; font-weight:800; color:#FCA5A5;">88 / 100</span>
+    </div>
+    <div class="score-bar"><div class="score-fill"></div></div>
+  </div>
+
+  <!-- Potential Risks -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:12px; margin-bottom:10px;">
+    <div style="font-size:8px; font-weight:700; letter-spacing:2px; color:#475569; text-transform:uppercase; margin-bottom:10px;">Potential Risks in Your Area</div>
+
+    <!-- Theft -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E2D45;">
+      <span style="font-size:11px; font-weight:600; color:#E2E8F0;">Theft</span>
+      <span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.45); border-radius:6px; padding:2px 8px; font-size:9px; font-weight:700; color:#F87171; letter-spacing:0.5px;">HIGH</span>
+    </div>
+
+    <!-- Hijacking -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E2D45;">
+      <span style="font-size:11px; font-weight:600; color:#E2E8F0;">Hijacking</span>
+      <span style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.45); border-radius:6px; padding:2px 8px; font-size:9px; font-weight:700; color:#F87171; letter-spacing:0.5px;">HIGH</span>
+    </div>
+
+    <!-- Opportunistic Crime -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E2D45;">
+      <span style="font-size:11px; font-weight:600; color:#E2E8F0;">Opportunistic Crime</span>
+      <span style="background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.45); border-radius:6px; padding:2px 8px; font-size:9px; font-weight:700; color:#FB923C; letter-spacing:0.5px;">MEDIUM</span>
+    </div>
+
+    <!-- Civil Disruption -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 0;">
+      <span style="font-size:11px; font-weight:600; color:#E2E8F0;">Civil Disruption</span>
+      <span style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:2px 8px; font-size:9px; font-weight:700; color:#34D399; letter-spacing:0.5px;">LOW</span>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div style="background:#0D1929; border:1px solid #1E2D45; border-radius:12px; padding:12px; margin-bottom:10px;">
+    <div style="font-size:8px; font-weight:700; letter-spacing:2px; color:#475569; text-transform:uppercase; margin-bottom:10px;">Recommendations</div>
+    <div style="display:flex; flex-direction:column; gap:7px;">
+      <div style="display:flex; align-items:flex-start; gap:7px; font-size:10px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#2563EB; font-size:12px; line-height:1.4; flex-shrink:0;">●</span>
+        Use alternative routes to avoid dangerous hotspots
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; font-size:10px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#2563EB; font-size:12px; line-height:1.4; flex-shrink:0;">●</span>
+        Stay vigilant and aware of your surroundings at all times
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; font-size:10px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#2563EB; font-size:12px; line-height:1.4; flex-shrink:0;">●</span>
+        Avoid displaying valuables in public
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:7px; font-size:10px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#2563EB; font-size:12px; line-height:1.4; flex-shrink:0;">●</span>
+        Vary your daily routines and travel times
+      </div>
+    </div>
+  </div>
+
+  <!-- Biometric Monitoring -->
+  <div style="background:#0D1929; border:1px solid rgba(99,102,241,0.35); border-radius:12px; padding:12px; margin-bottom:8px;">
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+      <span class="material-symbols-outlined filled" style="font-size:16px; color:#A78BFA;">face</span>
+      <span style="font-size:9px; font-weight:700; letter-spacing:1.5px; color:#A78BFA; text-transform:uppercase;">Activate Biometric Monitoring</span>
+    </div>
+    <p style="font-size:9px; color:#94A3B8; line-height:1.6; margin-bottom:10px;">Enable biometric face scans. If <strong style="color:#E2E8F0;">3 scans are missed</strong>:</p>
+    <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+      <div style="display:flex; align-items:flex-start; gap:6px; font-size:9px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#A78BFA; flex-shrink:0;">›</span>Alert sent to Ops Room to message you
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:6px; font-size:9px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#A78BFA; flex-shrink:0;">›</span>If no response in 60 min, Ops Room will call
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:6px; font-size:9px; color:#CBD5E1; line-height:1.4;">
+        <span style="color:#A78BFA; flex-shrink:0;">›</span>If call is missed, Live Action Protocol activated &amp; reaction deployed
+      </div>
+    </div>
+    <button style="width:100%; background:linear-gradient(135deg, #6366F1, #8B5CF6); border:none; border-radius:10px; padding:11px; font-size:10px; font-weight:700; color:#fff; letter-spacing:0.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+      <span class="material-symbols-outlined filled" style="font-size:16px;">face</span>
+      ENABLE FACE SCAN MONITORING
+    </button>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav style="height:56px; background:#060C18; border-top:1px solid #1E2D45; display:flex; align-items:center; flex-shrink:0;">
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/vbg-home.html', null)" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">home</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">HOME</span>
+  </div>
+  <div onclick="parent && parent.loadScreen && parent.loadScreen('screens/ops-dashboard.html', null)" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">shield</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">OPS ROOM</span>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined filled" style="font-size:20px; color:#2563EB;">menu_book</span>
+    <span style="font-size:8px; font-weight:700; color:#2563EB; letter-spacing:0.5px;">PLAYBOOK</span>
+  </div>
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer;">
+    <span class="material-symbols-outlined" style="font-size:20px; color:#475569;">contacts</span>
+    <span style="font-size:8px; font-weight:600; color:#475569; letter-spacing:0.5px;">CONTACTS</span>
+  </div>
+</nav>
+
+</body></html>

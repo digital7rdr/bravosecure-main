@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"bg-dark":"#0A0F1E",surface:"#0D1929"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .topic-chip{padding:6px 14px;border-radius:9999px;font-size:11px;font-weight:700;border:1.5px solid #1E2D45;background:transparent;color:#64748b;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Manrope',sans-serif;}
+  .topic-chip.active{background:rgba(37,99,235,0.15);border-color:#2563EB;color:#60a5fa;}
+  .topic-chip:active{transform:scale(0.95);}
+
+  .toggle-track{width:44px;height:24px;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;background:#1E2D45;}
+  .toggle-track.on{background:#2563EB;}
+  .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+  .toggle-track.on .toggle-thumb{transform:translateX(20px);}
+
+  .region-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1px solid #1E2D45;background:#0D1929;transition:border-color 0.15s;}
+  .region-row.on{border-color:rgba(37,99,235,0.3);}
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<header class="shrink-0 px-4 pt-[50px] pb-3 flex items-center justify-between" style="background:#0A0F1E;border-bottom:1px solid #1E2D45">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">News Preferences</h1>
+  <div class="w-9"></div>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 pt-4 space-y-5">
+
+  <!-- Description -->
+  <p class="text-[12px] text-slate-400 leading-relaxed">Select the topics and regions you're most interested in. Your feed will be personalised accordingly.</p>
+
+  <!-- Topics -->
+  <div>
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Topics</p>
+    <div class="flex flex-wrap gap-2">
+      <button class="topic-chip active" onclick="toggleChip(this)">Business</button>
+      <button class="topic-chip active" onclick="toggleChip(this)">Finance</button>
+      <button class="topic-chip active" onclick="toggleChip(this)">Security</button>
+      <button class="topic-chip" onclick="toggleChip(this)">Energy</button>
+      <button class="topic-chip active" onclick="toggleChip(this)">Technology</button>
+      <button class="topic-chip" onclick="toggleChip(this)">Defence</button>
+      <button class="topic-chip" onclick="toggleChip(this)">Aviation</button>
+      <button class="topic-chip active" onclick="toggleChip(this)">Real Estate</button>
+    </div>
+  </div>
+
+  <!-- Preferred Regions -->
+  <div>
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Preferred Regions</p>
+    <div class="space-y-2">
+
+      <div id="region-ae" class="region-row on" onclick="toggleRegion('ae')">
+        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded shrink-0" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.3)">AE</span>
+        <span class="text-[13px] font-bold text-slate-200 flex-1">UAE</span>
+        <div class="toggle-track on" id="tog-ae"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div id="region-sa" class="region-row on" onclick="toggleRegion('sa')">
+        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded shrink-0" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.3)">SA</span>
+        <span class="text-[13px] font-bold text-slate-200 flex-1">Saudi Arabia</span>
+        <div class="toggle-track on" id="tog-sa"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div id="region-global" class="region-row on" onclick="toggleRegion('global')">
+        <div class="size-6 rounded flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+          <span class="material-symbols-outlined filled" style="font-size:14px;color:#60a5fa">public</span>
+        </div>
+        <span class="text-[13px] font-bold text-slate-200 flex-1">Global</span>
+        <div class="toggle-track on" id="tog-global"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div id="region-gb" class="region-row" onclick="toggleRegion('gb')">
+        <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded shrink-0" style="background:#1E2D45;color:#64748b">GB</span>
+        <span class="text-[13px] font-bold text-slate-400 flex-1">UK</span>
+        <div class="toggle-track" id="tog-gb"><div class="toggle-thumb"></div></div>
+      </div>
+
+      <div id="region-tech" class="region-row" onclick="toggleRegion('tech')">
+        <div class="size-6 rounded flex items-center justify-center shrink-0" style="background:#1E2D45">
+          <span class="material-symbols-outlined filled text-slate-600" style="font-size:14px">devices</span>
+        </div>
+        <span class="text-[13px] font-bold text-slate-400 flex-1">Technology</span>
+        <div class="toggle-track" id="tog-tech"><div class="toggle-thumb"></div></div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="savePrefs()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.05em;font-size:0.8rem">
+    SAVE PREFERENCES
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  const regions={ae:true,sa:true,global:true,gb:false,tech:false};
+
+  function toggleChip(btn){
+    btn.classList.toggle('active');
+  }
+
+  function toggleRegion(id){
+    regions[id]=!regions[id];
+    const row=document.getElementById('region-'+id);
+    const tog=document.getElementById('tog-'+id);
+    const label=row.querySelector('span.flex-1')||row.querySelector('span:nth-child(2)');
+    if(regions[id]){
+      row.classList.add('on');
+      tog.classList.add('on');
+      if(label) label.style.color='#e2e8f0';
+    } else {
+      row.classList.remove('on');
+      tog.classList.remove('on');
+      if(label) label.style.color='#94a3b8';
+    }
+  }
+
+  function savePrefs(){
+    // Collect active topics
+    const topics=[...document.querySelectorAll('.topic-chip.active')].map(c=>c.textContent.trim());
+    const activeRegions=Object.entries(regions).filter(([,v])=>v).map(([k])=>k.toUpperCase());
+
+    // Store for feed to consume
+    try{
+      sessionStorage.setItem('news_topics', JSON.stringify(topics));
+      sessionStorage.setItem('news_regions', JSON.stringify(activeRegions));
+    }catch(e){}
+
+    // Toast
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:99;background:rgba(37,99,235,0.95);backdrop-filter:blur(4px);padding:10px 18px;border-radius:12px;font-size:11px;font-weight:700;color:white;white-space:nowrap;font-family:Manrope,sans-serif';
+    t.textContent='✓ Preferences saved · Feed updating';
+    document.body.appendChild(t);
+    setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(()=>t.remove(),400);},2000);
+
+    setTimeout(()=>nav('news-feed.html'),800);
+  }
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('news-hub.html');}
+</script>
+</body></html>

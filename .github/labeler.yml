@@ -1,0 +1,74 @@
+# Auto-labels PRs based on which files they touch.
+# Used by .github/workflows/labeler.yml (actions/labeler@v5).
+
+area/crypto:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/messenger/crypto/**'
+
+area/transport:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/messenger/transport/**'
+
+area/runtime:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/messenger/runtime/**'
+
+area/push:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/messenger/push/**'
+
+area/messenger:
+  - changed-files:
+      - any-glob-to-any-file: 'src/modules/messenger/**'
+
+area/ui:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/screens/**'
+          - 'src/components/**'
+          - 'src/theme/**'
+
+area/native:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'android/**'
+          - 'ios/**'
+
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'scripts/**'
+
+area/deps:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+
+area/backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'apps/**'
+          - 'supabase/**'
+
+area/tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/__tests__/**'
+          - '**/*.test.ts'
+          - '**/*.spec.ts'
+
+risk/security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/modules/messenger/crypto/**'
+          - '.env*'
+          - '**/*.pem'
+          - '**/*.key'
+
+size/large:
+  - any:
+      - changed-files:
+          - count:
+              gte: 20

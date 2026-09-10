@@ -1,0 +1,85 @@
+name: PR Analysis
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-analysis-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: PR Risk & Impact Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need full history for diff vs main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci --legacy-peer-deps
+
+      # ── Install code-review-graph for impact analysis ───────────
+      - name: Set up Python (for code-review-graph)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install code-review-graph
+        run: pip install --user code-review-graph || echo "graph install failed; falling back to diff-only"
+      - name: Build graph for repo
+        continue-on-error: true
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          code-review-graph build || true
+
+      # ── Coverage on PR branch ───────────────────────────────────
+      - name: Run tests on PR branch with coverage
+        id: pr-coverage
+        continue-on-error: true
+        run: |
+          npx jest --ci --coverage \
+            --coverageReporters=json-summary \
+            --coverageDirectory=coverage-pr || true
+          echo "done=true" >> $GITHUB_OUTPUT
+
+      # ── Coverage on base (main) for comparison ──────────────────
+      - name: Run tests on base branch with coverage
+        continue-on-error: true
+        run: |
+          git fetch origin main
+          git stash --include-untracked || true
+          git checkout origin/main -- .
+          npx jest --ci --coverage \
+            --coverageReporters=json-summary \
+            --coverageDirectory=coverage-base || true
+          git checkout HEAD -- .
+          git stash pop || true
+
+      # ── Compute risk score & build comment ──────────────────────
+      - name: Compute PR risk score
+        id: risk
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          node scripts/pr-risk-score.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      # ── Post / update sticky comment on the PR ──────────────────
+      - name: Post analysis comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-analysis
+          path: pr-analysis-comment.md

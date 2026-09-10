@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure — Default Home Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ primary:"#2563EB","background-dark":"#0A0F1E" },
+      fontFamily:{ display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .scroll-area { overflow-y:auto; scrollbar-width:none; }
+  .scroll-area::-webkit-scrollbar { display:none; }
+
+  /* Ambient glow pulse */
+  @keyframes glowPulse {
+    0%,100% { opacity:0.18; transform:scale(1); }
+    50%      { opacity:0.32; transform:scale(1.08); }
+  }
+
+  /* Primary card */
+  .path-card {
+    position:relative; overflow:hidden;
+    background:#0D1929; border-radius:22px;
+    padding:32px 24px 26px;
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+    text-align:center; width:100%;
+  }
+  .card-glow {
+    position:absolute; width:300px; height:300px; border-radius:50%;
+    pointer-events:none; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    animation:glowPulse 3s ease-in-out infinite;
+  }
+
+  /* Selected badge */
+  .sel-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; font-weight:700; letter-spacing:1.5px;
+    text-transform:uppercase; padding:5px 12px; border-radius:20px;
+    position:relative; z-index:1;
+  }
+
+  /* Alt path cards */
+  .alt-card {
+    display:flex; align-items:center; gap:12px;
+    background:#0D1929; border:1px solid #1E2D45;
+    border-radius:14px; padding:13px 15px;
+    cursor:pointer; width:100%; text-align:left;
+    transition:border-color 0.18s, background 0.18s;
+  }
+  .alt-card:hover {
+    border-color:rgba(37,99,235,0.35);
+    background:rgba(37,99,235,0.04);
+  }
+  .alt-card:active { transform:scale(0.99); }
+
+  /* Premium CTA button */
+  .cta-btn {
+    width:100%; padding:17px 24px; border-radius:18px;
+    color:#fff; font-size:15px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform 0.12s, box-shadow 0.12s;
+    white-space:nowrap;
+  }
+  .cta-btn:hover  { filter:brightness(1.08); }
+  .cta-btn:active { transform:scale(0.97); }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<div class="flex flex-col w-full h-full max-w-sm mx-auto">
+
+  <!-- Scrollable body -->
+  <div class="scroll-area flex-1 px-5 pt-12 pb-28">
+
+    <!-- Header -->
+    <p class="text-[10px] font-bold tracking-[3px] uppercase text-blue-400 mb-2">Default Home Screen</p>
+    <h1 class="text-[24px] font-extrabold leading-tight tracking-tight text-slate-100 mb-1.5">Choose your default</h1>
+    <p class="text-slate-400 text-[12px] leading-snug mb-6">
+      Choose which screen you'd like to see when you open Bravo.<br/>You can change this anytime in Settings.
+    </p>
+
+    <!-- Primary card -->
+    <div id="primary-card" class="path-card mb-5"></div>
+
+    <!-- Alt paths -->
+    <div id="alt-paths"></div>
+
+  </div>
+
+  <!-- Fixed CTA -->
+  <div class="fixed bottom-0 left-0 right-0 px-5 pb-8 pt-3 max-w-sm mx-auto"
+       style="background:linear-gradient(to top,#0A0F1E 65%,transparent)">
+    <button id="cta-btn" onclick="proceed()" class="cta-btn">
+      Continue
+      <span class="material-symbols-outlined" style="font-size:19px;font-variation-settings:'FILL' 0">arrow_forward</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const PATHS = {
+    lite: {
+      key:'lite', label:'Bravo Secure Lite',
+      sub:'Secure messaging · Chats · News',
+      icon:'chat_bubble', lite:true,
+      color:'#0EA5E9', colorLight:'rgba(14,165,233,0.16)',
+      glowColor:'rgba(14,165,233,0.22)',
+      badgeBg:'rgba(14,165,233,0.18)', badgeColor:'#7dd3fc',
+      ctaBg:'linear-gradient(135deg,#0EA5E9 0%,#0369a1 100%)',
+      ctaGlow:'0 10px 36px rgba(14,165,233,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      ctaLabel:'Open Bravo Secure Lite',
+      dest:'screens/dashboard.html',
+    },
+    pro: {
+      key:'pro', label:'Bravo Secure Pro',
+      sub:'Full security suite · Ops · Booking · Messenger',
+      icon:'shield', pro:true,
+      color:'#2563EB', colorLight:'rgba(37,99,235,0.16)',
+      glowColor:'rgba(37,99,235,0.22)',
+      badgeBg:'rgba(37,99,235,0.18)', badgeColor:'#60A5FA',
+      ctaBg:'linear-gradient(135deg,#2563EB 0%,#1d4ed8 100%)',
+      ctaGlow:'0 10px 36px rgba(37,99,235,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      ctaLabel:'Subscribe to Bravo Pro',
+      dest:'screens/bravo-pro-landing.html',
+    },
+    vb: {
+      key:'vb', label:'Virtual Bodyguard',
+      sub:'AI safety monitoring · SRA · OSINT feed',
+      icon:'robot_2', ai:true,
+      color:'#7C3AED', colorLight:'rgba(124,58,237,0.16)',
+      glowColor:'rgba(124,58,237,0.22)',
+      badgeBg:'rgba(124,58,237,0.18)', badgeColor:'#a78bfa',
+      ctaBg:'linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%)',
+      ctaGlow:'0 10px 36px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      ctaLabel:'Open Virtual Bodyguard',
+      dest:'screens/vbg-home.html',
+    },
+  };
+
+  const chosenKey = sessionStorage.getItem('authPath') || 'lite';
+  const chosen    = PATHS[chosenKey] || PATHS.lite;
+  const alts      = Object.values(PATHS).filter(p => p.key !== chosen.key);
+
+  /* ── Primary card ── */
+  const card = document.getElementById('primary-card');
+  card.style.border    = `1.5px solid ${chosen.color}50`;
+  card.style.boxShadow = `0 0 0 1px ${chosen.color}18, 0 0 40px ${chosen.glowColor}`;
+
+  const tierBadge = chosen.ai
+    ? `<span style="font-size:8px;font-weight:800;letter-spacing:1.2px;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;border-radius:5px;padding:2px 7px;text-transform:uppercase;">AI</span>`
+    : chosen.lite
+    ? `<span style="font-size:8px;font-weight:800;letter-spacing:1.2px;background:linear-gradient(135deg,#0EA5E9,#0369a1);color:#fff;border-radius:5px;padding:2px 7px;text-transform:uppercase;">LITE</span>`
+    : chosen.pro
+    ? `<span style="font-size:8px;font-weight:800;letter-spacing:1.2px;background:linear-gradient(135deg,#2563EB,#1d4ed8);color:#fff;border-radius:5px;padding:2px 7px;text-transform:uppercase;">PRO</span>`
+    : '';
+
+  card.innerHTML = `
+    <div class="card-glow" style="background:radial-gradient(circle,${chosen.color} 0%,transparent 68%)"></div>
+    <div style="width:72px;height:72px;border-radius:20px;background:${chosen.colorLight};border:1.5px solid ${chosen.color}40;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;box-shadow:0 0 20px ${chosen.glowColor}">
+      <span class="material-symbols-outlined" style="font-size:36px;color:${chosen.color};font-variation-settings:'FILL' 1,'wght' 300">${chosen.icon}</span>
+    </div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <p style="font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#f1f5f9;">${chosen.label}</p>
+        ${tierBadge}
+      </div>
+      <p style="font-size:12px;color:#94a3b8;line-height:1.5;">${chosen.sub}</p>
+    </div>
+    <div class="sel-badge" style="background:${chosen.badgeBg};color:${chosen.badgeColor};">
+      <span class="material-symbols-outlined" style="font-size:14px;font-variation-settings:'FILL' 1,'wght' 400">check_circle</span>
+      Selected
+    </div>`;
+
+  /* ── CTA ── */
+  const ctaBtn = document.getElementById('cta-btn');
+  ctaBtn.style.background = chosen.ctaBg;
+  ctaBtn.style.boxShadow  = chosen.ctaGlow;
+  ctaBtn.innerHTML = `${chosen.ctaLabel} <span class="material-symbols-outlined" style="font-size:19px">arrow_forward</span>`;
+
+  /* ── Alt paths ── */
+  const altWrap = document.getElementById('alt-paths');
+  altWrap.innerHTML = `<p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#475569;margin-bottom:8px;">Or switch to</p>`;
+  alts.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'alt-card';
+    btn.style.marginBottom = '8px';
+    btn.onclick = () => switchPath(p.key);
+    btn.innerHTML = `
+      <div style="width:38px;height:38px;border-radius:11px;background:${p.colorLight};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span class="material-symbols-outlined" style="font-size:20px;color:${p.color};font-variation-settings:'FILL' 1,'wght' 300">${p.icon}</span>
+      </div>
+      <div style="flex:1;text-align:left;min-width:0;">
+        <p style="font-size:13px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.label}</p>
+        <p style="font-size:11px;color:#64748b;line-height:1.4;margin-top:1px;">${p.sub}</p>
+      </div>
+      <span class="material-symbols-outlined" style="font-size:18px;color:#334155;flex-shrink:0;">chevron_right</span>`;
+    altWrap.appendChild(btn);
+  });
+
+  /* ── Helpers ── */
+  function switchPath(key) {
+    sessionStorage.setItem('authPath', key);
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen('screens/home-selection.html', document.createElement('div'));
+    } else { location.reload(); }
+  }
+
+  function proceed() {
+    localStorage.setItem('bs_session', 'active');
+    sessionStorage.setItem('defaultHome', chosenKey);
+    if (window.parent && window.parent.loadScreen) {
+      window.parent.loadScreen(chosen.dest, document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

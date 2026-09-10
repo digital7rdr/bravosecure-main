@@ -1,0 +1,18 @@
+# Audit CFG-02 — Docker build context is the repo root, and the service
+# Dockerfiles reinstall dependencies + rebuild inside the image. Keep the
+# following OUT of the build context so they never land in distributable
+# image layers:
+#   - a developer's real .env.local (secrets, also read by `next build`)
+#   - host-native node_modules (Windows binaries polluting a Linux stage)
+#   - prior build output and TS incremental caches
+#   - the git history
+**/node_modules
+**/.next
+**/.env.local
+**/.env.*.local
+**/*.tsbuildinfo
+.git
+.gitignore
+**/.DS_Store
+**/npm-debug.log*
+**/coverage

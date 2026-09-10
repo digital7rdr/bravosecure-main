@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: { colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" }, fontFamily: { display: ["Manrope","sans-serif"] } } }
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse-ring { 0%,100% { opacity:0.4; transform:scale(1); } 50% { opacity:0.9; transform:scale(1.08); } }
+
+  .state-panel { display: none; }
+  .state-panel.active { display: flex; }
+
+  .tab-btn { transition: all 0.2s; }
+  .tab-btn.active { color: #2563EB; border-bottom: 2px solid #2563EB; }
+  .tab-btn:not(.active) { color: #475569; border-bottom: 2px solid transparent; }
+
+  .progress-ring { animation: pulse-ring 2s ease-in-out infinite; }
+  .spin-icon { animation: spin 2s linear infinite; display: inline-block; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] text-slate-100 h-full flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <h1 class="text-[13px] font-extrabold tracking-[0.12em] text-slate-100 uppercase">Ops Room Review</h1>
+  <span id="status-badge" class="text-[10px] font-bold tracking-widest px-2.5 py-1 rounded-full"
+    style="background:rgba(234,179,8,0.15);color:#EAB308;border:1px solid rgba(234,179,8,0.25)">PENDING</span>
+</header>
+
+<!-- State: Pending -->
+<div id="panel-pending" class="state-panel active flex-1 flex-col overflow-y-auto">
+  <!-- Icon -->
+  <div class="flex justify-center pt-8 pb-4">
+    <div class="progress-ring size-24 rounded-full flex items-center justify-center" style="background:rgba(37,99,235,0.1);border:2px solid rgba(37,99,235,0.25)">
+      <span class="material-symbols-outlined filled text-primary" style="font-size:40px">hourglass_top</span>
+    </div>
+  </div>
+
+  <div class="text-center px-8 pb-6">
+    <h2 class="font-extrabold text-[18px] text-slate-100 mb-2">Awaiting Ops Approval</h2>
+    <p class="text-[13px] text-slate-400 leading-relaxed">Your booking is being reviewed by the operations team. Typically 2–5 minutes.</p>
+  </div>
+
+  <!-- Booking Summary -->
+  <div class="mx-4 rounded-2xl border border-slate-700/60 p-4 mb-6" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Booking Summary</p>
+    <div class="space-y-2.5">
+      <div class="flex justify-between text-[13px]">
+        <span class="text-slate-500">Service</span>
+        <span class="text-slate-200 font-semibold text-right">Secure Transfer · Recon Team</span>
+      </div>
+      <div class="flex justify-between text-[13px]">
+        <span class="text-slate-500">Date</span>
+        <span class="text-slate-200 font-semibold">Tue 10 Mar · 14:00</span>
+      </div>
+      <div class="flex justify-between text-[13px]">
+        <span class="text-slate-500">Pick-Up</span>
+        <span class="text-slate-200 font-semibold">DIFC Gate Building 4</span>
+      </div>
+      <div class="flex justify-between text-[13px]">
+        <span class="text-slate-500">Duration</span>
+        <span class="text-slate-200 font-semibold">4 hrs est.</span>
+      </div>
+      <div class="w-full h-px mt-1" style="background:#1E2D45"></div>
+      <div class="flex justify-between text-[13px]">
+        <span class="text-slate-500">Total Rate</span>
+        <span class="text-primary font-extrabold">540 credits/hr</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo state tabs -->
+  <div class="mx-4 mb-4">
+    <p class="text-[10px] font-bold tracking-[0.1em] text-slate-600 uppercase mb-2 text-center">Preview State</p>
+    <div class="flex border-b border-slate-700/50">
+      <button class="tab-btn active flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('pending')">Pending</button>
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('approved')">Approved</button>
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('rejected')">Rejected</button>
+    </div>
+  </div>
+</div>
+
+<!-- State: Approved -->
+<div id="panel-approved" class="state-panel flex-1 flex-col overflow-y-auto">
+  <div class="flex justify-center pt-8 pb-4">
+    <div class="size-24 rounded-full flex items-center justify-center" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">
+      <span class="material-symbols-outlined filled text-green-400" style="font-size:40px">check_circle</span>
+    </div>
+  </div>
+
+  <div class="text-center px-8 pb-6">
+    <h2 class="font-extrabold text-[18px] text-slate-100 mb-2">Booking Approved</h2>
+    <p class="text-[13px] text-slate-400 leading-relaxed">Your request has been approved by the ops team. Proceed to payment to confirm your booking.</p>
+  </div>
+
+  <div class="mx-4 rounded-2xl border border-slate-700/60 p-4 mb-6" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Booking Summary</p>
+    <div class="space-y-2.5">
+      <div class="flex justify-between text-[13px]"><span class="text-slate-500">Service</span><span class="text-slate-200 font-semibold">Secure Transfer · Recon Team</span></div>
+      <div class="flex justify-between text-[13px]"><span class="text-slate-500">Date</span><span class="text-slate-200 font-semibold">Tue 10 Mar · 14:00</span></div>
+      <div class="flex justify-between text-[13px]"><span class="text-slate-500">Pick-Up</span><span class="text-slate-200 font-semibold">DIFC Gate Building 4</span></div>
+      <div class="w-full h-px mt-1" style="background:#1E2D45"></div>
+      <div class="flex justify-between text-[13px]"><span class="text-slate-500">Total Rate</span><span class="text-primary font-extrabold">540 credits/hr</span></div>
+    </div>
+  </div>
+
+  <div class="mx-4 mb-4">
+    <div class="flex border-b border-slate-700/50">
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('pending')">Pending</button>
+      <button class="tab-btn active flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('approved')">Approved</button>
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('rejected')">Rejected</button>
+    </div>
+  </div>
+
+  <div class="px-4 pb-6">
+    <button onclick="goToPayment()" class="w-full font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(37,99,235,0.35);color:white;letter-spacing:0.06em;font-size:0.75rem">
+      PROCEED TO PAYMENT
+      <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+    </button>
+  </div>
+</div>
+
+<!-- State: Rejected -->
+<div id="panel-rejected" class="state-panel flex-1 flex-col overflow-y-auto">
+  <div class="flex justify-center pt-8 pb-4">
+    <div class="size-24 rounded-full flex items-center justify-center" style="background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.25)">
+      <span class="material-symbols-outlined filled text-red-400" style="font-size:40px">cancel</span>
+    </div>
+  </div>
+
+  <div class="text-center px-8 pb-6">
+    <h2 class="font-extrabold text-[18px] text-slate-100 mb-2">Request Rejected</h2>
+    <p class="text-[13px] text-slate-400 leading-relaxed">Your booking could not be approved. Please review your requirements and resubmit.</p>
+  </div>
+
+  <div class="mx-4 rounded-2xl p-4 mb-6" style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2)">
+    <div class="flex items-start gap-3">
+      <span class="material-symbols-outlined filled text-red-400 shrink-0 mt-0.5" style="font-size:18px">info</span>
+      <p class="text-[13px] text-red-300 leading-relaxed">Insufficient CPO availability for the selected date and time. Please adjust your schedule or reduce team size.</p>
+    </div>
+  </div>
+
+  <div class="mx-4 mb-4">
+    <div class="flex border-b border-slate-700/50">
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('pending')">Pending</button>
+      <button class="tab-btn flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('approved')">Approved</button>
+      <button class="tab-btn active flex-1 py-2.5 text-[11px] font-bold tracking-wider uppercase" onclick="switchState('rejected')">Rejected</button>
+    </div>
+  </div>
+
+  <div class="px-4 pb-6 space-y-3">
+    <button onclick="goBack()" class="w-full font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:0 4px 14px rgba(37,99,235,0.35);color:white;letter-spacing:0.06em;font-size:0.75rem">
+      EDIT BOOKING
+    </button>
+    <button onclick="navTo('dashboard.html')" class="w-full py-3 text-[13px] font-semibold text-slate-500 hover:text-slate-300 transition-colors">
+      Cancel &amp; Return Home
+    </button>
+  </div>
+</div>
+
+<script>
+  let currentState = 'pending';
+
+  function navTo(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    const el = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e => e.getAttribute('onclick')?.includes(screen)) ||
+      window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/' + screen, el || document.createElement('div'));
+  }
+
+  function goBack() { navTo('customize-addons.html'); }
+  function goToPayment() { navTo('payment.html'); }
+
+  function switchState(state) {
+    currentState = state;
+    document.querySelectorAll('.state-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + state).classList.add('active');
+
+    const badge = document.getElementById('status-badge');
+    if (state === 'pending') {
+      badge.textContent = 'PENDING';
+      badge.style.cssText = 'background:rgba(234,179,8,0.15);color:#EAB308;border:1px solid rgba(234,179,8,0.25)';
+    } else if (state === 'approved') {
+      badge.textContent = 'APPROVED';
+      badge.style.cssText = 'background:rgba(34,197,94,0.15);color:#22C55E;border:1px solid rgba(34,197,94,0.25)';
+    } else {
+      badge.textContent = 'REJECTED';
+      badge.style.cssText = 'background:rgba(239,68,68,0.15);color:#EF4444;border:1px solid rgba(239,68,68,0.25)';
+    }
+  }
+</script>
+</body></html>

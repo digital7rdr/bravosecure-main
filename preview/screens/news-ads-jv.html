@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"bg-dark":"#0A0F1E",surface:"#0D1929"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .tab-btn{flex:1;padding:8px 4px;text-align:center;font-size:10px;font-weight:800;letter-spacing:0.06em;border-radius:8px;cursor:pointer;transition:all 0.2s;color:#475569;}
+  .tab-btn.active{background:rgba(37,99,235,0.15);color:#60a5fa;}
+  .jv-card{background:#0D1929;border:1px solid #1E2D45;border-radius:14px;padding:14px;cursor:pointer;transition:border-color 0.15s;}
+  .jv-card:hover{border-color:rgba(37,99,235,0.35);}
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<header class="shrink-0 px-4 pt-[50px] pb-3 flex items-center justify-between" style="background:#0A0F1E;border-bottom:1px solid #1E2D45">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h1 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">GEO JV Adverts</h1>
+  <span class="text-[9px] font-extrabold px-2 py-1 rounded-full" style="color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);background:rgba(124,58,237,0.1)">PARTNER</span>
+</header>
+
+<!-- Tab switcher -->
+<div class="shrink-0 flex gap-1.5 mx-4 mt-3 mb-1 p-1 rounded-xl" style="background:#0D1929;border:1px solid #1E2D45">
+  <div id="tab-cyber" class="tab-btn" onclick="nav('news-ads-cyber.html')">CYBER SECURITY APPS</div>
+  <div id="tab-jv" class="tab-btn active">GEO JV ADVERTS</div>
+</div>
+
+<main class="flex-1 overflow-y-auto px-4 pb-6 pt-3 space-y-3">
+
+  <!-- Revenue share notice -->
+  <div class="flex items-start gap-2.5 rounded-xl px-3.5 py-3" style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.18)">
+    <span class="material-symbols-outlined filled shrink-0 mt-0.5" style="font-size:14px;color:#a78bfa">public</span>
+    <p class="text-[11px] text-slate-400 leading-relaxed">Geographic JV partners share ad revenue based on verified user impressions per region.</p>
+  </div>
+
+  <!-- UAE -->
+  <div class="jv-card">
+    <div class="flex items-start gap-2 mb-2.5">
+      <div class="size-7 rounded-lg flex items-center justify-center shrink-0 text-[13px]" style="background:#1E2D45">🇦🇪</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:rgba(37,99,235,0.15);color:#60a5fa">REAL ESTATE</span>
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">AE · Dubai</span>
+        </div>
+        <p class="text-[13px] font-extrabold text-slate-100 mt-1">DIFC Grade-A Office Space</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Premium serviced offices from AED 18,000/mo. Zero tax.</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="enquire(this)" class="flex-1 py-2.5 rounded-xl font-extrabold text-[10px] tracking-wider transition-all active:scale-[0.98]"
+        style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.35)">
+        ENQUIRE · JV PARTNER $
+      </button>
+      <button class="px-4 py-2.5 rounded-xl font-bold text-[11px] transition-all" style="background:#1E2D45;color:#94a3b8;border:1px solid #1E2D45">
+        SAVE
+      </button>
+    </div>
+  </div>
+
+  <!-- KSA -->
+  <div class="jv-card">
+    <div class="flex items-start gap-2 mb-2.5">
+      <div class="size-7 rounded-lg flex items-center justify-center shrink-0 text-[13px]" style="background:#1E2D45">🇸🇦</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:rgba(245,158,11,0.12);color:#fbbf24">ENTERPRISE</span>
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">SA · Riyadh</span>
+        </div>
+        <p class="text-[13px] font-extrabold text-slate-100 mt-1">NEOM Business Zone Early Entry</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Founding partner licenses — government-backed incentives.</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="enquire(this)" class="flex-1 py-2.5 rounded-xl font-extrabold text-[10px] tracking-wider transition-all active:scale-[0.98]"
+        style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.35)">
+        ENQUIRE · JV PARTNER $
+      </button>
+      <button class="px-4 py-2.5 rounded-xl font-bold text-[11px] transition-all" style="background:#1E2D45;color:#94a3b8;border:1px solid #1E2D45">
+        SAVE
+      </button>
+    </div>
+  </div>
+
+  <!-- UK -->
+  <div class="jv-card">
+    <div class="flex items-start gap-2 mb-2.5">
+      <div class="size-7 rounded-lg flex items-center justify-center shrink-0 text-[13px]" style="background:#1E2D45">🇬🇧</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:rgba(99,102,241,0.15);color:#818cf8">JOINT VENTURE</span>
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">GB · London</span>
+        </div>
+        <p class="text-[13px] font-extrabold text-slate-100 mt-1">Mayfair Security Advisory JV Open</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">UK-licensed firms invited to JV with Bravo for GCC clients.</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="enquire(this)" class="flex-1 py-2.5 rounded-xl font-extrabold text-[10px] tracking-wider transition-all active:scale-[0.98]"
+        style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.35)">
+        ENQUIRE · JV PARTNER $
+      </button>
+      <button class="px-4 py-2.5 rounded-xl font-bold text-[11px] transition-all" style="background:#1E2D45;color:#94a3b8;border:1px solid #1E2D45">
+        SAVE
+      </button>
+    </div>
+  </div>
+
+  <!-- East Africa -->
+  <div class="jv-card">
+    <div class="flex items-start gap-2 mb-2.5">
+      <div class="size-7 rounded-lg flex items-center justify-center shrink-0" style="background:#1E2D45">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:14px">public</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:rgba(34,197,94,0.12);color:#4ade80">PARTNERSHIP</span>
+          <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded" style="background:#1E2D45;color:#64748b">East Africa</span>
+        </div>
+        <p class="text-[13px] font-extrabold text-slate-100 mt-1">Regional Intelligence Network — Partner Seats</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Ground-level OSINT partner positions in East Africa for Bravo GCC clients.</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="enquire(this)" class="flex-1 py-2.5 rounded-xl font-extrabold text-[10px] tracking-wider transition-all active:scale-[0.98]"
+        style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.35)">
+        ENQUIRE · JV PARTNER $
+      </button>
+      <button class="px-4 py-2.5 rounded-xl font-bold text-[11px] transition-all" style="background:#1E2D45;color:#94a3b8;border:1px solid #1E2D45">
+        SAVE
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function enquire(btn){
+    const orig=btn.textContent;
+    btn.textContent='✓ ENQUIRY SENT';
+    btn.style.background='rgba(34,197,94,0.12)';
+    btn.style.color='#4ade80';
+    btn.style.borderColor='rgba(34,197,94,0.3)';
+    setTimeout(()=>{btn.textContent=orig;btn.style.background='rgba(37,99,235,0.15)';btn.style.color='#60a5fa';btn.style.borderColor='rgba(37,99,235,0.35)';},2000);
+  }
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('news-hub.html');}
+</script>
+</body></html>

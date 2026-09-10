@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"pro":"#6366F1","background-dark":"#0A0F1E"},fontFamily:{"display":["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+  #msg-area::-webkit-scrollbar{display:none;}#msg-area{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .role-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:9999px;}
+  .badge-admin{background:rgba(37,99,235,0.15);color:#93c5fd;border:1px solid rgba(37,99,235,0.25);}
+  .badge-bot{background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.25);}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 shrink-0" style="border-bottom:1px solid #1E2D45">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors shrink-0">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors shrink-0">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">settings</span>
+    </button>
+    <div class="flex-1 min-w-0 text-center">
+      <p id="ch-name" class="text-[13px] font-extrabold tracking-wider uppercase text-slate-100">Operations</p>
+      <p class="text-[10px] text-slate-500">6 members · Encrypted</p>
+    </div>
+    <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors shrink-0">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">more_vert</span>
+    </button>
+  </div>
+</header>
+
+<!-- Pinned description -->
+<div class="mx-4 mt-3 mb-1 px-3 py-2 rounded-xl flex items-start gap-2 shrink-0" style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.12)">
+  <span class="material-symbols-outlined filled shrink-0 mt-0.5" style="font-size:13px;color:#6366F1">push_pin</span>
+  <p id="ch-desc" class="text-[11px] text-slate-400 leading-relaxed">Operational updates, mission briefs and deployment orders.</p>
+</div>
+
+<!-- Date divider -->
+<div class="flex items-center gap-3 px-4 py-2 shrink-0">
+  <div class="flex-1 h-px" style="background:#1E2D45"></div>
+  <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">TODAY</span>
+  <div class="flex-1 h-px" style="background:#1E2D45"></div>
+</div>
+
+<!-- Messages -->
+<div id="msg-area" class="flex-1 overflow-y-auto px-4 pb-2 space-y-4">
+
+  <!-- Message 1: received -->
+  <div>
+    <div class="flex items-center gap-2 mb-1.5">
+      <div class="size-6 rounded-full flex items-center justify-center font-bold text-[10px]" style="background:rgba(245,158,11,0.2);color:#fcd34d">SA</div>
+      <span class="text-[11px] font-bold text-slate-300">Shaw Al-Aiken</span>
+      <span class="role-badge badge-admin">Admin</span>
+      <span class="text-[10px] text-slate-600 ml-auto">Now</span>
+    </div>
+    <div class="ml-8 space-y-2">
+      <div class="inline-block px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-[13px] text-slate-200 max-w-[85%]" style="background:#1E2D45">
+        Mission brief 4821 attached — review before 11.00.
+      </div>
+      <!-- File attachment -->
+      <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl max-w-[85%]" style="background:#0D1929;border:1px solid #1E2D45">
+        <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15)">
+          <span class="material-symbols-outlined filled text-blue-400" style="font-size:18px">description</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-slate-200 truncate">Mission_Brief_4821.docx</p>
+          <p class="text-[10px] text-slate-500">580 KB</p>
+        </div>
+        <button class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors" style="background:rgba(37,99,235,0.15);color:#93c5fd;border:1px solid rgba(37,99,235,0.25)">OPEN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date divider -->
+  <div class="flex items-center gap-3">
+    <div class="flex-1 h-px" style="background:#1E2D45"></div>
+    <span class="text-[10px] font-bold text-slate-600">13:10</span>
+    <div class="flex-1 h-px" style="background:#1E2D45"></div>
+  </div>
+
+  <!-- Message 2: bot -->
+  <div>
+    <div class="flex items-center gap-2 mb-1.5">
+      <div class="size-6 rounded-full flex items-center justify-center" style="background:rgba(99,102,241,0.2)">
+        <span class="material-symbols-outlined filled" style="font-size:13px;color:#6366F1">smart_toy</span>
+      </div>
+      <span class="text-[11px] font-bold text-slate-300">OPS Handler-2</span>
+      <span class="role-badge badge-bot">Bot</span>
+      <span class="text-[10px] text-slate-600 ml-auto">Now</span>
+    </div>
+    <div class="ml-8">
+      <div class="inline-block px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-[13px] text-slate-200 max-w-[85%]" style="background:#1E2D45">
+        CPO-44 and CPO-47 confirmed for Tue 14:00. Vehicle staged DIFC P1.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Input -->
+<div class="px-4 pb-5 pt-2 shrink-0" style="border-top:1px solid #1E2D45">
+  <div class="flex items-center gap-2">
+    <div class="flex-1 rounded-2xl px-4 py-3 flex items-center" style="background:#0D1929;border:1px solid #1E2D45">
+      <input id="msg-input" type="text" placeholder="Post to Operations..." class="flex-1 bg-transparent text-[13px] text-slate-200 placeholder:text-slate-600 outline-none" onkeydown="if(event.key==='Enter')sendMsg()"/>
+    </div>
+    <button onclick="sendMsg()" class="size-10 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95" style="background:linear-gradient(135deg,#6366F1,#4338ca)">
+      <span class="material-symbols-outlined filled text-white" style="font-size:18px">send</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  // Load channel name/desc from session if set
+  const chName=sessionStorage.getItem('dept_channel_name');
+  const chDesc=sessionStorage.getItem('dept_channel_desc');
+  if(chName) document.getElementById('ch-name').textContent=chName.toUpperCase();
+  if(chDesc) document.getElementById('ch-desc').textContent=chDesc;
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goBack(){nav('department-channels.html');}
+
+  function sendMsg(){
+    const input=document.getElementById('msg-input');
+    const text=input.value.trim();
+    if(!text)return;
+    const area=document.getElementById('msg-area');
+    const bubble=document.createElement('div');
+    bubble.className='flex justify-end';
+    bubble.innerHTML=`<div class="px-3.5 py-2.5 rounded-2xl rounded-tr-sm text-[13px] text-white max-w-[85%]" style="background:#6366F1">${text}</div>`;
+    area.appendChild(bubble);
+    input.value='';
+    area.scrollTop=area.scrollHeight;
+  }
+</script>
+</body></html>

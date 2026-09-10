@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary:   "#2563EB",
+          "bg-dark": "#0A0F1E",
+          surface:   "#0D1929",
+          border:    "#1E2D45",
+        },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+        borderRadius: { DEFAULT: "0.5rem", lg: "1rem", xl: "1.5rem", full: "9999px" },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled-icon { font-variation-settings: 'FILL' 1; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100" style="height:100vh; display:flex; flex-direction:column; overflow:hidden;">
+
+  <!-- Header -->
+  <header class="flex items-center px-3 justify-between border-b border-primary/10 shrink-0" style="padding-top:52px; padding-bottom:8px;">
+    <div class="flex items-center gap-2">
+      <button onclick="goBack()" class="flex size-8 items-center justify-center hover:bg-primary/10 rounded-full transition-colors">
+        <span class="material-symbols-outlined text-slate-100 text-[20px]">arrow_back</span>
+      </button>
+      <h1 class="text-slate-100 text-base font-bold tracking-tight">Personal Vault</h1>
+    </div>
+    <button class="flex size-8 items-center justify-center rounded-lg text-white" style="background:#2563EB;">
+      <span class="material-symbols-outlined text-[18px]">upload</span>
+    </button>
+  </header>
+
+  <!-- Encryption badge -->
+  <div class="px-3 py-2 shrink-0">
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/20 px-3 py-2.5" style="background:rgba(37,99,235,0.07);">
+      <div class="flex items-center gap-2">
+        <div class="flex size-8 items-center justify-center rounded-full shrink-0" style="background:rgba(37,99,235,0.15);">
+          <span class="material-symbols-outlined filled-icon text-blue-400 text-[18px]">lock</span>
+        </div>
+        <div>
+          <p class="text-slate-100 text-xs font-bold">End-to-End Encrypted</p>
+          <p class="text-slate-400 text-[10px]">Military-grade protection for all files</p>
+        </div>
+      </div>
+      <label class="relative flex h-6 w-10 cursor-pointer items-center rounded-full p-0.5 shrink-0" style="background:#2563EB;">
+        <div class="h-full w-5 rounded-full bg-white shadow-md translate-x-4"></div>
+        <input checked class="invisible absolute" type="checkbox"/>
+      </label>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-primary/10 px-3 gap-4 shrink-0">
+    <a class="flex items-center border-b-2 border-primary text-blue-400 pb-2 pt-2 px-1" href="#">
+      <p class="text-xs font-bold">All</p>
+    </a>
+    <a class="flex items-center border-b-2 border-transparent text-slate-500 pb-2 pt-2 px-1" href="#">
+      <p class="text-xs font-bold">Images</p>
+    </a>
+    <a class="flex items-center border-b-2 border-transparent text-slate-500 pb-2 pt-2 px-1" href="#">
+      <p class="text-xs font-bold">Documents</p>
+    </a>
+    <a class="flex items-center border-b-2 border-transparent text-slate-500 pb-2 pt-2 px-1" href="#">
+      <p class="text-xs font-bold">Audio</p>
+    </a>
+  </div>
+
+  <!-- Scrollable content -->
+  <div style="flex:1; overflow-y:auto;">
+    <div class="px-3 pt-3 pb-2">
+
+      <!-- Images -->
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-slate-100 text-sm font-bold">Images</h3>
+        <button class="text-blue-400 text-xs font-semibold">View All</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="flex flex-col gap-1">
+          <div class="relative rounded-xl overflow-hidden" style="height:110px; background:#0D1929;">
+            <img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCF41WZsrAn0jTL9087vrwV3cFZah27eQ4yy7sPZ7NDlyedMxIYxZ0tL1Q8BmnngJcDn65-Ki0UTvj0zvkMI7iNohT2h9Gsu2YYxMsVDRtYfOz0bnXybum-S3KRvADA0Bdq-1nKO2HKNXWpOo_ENnTmyvFSFzQZxwLHJt1-k_a0mGJs63s8fjk5e6kzPJRWI_Iw2onJCQfAy1aZf7CZjG8fphWm16R_Bj-xerGc7sssctDxil7JGk7T1xKzRuMBI7qoTZ1NpNCiH0nd" alt="Nature"/>
+            <div class="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full" style="background:rgba(37,99,235,0.9);">
+              <span class="material-symbols-outlined filled-icon text-white" style="font-size:13px;">shield</span>
+            </div>
+          </div>
+          <p class="text-slate-300 text-[10px] font-medium truncate">Nature_Project_01.jpg</p>
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="relative rounded-xl overflow-hidden" style="height:110px; background:#0D1929;">
+            <img class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-Qzd8qCj9h-jWEIkdTIh2RzxehXJdRnKdogHhdvgyt1Urv60TnBYjK_9xSV-Wr4fnP53rx8rqxyQ-JeMXiaojffaQKv_hiiaCq6sKYG5Eka18aDi6UcDuIGqbWaSdvKvRHRGYCfecN5V4ioYRBXOgb6lsZpOmZ4tgzMyCbwtlQ9Rw2iCQZWCwZ-8JCTVpGlTpw7JFf6SAuvS3b9bMc6qnnQHtLzA5k-1ku9tZFZ9Ibh_KzzCf8ZYXszdv2UbuSiR8hbeSyRGRHUbU" alt="Abstract"/>
+            <div class="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full" style="background:rgba(37,99,235,0.9);">
+              <span class="material-symbols-outlined filled-icon text-white" style="font-size:13px;">shield</span>
+            </div>
+          </div>
+          <p class="text-slate-300 text-[10px] font-medium truncate">Background_Gradient.png</p>
+        </div>
+      </div>
+
+      <!-- Documents -->
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-slate-100 text-sm font-bold">Documents</h3>
+        <button class="text-blue-400 text-xs font-semibold">View All</button>
+      </div>
+      <div class="space-y-2">
+
+        <div class="flex items-center gap-3 rounded-xl border p-2.5" style="background:#0D1929; border-color:#1E2D45;">
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-lg" style="background:rgba(239,68,68,0.1);">
+            <span class="material-symbols-outlined filled-icon text-[18px]" style="color:#f87171;">picture_as_pdf</span>
+          </div>
+          <div class="flex flex-1 flex-col min-w-0">
+            <p class="text-slate-100 text-xs font-bold truncate">Project_Contract_v2.pdf</p>
+            <p class="text-slate-500 text-[10px]">Alex Rivera · 2.4 MB</p>
+          </div>
+          <div class="flex flex-col items-end gap-0.5 shrink-0">
+            <p class="text-slate-500 text-[9px] font-medium uppercase">Oct 24</p>
+            <span class="material-symbols-outlined text-slate-500 text-[18px]">download</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 rounded-xl border p-2.5" style="background:#0D1929; border-color:#1E2D45;">
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-lg" style="background:rgba(34,197,94,0.1);">
+            <span class="material-symbols-outlined filled-icon text-[18px]" style="color:#4ade80;">table_chart</span>
+          </div>
+          <div class="flex flex-1 flex-col min-w-0">
+            <p class="text-slate-100 text-xs font-bold truncate">Q4_Budget_Plan.xlsx</p>
+            <p class="text-slate-500 text-[10px]">Finance Team · 842 KB</p>
+          </div>
+          <div class="flex flex-col items-end gap-0.5 shrink-0">
+            <p class="text-slate-500 text-[9px] font-medium uppercase">Oct 22</p>
+            <span class="material-symbols-outlined text-slate-500 text-[18px]">download</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 rounded-xl border p-2.5" style="background:#0D1929; border-color:#1E2D45;">
+          <div class="flex size-9 shrink-0 items-center justify-center rounded-lg" style="background:rgba(37,99,235,0.1);">
+            <span class="material-symbols-outlined filled-icon text-blue-400 text-[18px]">description</span>
+          </div>
+          <div class="flex flex-1 flex-col min-w-0">
+            <p class="text-slate-100 text-xs font-bold truncate">Meeting_Notes.docx</p>
+            <p class="text-slate-500 text-[10px]">Self · 125 KB</p>
+          </div>
+          <div class="flex flex-col items-end gap-0.5 shrink-0">
+            <p class="text-slate-500 text-[9px] font-medium uppercase">Oct 19</p>
+            <span class="material-symbols-outlined text-slate-500 text-[18px]">download</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav — always visible, never cut off -->
+  <nav class="flex items-center justify-around px-2 pt-2 pb-4 border-t border-primary/10 shrink-0" style="background:#0A0F1E;">
+    <a onclick="navTo('messenger-home.html')" class="flex flex-1 flex-col items-center gap-0.5 text-slate-500 cursor-pointer hover:text-blue-400 transition-colors" href="#">
+      <span class="material-symbols-outlined text-[22px]">chat_bubble</span>
+      <span class="text-[9px] font-bold uppercase tracking-wider">Chats</span>
+    </a>
+    <a class="flex flex-1 flex-col items-center gap-0.5 text-blue-400" href="#">
+      <span class="material-symbols-outlined filled-icon text-[22px]">verified_user</span>
+      <span class="text-[9px] font-bold uppercase tracking-wider">Vault</span>
+    </a>
+    <a onclick="navTo('call.html')" class="flex flex-1 flex-col items-center gap-0.5 text-slate-500 cursor-pointer hover:text-blue-400 transition-colors" href="#">
+      <span class="material-symbols-outlined text-[22px]">call</span>
+      <span class="text-[9px] font-bold uppercase tracking-wider">Calls</span>
+    </a>
+    <a class="flex flex-1 flex-col items-center gap-0.5 text-slate-500" href="#">
+      <span class="material-symbols-outlined text-[22px]">settings</span>
+      <span class="text-[9px] font-bold uppercase tracking-wider">Settings</span>
+    </a>
+  </nav>
+
+<script>
+  function navTo(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    const el = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(el => el.getAttribute('onclick')?.includes(screen)) || window.parent.document.querySelector('.nav-item');
+    window.parent.loadScreen('screens/' + screen, el);
+  }
+  function goBack() { navTo('vault-lock.html'); }
+</script>
+
+
+</body>
+</html>

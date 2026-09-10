@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: { colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929" }, fontFamily: { display: ["Manrope","sans-serif"] } } }
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] text-slate-100 h-full flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <h1 class="text-[13px] font-extrabold tracking-[0.12em] text-slate-100 uppercase">Baseline Package</h1>
+  </div>
+  <span class="text-[10px] font-bold tracking-widest text-slate-500 bg-slate-800 px-2.5 py-1 rounded-full">STEP 3/6</span>
+</header>
+
+<!-- Content -->
+<main class="flex-1 overflow-y-auto px-4 pt-3 pb-32 space-y-4">
+
+  <!-- Always Included Card -->
+  <div class="rounded-2xl border border-slate-700/60 p-5 text-center" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">Always Included</p>
+    <p class="font-extrabold text-slate-100 leading-none" style="font-size:2.8rem">350 cr</p>
+    <p class="text-slate-500 text-[13px] mt-1">/hr · base rate</p>
+
+    <!-- Included assets row -->
+    <div class="flex justify-center gap-6 mt-5">
+      <div class="flex flex-col items-center gap-1.5">
+        <div class="size-11 rounded-xl flex items-center justify-center" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.2)">
+          <span class="material-symbols-outlined filled text-primary" style="font-size:22px">person</span>
+        </div>
+        <p class="text-[11px] font-bold text-slate-300">1 CPO</p>
+      </div>
+      <div class="flex flex-col items-center gap-1.5">
+        <div class="size-11 rounded-xl flex items-center justify-center" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.2)">
+          <span class="material-symbols-outlined filled text-primary" style="font-size:22px">directions_car</span>
+        </div>
+        <p class="text-[11px] font-bold text-slate-300">1 Vehicle</p>
+      </div>
+      <div class="flex flex-col items-center gap-1.5">
+        <div class="size-11 rounded-xl flex items-center justify-center" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.2)">
+          <span class="material-symbols-outlined filled text-primary" style="font-size:22px">badge</span>
+        </div>
+        <p class="text-[11px] font-bold text-slate-300">1 Driver</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- What's Included -->
+  <div class="rounded-2xl border border-slate-700/60 p-4" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-3">What's Included</p>
+    <div class="space-y-3">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined filled text-primary shrink-0 mt-0.5" style="font-size:16px">check_circle</span>
+        <p class="text-[13px] text-slate-300">Ops room handler assigned for duration</p>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined filled text-primary shrink-0 mt-0.5" style="font-size:16px">check_circle</span>
+        <p class="text-[13px] text-slate-300">AES-256 encrypted comms channel</p>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined filled text-primary shrink-0 mt-0.5" style="font-size:16px">check_circle</span>
+        <p class="text-[13px] text-slate-300">Real-time GPS vehicle tracking</p>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined filled text-primary shrink-0 mt-0.5" style="font-size:16px">check_circle</span>
+        <p class="text-[13px] text-slate-300">Post-mission report &amp; invoice</p>
+      </div>
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined filled text-primary shrink-0 mt-0.5" style="font-size:16px">check_circle</span>
+        <p class="text-[13px] text-slate-300">24hr emergency escalation line</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <p class="text-[12px] text-slate-500 text-center px-2 leading-relaxed">This is a non-removable package. Additional team members and add-ons can be configured on the next step.</p>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-2" style="background:linear-gradient(to top,#0A0F1E 75%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(37,99,235,0.35);color:white;letter-spacing:0.06em;font-size:0.75rem">
+    CUSTOMISE ADD-ONS
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    const el = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e => e.getAttribute('onclick')?.includes(screen)) ||
+      window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/' + screen, el || document.createElement('div'));
+  }
+  function goBack() { nav('service-type.html'); }
+  function goNext() { nav('customize-addons.html'); }
+</script>
+</body></html>

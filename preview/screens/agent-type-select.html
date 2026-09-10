@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+  .type-card{border:1px solid #1E2D45;background:#0D1929;border-radius:1rem;padding:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px;}
+  .type-card.selected{border-color:rgba(37,99,235,0.6);background:rgba(37,99,235,0.08);}
+  .type-card:active{transform:scale(0.98);}
+  .radio-outer{width:20px;height:20px;border-radius:50%;border:2px solid #1E2D45;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:border-color 0.2s;}
+  .type-card.selected .radio-outer{border-color:#2563EB;}
+  .radio-inner{width:10px;height:10px;border-radius:50%;background:#2563EB;display:none;}
+  .type-card.selected .radio-inner{display:block;}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<header class="px-4 pt-[50px] pb-4 shrink-0">
+  <div class="flex items-center justify-center mb-5">
+    <div class="flex flex-col items-center gap-1">
+      <div class="size-10 rounded-xl flex items-center justify-center" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+        <span class="material-symbols-outlined filled" style="font-size:22px;color:#2563EB">shield_person</span>
+      </div>
+      <span class="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase">Agent Portal</span>
+    </div>
+  </div>
+  <h1 class="text-[20px] font-extrabold text-slate-100 text-center">Join the Bravo partner network</h1>
+</header>
+
+<main class="flex-1 overflow-y-auto px-4 pb-32 space-y-3 pt-2">
+
+  <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase mb-1">Select Profile Type</p>
+
+  <!-- Security Company -->
+  <div id="card-company" class="type-card selected" onclick="select('company')">
+    <div class="radio-outer"><div class="radio-inner"></div></div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">business</span>
+        <p class="text-[12px] font-extrabold text-slate-100 uppercase tracking-wider">Security Company (3rd Party)</p>
+      </div>
+      <p class="text-[12px] text-slate-400 leading-relaxed">Registered private security company applying as a Bravo partner</p>
+    </div>
+  </div>
+
+  <!-- Individual EPO -->
+  <div id="card-epo" class="type-card" onclick="select('epo')">
+    <div class="radio-outer"><div class="radio-inner"></div></div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">person_pin</span>
+        <p class="text-[12px] font-extrabold text-slate-100 uppercase tracking-wider">Individual EPO (Bravo Staff)</p>
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(37,99,235,0.15);color:#93c5fd;border:1px solid rgba(37,99,235,0.3)">STAFF</span>
+      </div>
+      <p class="text-[12px] text-slate-400 leading-relaxed">Close protection officer onboarding as Bravo staff member</p>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <div id="card-transport" class="type-card" onclick="select('transport')">
+    <div class="radio-outer"><div class="radio-inner"></div></div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="material-symbols-outlined filled text-slate-500" style="font-size:18px">directions_car</span>
+        <p class="text-[12px] font-extrabold text-slate-100 uppercase tracking-wider">Transport (Drivers)</p>
+      </div>
+      <p class="text-[12px] text-slate-400 leading-relaxed">Vetted vehicle operator and driver — protection-adjacent role</p>
+    </div>
+  </div>
+
+  <div class="rounded-xl px-4 py-3 flex items-start gap-2 mt-1" style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15)">
+    <span class="material-symbols-outlined text-slate-500 shrink-0 mt-0.5" style="font-size:14px">info</span>
+    <p class="text-[11px] text-slate-500 leading-relaxed">All partners must complete an in-person deployment process at a Bravo office before activation.</p>
+  </div>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <button onclick="goNext()" id="cta-btn" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.8rem">
+    CONTINUE AS SECURITY COMPANY
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  let selected='company';
+  const labels={company:'SECURITY COMPANY',epo:'INDIVIDUAL EPO',transport:'TRANSPORT DRIVER'};
+
+  function select(type){
+    selected=type;
+    ['company','epo','transport'].forEach(t=>{
+      document.getElementById('card-'+t).classList.toggle('selected',t===type);
+      const icon=document.getElementById('card-'+t).querySelector('.material-symbols-outlined');
+      icon.style.color=t===type?'#2563EB':'';
+    });
+    document.getElementById('cta-btn').innerHTML=
+      'CONTINUE AS '+labels[type]+' <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>';
+  }
+
+  function nav(screen){
+    if(!window.parent||!window.parent.loadScreen)return;
+    const el=Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e=>e.getAttribute('onclick')?.includes(screen))||window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/'+screen,el||document.createElement('div'));
+  }
+  function goNext(){nav('agent-register-wizard.html');}
+</script>
+</body></html>

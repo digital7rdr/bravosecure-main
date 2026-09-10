@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "primary":"#7C3AED","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* Filter chip */
+  .fchip {
+    padding:7px 16px; border-radius:9999px;
+    border:1.5px solid #1E2D45; background:transparent;
+    color:#94a3b8; font-size:0.8rem; font-weight:600;
+    cursor:pointer; white-space:nowrap; transition:all 0.15s;
+    font-family:'Manrope',sans-serif;
+  }
+  .fchip.active {
+    background:rgba(124,58,237,0.15);
+    border-color:#7C3AED; color:#a78bfa;
+  }
+
+  /* Job card visual headers */
+  .card-visual {
+    height:100px; position:relative; overflow:hidden;
+    border-radius:0.75rem 0.75rem 0 0;
+  }
+
+  /* Apply button states */
+  .apply-btn {
+    background:linear-gradient(160deg,#9333ea,#7C3AED,#5b21b6);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 3px 12px rgba(124,58,237,0.3),0 1px 2px rgba(0,0,0,0.25);
+    color:white; border:none; border-radius:0.625rem;
+    padding:7px 14px; font-size:0.75rem; font-weight:700;
+    font-family:'Manrope',sans-serif; cursor:pointer;
+    display:flex; align-items:center; gap:5px;
+    transition:all 0.15s; white-space:nowrap; letter-spacing:0.03em;
+  }
+  .apply-btn:active { transform:scale(0.96); }
+  .apply-btn.applied {
+    background:rgba(34,197,94,0.15);
+    box-shadow:none; color:#4ade80;
+    border:1.5px solid rgba(34,197,94,0.3);
+  }
+  .apply-btn.loading {
+    background:rgba(124,58,237,0.3);
+    box-shadow:none; cursor:default;
+  }
+
+  /* Spinner */
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spin { animation:spin 0.7s linear infinite; }
+
+  /* Fade up */
+  @keyframes fade-up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .fu1{animation:fade-up 0.4s ease 0.1s both;}
+  .fu2{animation:fade-up 0.4s ease 0.2s both;}
+  .fu3{animation:fade-up 0.4s ease 0.3s both;}
+  .fu4{animation:fade-up 0.4s ease 0.4s both;}
+  .fu5{animation:fade-up 0.4s ease 0.5s both;}
+
+  /* Route animation */
+  @keyframes dash { to{stroke-dashoffset:0} }
+  .route-dash { stroke-dasharray:120; stroke-dashoffset:120; animation:dash 1.5s ease 0.8s forwards; }
+
+  /* Pulse dot */
+  @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:0.5} }
+  .pulse-dot { animation:pulse-dot 1.8s ease-in-out infinite; }
+
+  /* Sweep */
+  @keyframes radar-sweep { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .radar-sweep { animation:radar-sweep 3s linear infinite; transform-origin:64px 60px; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-5 pt-[50px] pb-3">
+  <div class="flex items-center justify-between mb-1">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-100">Job Marketplace</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Available assignments near you</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="size-9 flex items-center justify-center rounded-full" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:20px">notifications</span>
+      </button>
+      <button class="size-9 flex items-center justify-center rounded-full" style="background:#0D1929;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined text-slate-400" style="font-size:20px">tune</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Filter chips -->
+<div class="px-5 pb-3 overflow-x-auto flex gap-2" style="scrollbar-width:none">
+  <button class="fchip active" onclick="filterJobs('all',this)">All</button>
+  <button class="fchip" onclick="filterJobs('transfer',this)">Transfer</button>
+  <button class="fchip" onclick="filterJobs('timeslot',this)">Time Slot</button>
+  <button class="fchip" onclick="filterJobs('closeprotection',this)">Close Protection</button>
+  <button class="fchip" onclick="filterJobs('surveillance',this)">Surveillance</button>
+</div>
+
+<!-- Job list -->
+<main class="flex-1 overflow-y-auto px-5 pb-28 space-y-4">
+
+  <!-- Card 1: Airport Transfer -->
+  <div class="fu1 rounded-2xl overflow-hidden job-card" data-type="transfer" style="background:#0D1929;border:1px solid #1E2D45">
+    <!-- Visual header: route illustration -->
+    <div class="card-visual" style="background:linear-gradient(135deg,#0A1428,#0D1F3C)">
+      <svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid slice">
+        <!-- Road lines -->
+        <rect x="0" y="56" width="320" height="8" fill="rgba(30,45,69,0.8)" rx="4"/>
+        <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(124,58,237,0.2)" stroke-width="1" stroke-dasharray="20 12"/>
+        <!-- Route path -->
+        <path d="M30,60 Q100,30 160,60 Q220,90 290,60" stroke="#7C3AED" stroke-width="2" fill="none" class="route-dash" stroke-linecap="round"/>
+        <!-- Origin dot -->
+        <circle cx="30" cy="60" r="5" fill="#7C3AED"/>
+        <circle cx="30" cy="60" r="9" fill="rgba(124,58,237,0.2)" class="pulse-dot"/>
+        <!-- Destination dot -->
+        <circle cx="290" cy="60" r="5" fill="#a78bfa"/>
+        <!-- Midpoint car icon area -->
+        <circle cx="160" cy="58" r="12" fill="rgba(124,58,237,0.15)" stroke="rgba(124,58,237,0.4)" stroke-width="1"/>
+        <text x="160" y="63" text-anchor="middle" font-size="12" fill="#a78bfa">✈</text>
+        <!-- Labels -->
+        <text x="30" y="82" text-anchor="middle" font-size="9" fill="#64748b" font-family="Manrope">DXB</text>
+        <text x="290" y="82" text-anchor="middle" font-size="9" fill="#64748b" font-family="Manrope">DIFC</text>
+      </svg>
+      <!-- Type badge -->
+      <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style="background:rgba(124,58,237,0.25);border:1px solid rgba(124,58,237,0.4);color:#a78bfa">Transfer</div>
+      <!-- Urgency -->
+      <div class="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171">
+        <span class="size-1.5 rounded-full bg-red-400 pulse-dot inline-block"></span>URGENT
+      </div>
+    </div>
+    <!-- Card body -->
+    <div class="p-3.5">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-100 leading-tight">VIP Airport Transfer</h3>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="material-symbols-outlined filled text-slate-500" style="font-size:13px">location_on</span>
+            <p class="text-xs text-slate-500">Dubai International → DIFC Tower</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-lg font-extrabold" style="color:#D4AF37">950 cr</p>
+          <p class="text-[10px] text-slate-500">per assignment</p>
+        </div>
+      </div>
+      <!-- Details grid -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">calendar_today</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">18 Mar</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">schedule</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">06:30 AM</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">group</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">1 of 2</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined filled text-amber-400" style="font-size:13px">star</span>
+          <span class="text-xs text-slate-400 font-semibold">4.9 client</span>
+          <span class="text-slate-600 mx-1">·</span>
+          <span class="text-xs text-slate-500">Armed req.</span>
+        </div>
+        <button class="apply-btn" onclick="applyJob(this)">
+          <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: Time Slot / Venue Security -->
+  <div class="fu2 rounded-2xl overflow-hidden job-card" data-type="timeslot" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="card-visual" style="background:linear-gradient(135deg,#0A1228,#0E1A35)">
+      <svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid slice">
+        <!-- Building silhouette -->
+        <rect x="110" y="30" width="100" height="80" fill="rgba(30,45,69,0.6)" rx="2"/>
+        <rect x="120" y="20" width="80" height="20" fill="rgba(30,45,69,0.8)" rx="2"/>
+        <rect x="135" y="10" width="50" height="14" fill="rgba(30,45,69,0.9)" rx="1"/>
+        <!-- Windows lit -->
+        <rect x="122" y="36" width="12" height="10" fill="rgba(124,58,237,0.35)" rx="1"/>
+        <rect x="140" y="36" width="12" height="10" fill="rgba(124,58,237,0.5)" rx="1"/>
+        <rect x="158" y="36" width="12" height="10" fill="rgba(124,58,237,0.25)" rx="1"/>
+        <rect x="176" y="36" width="12" height="10" fill="rgba(124,58,237,0.4)" rx="1"/>
+        <rect x="122" y="54" width="12" height="10" fill="rgba(124,58,237,0.3)" rx="1"/>
+        <rect x="140" y="54" width="12" height="10" fill="rgba(124,58,237,0.6)" rx="1"/>
+        <rect x="158" y="54" width="12" height="10" fill="rgba(124,58,237,0.2)" rx="1"/>
+        <rect x="176" y="54" width="12" height="10" fill="rgba(124,58,237,0.35)" rx="1"/>
+        <rect x="122" y="72" width="12" height="10" fill="rgba(124,58,237,0.15)" rx="1"/>
+        <rect x="158" y="72" width="12" height="10" fill="rgba(124,58,237,0.45)" rx="1"/>
+        <rect x="176" y="72" width="12" height="10" fill="rgba(124,58,237,0.2)" rx="1"/>
+        <!-- Ground -->
+        <rect x="0" y="108" width="320" height="12" fill="rgba(13,25,41,0.8)"/>
+        <!-- Glow at base -->
+        <ellipse cx="160" cy="108" rx="60" ry="6" fill="rgba(124,58,237,0.12)"/>
+      </svg>
+      <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style="background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4);color:#a5b4fc">Time Slot</div>
+    </div>
+    <div class="p-4">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-100 leading-tight">Corporate Gala Security</h3>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="material-symbols-outlined filled text-slate-500" style="font-size:13px">location_on</span>
+            <p class="text-xs text-slate-500">Burj Al Arab Ballroom, JBR</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-lg font-extrabold" style="color:#D4AF37">1,800 cr</p>
+          <p class="text-[10px] text-slate-500">per assignment</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">calendar_today</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">20 Mar</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">schedule</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">7PM–1AM</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">group</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">3 of 6</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined filled text-amber-400" style="font-size:13px">star</span>
+          <span class="text-xs text-slate-400 font-semibold">4.7 client</span>
+          <span class="text-slate-600 mx-1">·</span>
+          <span class="text-xs text-slate-500">Formal attire</span>
+        </div>
+        <button class="apply-btn" onclick="applyJob(this)">
+          <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Close Protection -->
+  <div class="fu3 rounded-2xl overflow-hidden job-card" data-type="closeprotection" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="card-visual" style="background:linear-gradient(135deg,#0C1228,#0A1530)">
+      <svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid slice">
+        <!-- Perimeter rings -->
+        <circle cx="160" cy="60" r="50" fill="none" stroke="rgba(124,58,237,0.12)" stroke-width="1" stroke-dasharray="6 4"/>
+        <circle cx="160" cy="60" r="36" fill="none" stroke="rgba(124,58,237,0.18)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="160" cy="60" r="22" fill="none" stroke="rgba(124,58,237,0.28)" stroke-width="1.5"/>
+        <!-- Shield core -->
+        <path d="M160 38 L144 45.3 L144 57.3 C144 67.5 150.8 77.1 160 80 C169.2 77.1 176 67.5 176 57.3 L176 45.3 Z" fill="rgba(124,58,237,0.2)" stroke="rgba(124,58,237,0.6)" stroke-width="1.5"/>
+        <path d="M155 58 L159 62 L167 54" stroke="#a78bfa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Corner guards -->
+        <circle cx="90" cy="25" r="4" fill="rgba(124,58,237,0.4)"/>
+        <circle cx="230" cy="25" r="4" fill="rgba(124,58,237,0.4)"/>
+        <circle cx="90" cy="95" r="4" fill="rgba(124,58,237,0.4)"/>
+        <circle cx="230" cy="95" r="4" fill="rgba(124,58,237,0.4)"/>
+        <!-- Connecting lines -->
+        <line x1="94" y1="25" x2="114" y2="45" stroke="rgba(124,58,237,0.2)" stroke-width="1"/>
+        <line x1="226" y1="25" x2="206" y2="45" stroke="rgba(124,58,237,0.2)" stroke-width="1"/>
+      </svg>
+      <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style="background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);color:#D4AF37">Close Protection</div>
+      <div class="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold" style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.25);color:#fbbf24">
+        ARMED REQ.
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-100 leading-tight">Executive Close Protection</h3>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="material-symbols-outlined filled text-slate-500" style="font-size:13px">location_on</span>
+            <p class="text-xs text-slate-500">Downtown Dubai · 3-day contract</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-lg font-extrabold" style="color:#D4AF37">4,500 cr</p>
+          <p class="text-[10px] text-slate-500">3 days</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">calendar_today</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">22–24 Mar</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">schedule</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Full Day</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">group</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">1 of 2</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined filled text-amber-400" style="font-size:13px">star</span>
+          <span class="text-xs text-slate-400 font-semibold">5.0 client</span>
+          <span class="text-slate-600 mx-1">·</span>
+          <span class="text-xs text-slate-500">Level 3+ CPO</span>
+        </div>
+        <button class="apply-btn" onclick="applyJob(this)">
+          <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4: Surveillance -->
+  <div class="fu4 rounded-2xl overflow-hidden job-card" data-type="surveillance" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="card-visual" style="background:linear-gradient(135deg,#080F20,#0C1830)">
+      <svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid slice">
+        <!-- Grid lines -->
+        <line x1="0" y1="30" x2="320" y2="30" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <line x1="0" y1="90" x2="320" y2="90" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <line x1="80" y1="0" x2="80" y2="120" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <line x1="160" y1="0" x2="160" y2="120" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <line x1="240" y1="0" x2="240" y2="120" stroke="rgba(30,45,69,0.5)" stroke-width="0.5"/>
+        <!-- Radar sweep -->
+        <g class="radar-sweep">
+          <line x1="160" y1="60" x2="210" y2="30" stroke="rgba(124,58,237,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M160,60 L210,30 A54,54 0 0,1 214,60 Z" fill="rgba(124,58,237,0.06)"/>
+        </g>
+        <!-- Radar circle -->
+        <circle cx="160" cy="60" r="40" fill="none" stroke="rgba(124,58,237,0.2)" stroke-width="1"/>
+        <circle cx="160" cy="60" r="25" fill="none" stroke="rgba(124,58,237,0.15)" stroke-width="0.5" stroke-dasharray="3 2"/>
+        <circle cx="160" cy="60" r="5" fill="#7C3AED"/>
+        <!-- Blips -->
+        <circle cx="185" cy="42" r="3" fill="rgba(248,113,113,0.8)"/>
+        <circle cx="195" cy="65" r="2" fill="rgba(251,191,36,0.7)"/>
+        <circle cx="142" cy="48" r="2.5" fill="rgba(167,139,250,0.7)"/>
+        <!-- Corner brackets -->
+        <path d="M10,10 L10,24 M10,10 L24,10" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M310,10 L310,24 M310,10 L296,10" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M10,110 L10,96 M10,110 L24,110" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M310,110 L310,96 M310,110 L296,110" stroke="rgba(124,58,237,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style="background:rgba(20,184,166,0.15);border:1px solid rgba(20,184,166,0.35);color:#2dd4bf">Surveillance</div>
+    </div>
+    <div class="p-4">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-100 leading-tight">Covert Surveillance Op</h3>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="material-symbols-outlined filled text-slate-500" style="font-size:13px">location_on</span>
+            <p class="text-xs text-slate-500">Business Bay · Intel assignment</p>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <p class="text-lg font-extrabold" style="color:#D4AF37">2,200 cr</p>
+          <p class="text-[10px] text-slate-500">per day</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">calendar_today</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">25 Mar</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">schedule</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">09:00 AM</p>
+        </div>
+        <div class="p-1.5 rounded-lg text-center" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-500" style="font-size:14px">group</span>
+          <p class="text-[10px] text-slate-400 font-semibold mt-0.5">2 of 4</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined filled text-amber-400" style="font-size:13px">star</span>
+          <span class="text-xs text-slate-400 font-semibold">4.8 client</span>
+          <span class="text-slate-600 mx-1">·</span>
+          <span class="text-xs text-slate-500">Cleared req.</span>
+        </div>
+        <button class="apply-btn" onclick="applyJob(this)">
+          <span class="material-symbols-outlined" style="font-size:16px">bolt</span>Apply
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 w-full border-t px-6 pb-5 pt-2 flex justify-around items-center z-50" style="background:#0A0F1E;border-color:#1E2D45">
+  <button onclick="goHome()" class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">home</span>
+    <span class="text-[10px] font-bold">Home</span>
+  </button>
+  <button class="flex flex-col items-center gap-1" style="color:#7C3AED">
+    <span class="material-symbols-outlined filled" style="font-size:22px;color:#7C3AED">work</span>
+    <span class="text-[10px] font-bold">Jobs</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-600" onclick="goEarnings()">
+    <span class="material-symbols-outlined" style="font-size:22px">payments</span>
+    <span class="text-[10px] font-bold">Earnings</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-600">
+    <span class="material-symbols-outlined" style="font-size:22px">person</span>
+    <span class="text-[10px] font-bold">Profile</span>
+  </button>
+</nav>
+
+<script>
+  function filterJobs(type, btn) {
+    document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.job-card').forEach(card => {
+      if (type === 'all' || card.dataset.type === type) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  function applyJob(btn) {
+    if (btn.classList.contains('applied') || btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+    btn.innerHTML = '<svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Applying...';
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      btn.classList.add('applied');
+      btn.innerHTML = '<span class="material-symbols-outlined filled" style="font-size:16px">check_circle</span>Applied';
+    }, 1500);
+  }
+
+  function goHome() {
+    if (window.parent && window.parent.loadScreen) {
+      const nav = window.parent.document.querySelector('[onclick*="agent-home"]') ||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-home.html', nav || document.createElement('div'));
+    }
+  }
+  function goEarnings() {
+    if (window.parent && window.parent.loadScreen) {
+      const nav = window.parent.document.querySelector('[onclick*="earnings"]') ||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/earnings.html', nav || document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

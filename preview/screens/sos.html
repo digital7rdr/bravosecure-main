@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Secure - SOS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#2563EB",
+          "background-dark": "#0A0F1E",
+        },
+        fontFamily: { "display": ["Manrope", "sans-serif"] },
+        borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Manrope', sans-serif; min-height: max(884px, 100dvh); }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+
+  /* State transitions */
+  .state { display: none; }
+  .state.active { display: flex; }
+
+  /* Hold button progress ring */
+  @keyframes hold-fill {
+    from { stroke-dashoffset: 283; }
+    to   { stroke-dashoffset: 0; }
+  }
+  #hold-ring { stroke-dasharray: 283; stroke-dashoffset: 283; }
+  #sos-hold-btn.holding #hold-ring {
+    animation: hold-fill 3s linear forwards;
+  }
+
+  /* Pulse rings for idle */
+  @keyframes pulse-ring {
+    0%   { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2s ease-out infinite;
+  }
+  .pulse-ring-2 {
+    animation: pulse-ring 2s ease-out 0.6s infinite;
+  }
+
+  /* Pulse for activated state */
+  @keyframes ping-slow {
+    0%   { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+  .ping-slow { animation: ping-slow 1.8s ease-out infinite; }
+  .ping-slow-2 { animation: ping-slow 1.8s ease-out 0.6s infinite; }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 min-h-screen flex flex-col">
+
+<!-- ── STATE A: IDLE ──────────────────────────────────── -->
+<div id="state-idle" class="state active flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-primary/10 bg-background-dark/80 backdrop-blur-md">
+    <a href="dashboard.html" class="flex items-center justify-center size-9 rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300">arrow_back</span>
+    </a>
+    <span class="font-bold tracking-widest">BRAVO</span>
+  </header>
+
+  <div class="flex-1 flex flex-col items-center justify-center px-8 gap-8">
+
+    <!-- Title -->
+    <div class="text-center">
+      <h1 class="text-2xl font-extrabold tracking-tight mb-1">Emergency SOS</h1>
+      <p class="text-sm text-slate-400">Hold the button for 3 seconds to activate</p>
+    </div>
+
+    <!-- Button -->
+    <div class="relative flex items-center justify-center">
+      <!-- Pulse rings -->
+      <div class="absolute size-36 rounded-full border border-red-500/30 pulse-ring"></div>
+      <div class="absolute size-28 rounded-full border border-red-500/40 pulse-ring-2"></div>
+
+      <!-- SVG progress ring + button -->
+      <div class="relative flex items-center justify-center">
+        <svg class="absolute size-[88px] -rotate-90" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="45" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="4"/>
+          <circle id="hold-ring" cx="48" cy="48" r="45" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <button
+          id="sos-hold-btn"
+          class="size-20 rounded-full bg-red-600 text-white font-black text-xl shadow-2xl shadow-red-600/50 flex items-center justify-center select-none touch-none z-10 transition-transform active:scale-95"
+          onmousedown="startHold()" onmouseup="cancelHold()" onmouseleave="cancelHold()"
+          ontouchstart="startHold(event)" ontouchend="cancelHold()" ontouchcancel="cancelHold()">
+          SOS
+        </button>
+      </div>
+    </div>
+
+    <!-- Info cards -->
+    <div class="w-full space-y-2">
+      <div class="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+        <span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+        <div>
+          <p class="text-xs font-bold">Location Shared</p>
+          <p class="text-[10px] text-slate-400">GPS coordinates sent to Ops Room</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-lg">
+        <span class="material-symbols-outlined text-primary text-[20px]">headset_mic</span>
+        <div>
+          <p class="text-xs font-bold">Ops Room On Standby</p>
+          <p class="text-[10px] text-slate-400">Response team ready to deploy</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── STATE B: ACTIVATING ────────────────────────────── -->
+<div id="state-activating" class="state flex-col min-h-screen">
+
+  <header class="px-4 pt-12 pb-3 flex items-center gap-3 border-b border-red-900/30 bg-red-950/60 backdrop-blur-md">
+    <button onclick="cancelHold()" class="flex items-center justify-center size-9 rounded-full hover:bg-red-500/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300">arrow_back</span>
+    </button>
+    <span class="font-bold tracking-widest">ACTIVATING SOS</span>
+  </header>
+
+  <div class="flex-1 flex flex-col items-center justify-center px-8 gap-8">
+    <p class="text-sm text-red-300">Keep holding the button...</p>
+
+    <div class="relative flex items-center justify-center">
+      <svg class="absolute size-[120px] -rotate-90" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="56" fill="none" stroke="rgba(239,68,68,0.15)" stroke-width="5"/>
+        <circle id="activating-ring" cx="60" cy="60" r="56" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round" stroke-dasharray="352" stroke-dashoffset="352"/>
+      </svg>
+      <div id="countdown-display" class="size-24 rounded-full bg-red-700 flex items-center justify-center shadow-2xl shadow-red-600/60 z-10">
+        <span id="countdown-num" class="text-white font-black text-4xl">3</span>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-500 uppercase tracking-widest">Release to cancel</p>
+  </div>
+</div>
+
+<!-- ── STATE C: ACTIVATED ─────────────────────────────── -->
+<div id="state-activated" class="state flex-col min-h-screen relative overflow-hidden">
+
+  <!-- Red background -->
+  <div class="absolute inset-0 bg-red-950/95 z-0"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-red-900/50 to-background-dark z-0"></div>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <header class="px-4 pt-12 pb-3 flex items-center justify-between">
+      <span class="font-bold tracking-widest text-red-300">SOS ACTIVE</span>
+      <span class="text-xs text-red-400/70">Activated at <span id="activated-time">--:--</span></span>
+    </header>
+
+    <div class="flex-1 flex flex-col items-center justify-center px-8 gap-6">
+
+      <!-- Activated icon with rings -->
+      <div class="relative flex items-center justify-center">
+        <div class="absolute size-52 rounded-full border border-red-500/20 ping-slow"></div>
+        <div class="absolute size-44 rounded-full border border-red-500/30 ping-slow-2"></div>
+        <div class="absolute size-44 rounded-full border-4 border-primary/60"></div>
+        <div class="size-40 rounded-full bg-red-700 flex items-center justify-center shadow-2xl shadow-red-600/60 z-10">
+          <span class="material-symbols-outlined text-white" style="font-size:72px; font-variation-settings:'FILL' 1">emergency_home</span>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <h2 class="text-3xl font-extrabold uppercase tracking-tight text-white mb-1">SOS Active</h2>
+        <p class="text-primary font-bold">Ops Room Notified</p>
+      </div>
+
+      <!-- Live map mockup -->
+      <div class="w-full rounded-xl overflow-hidden border border-red-900/40">
+        <div class="px-3 py-2 bg-red-950/80 border-b border-red-900/30">
+          <p class="text-[10px] font-bold text-primary uppercase tracking-widest">Live Response Tracking</p>
+        </div>
+        <div class="h-36 bg-background-dark relative">
+          <div class="absolute inset-0 opacity-30" style="background: radial-gradient(ellipse at center, #1e3a5f 0%, #0A0F1E 70%);"></div>
+          <!-- Fake map grid -->
+          <svg class="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+            <defs><pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2563EB" stroke-width="0.5"/></pattern></defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+          </svg>
+          <!-- Ping dot -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+            <div class="absolute size-5 rounded-full bg-red-600 animate-ping opacity-70"></div>
+            <div class="size-4 rounded-full bg-red-600 border-2 border-white z-10"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancel -->
+      <button onclick="cancelSOS()" class="w-full border-2 border-red-500/40 text-red-200 hover:bg-red-500/10 py-3.5 rounded-xl font-bold uppercase tracking-widest text-sm transition-all">
+        Cancel SOS
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  let holdTimer = null;
+  let countdownInterval = null;
+  let countdownVal = 3;
+
+  function showState(id) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function startHold(e) {
+    if (e) e.preventDefault();
+    showState('state-activating');
+    countdownVal = 3;
+    document.getElementById('countdown-num').textContent = countdownVal;
+
+    // Animate ring
+    const ring = document.getElementById('activating-ring');
+    ring.style.transition = 'stroke-dashoffset 3s linear';
+    ring.style.strokeDashoffset = '0';
+
+    countdownInterval = setInterval(() => {
+      countdownVal--;
+      document.getElementById('countdown-num').textContent = countdownVal;
+      if (countdownVal <= 0) clearInterval(countdownInterval);
+    }, 1000);
+
+    holdTimer = setTimeout(() => {
+      activateSOS();
+    }, 3000);
+  }
+
+  function cancelHold() {
+    clearTimeout(holdTimer);
+    clearInterval(countdownInterval);
+    holdTimer = null;
+
+    // Reset ring
+    const ring = document.getElementById('activating-ring');
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = '352';
+
+    if (document.getElementById('state-activating').classList.contains('active')) {
+      showState('state-idle');
+    }
+  }
+
+  function activateSOS() {
+    clearInterval(countdownInterval);
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('activated-time').textContent = h + ':' + m;
+    showState('state-activated');
+  }
+
+  function cancelSOS() {
+    // Reset ring for next use
+    const ring = document.getElementById('activating-ring');
+    ring.style.transition = 'none';
+    ring.style.strokeDashoffset = '352';
+    showState('state-idle');
+  }
+</script>
+
+</body></html>

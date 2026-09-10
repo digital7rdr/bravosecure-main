@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bravo Messenger — Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      colors: { primary:"#2563EB","bg-dark":"#0A0F1E", surface:"#0D1929", border:"#1E2D45" },
+      fontFamily: { display:["Manrope","sans-serif"] },
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  * { scrollbar-width:none; }
+  *::-webkit-scrollbar { display:none; }
+  .sent-bubble     { border-radius:16px 16px 4px 16px; }
+  .recv-bubble     { border-radius:16px 16px 16px 4px; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 px-4 pt-10 pb-3 flex items-center justify-between border-b" style="background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="nav('messenger-home.html')" class="size-8 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+      <span class="material-symbols-outlined text-slate-100 text-[20px]">arrow_back</span>
+    </button>
+    <div class="flex items-center gap-2.5 cursor-pointer" onclick="nav('chat-info.html')">
+      <div class="relative">
+        <div class="size-9 rounded-full overflow-hidden flex-shrink-0" style="border:1.5px solid #7B5EA7;">
+          <img src="https://i.pravatar.cc/72?img=3" alt="MT"
+               class="w-full h-full object-cover"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+          <div style="display:none;width:100%;height:100%;background:#7B5EA7;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;">MT</div>
+        </div>
+        <div class="absolute bottom-0 right-0 size-2.5 rounded-full border-2" style="background:#22c55e; border-color:#0A0F1E;"></div>
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <h2 class="text-[14px] font-extrabold uppercase tracking-wide leading-tight">Marcus Thornton</h2>
+          <span class="material-symbols-outlined text-orange-400" style="font-size:14px;">local_fire_department</span>
+        </div>
+        <p class="text-[10px] font-semibold uppercase tracking-widest" style="color:#22c55e;">● Online</p>
+      </div>
+    </div>
+  </div>
+  <div class="flex items-center gap-1">
+    <button onclick="nav('voice-call.html')" class="size-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+      <span class="material-symbols-outlined text-slate-400 text-[20px]">call</span>
+    </button>
+    <button onclick="nav('call.html')" class="size-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+      <span class="material-symbols-outlined text-slate-400 text-[20px]">videocam</span>
+    </button>
+  </div>
+</header>
+
+<!-- E2E Banner -->
+<div class="shrink-0 flex items-center justify-center gap-2 py-2 px-4" style="border-bottom:1px solid #1E2D45;">
+  <span class="material-symbols-outlined filled text-[#4ade80]" style="font-size:13px;">lock</span>
+  <p class="text-[10px] font-bold uppercase tracking-[2px]" style="color:#4ade80;">Messages are end-to-end encrypted</p>
+</div>
+
+<!-- Messages -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+
+  <!-- Date separator -->
+  <div class="flex justify-center">
+    <span class="text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider" style="background:#0D1929; color:#475569;">Today, Jan 15</span>
+  </div>
+
+  <!-- Received: DIFC run confirmed -->
+  <div class="flex flex-col items-start gap-1 max-w-[82%]">
+    <div class="recv-bubble px-4 py-3 text-[13px] leading-relaxed" style="background:#0D1929; border:1px solid #1E2D45; color:#e2e8f0;">
+      DIFC run confirmed for 14:00. Principal departs Gate 4, lobby level.
+    </div>
+    <span class="text-[10px] text-slate-600 px-1">10:12</span>
+  </div>
+
+  <!-- Sent -->
+  <div class="flex flex-col items-end gap-1 ml-auto max-w-[82%]">
+    <div class="sent-bubble px-4 py-3 text-[13px] leading-relaxed" style="background:#0D1F3C; border:1px solid rgba(37,99,235,0.3); color:#e2e8f0;">
+      Received. Vehicle staged at B2. We're clear on the route.
+    </div>
+    <div class="flex items-center gap-1 px-1">
+      <span class="text-[10px] text-slate-600">10:14</span>
+      <span class="material-symbols-outlined filled text-[14px]" style="color:#2563EB;">done_all</span>
+    </div>
+  </div>
+
+  <!-- Received: document attachment -->
+  <div class="flex flex-col items-start gap-1 max-w-[82%]">
+    <div class="recv-bubble px-3.5 py-3 text-[13px]" style="background:#0D1929; border:1px solid #1E2D45; color:#e2e8f0;">
+      <p class="mb-2.5">Route brief attached — review before departure.</p>
+      <!-- Document bubble -->
+      <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl" style="background:#0A0F1E; border:1px solid #1E2D45;">
+        <div class="size-9 rounded-lg flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.25);">
+          <span class="material-symbols-outlined filled text-blue-400" style="font-size:18px;">description</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-slate-100 truncate">DIFC_Route_brief.pdf</p>
+          <p class="text-[10px] text-slate-500 mt-0.5">2.4 MB · PDF Document</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-500 text-[18px]">download</span>
+      </div>
+    </div>
+    <span class="text-[10px] text-slate-600 px-1">10:18</span>
+  </div>
+
+  <!-- Sent -->
+  <div class="flex flex-col items-end gap-1 ml-auto max-w-[82%]">
+    <div class="sent-bubble px-4 py-3 text-[13px] leading-relaxed" style="background:#0D1F3C; border:1px solid rgba(37,99,235,0.3); color:#e2e8f0;">
+      Reviewed. All checkpoints noted. ETA confirmed for principal collection.
+    </div>
+    <div class="flex items-center gap-1 px-1">
+      <span class="text-[10px] text-slate-600">10:22</span>
+      <span class="material-symbols-outlined filled text-[14px]" style="color:#2563EB;">done_all</span>
+    </div>
+  </div>
+
+  <!-- Received: self-destruct -->
+  <div class="flex flex-col items-start gap-1 max-w-[82%]">
+    <div class="recv-bubble px-4 py-3 text-[13px] leading-relaxed border-l-2" style="background:#0D1929; border-left-color:#f97316; border-top:1px solid #1E2D45; border-right:1px solid #1E2D45; border-bottom:1px solid #1E2D45; color:#e2e8f0;">
+      Access code: <span class="font-mono px-1.5 py-0.5 rounded text-[12px]" style="color:#fb923c; background:rgba(249,115,22,0.1);">BRV-DIFC-77X</span>
+    </div>
+    <div class="flex items-center gap-2 px-1">
+      <span class="text-[10px] text-slate-600">10:24</span>
+      <span class="text-[10px] font-bold flex items-center gap-0.5 text-orange-400">
+        <span class="material-symbols-outlined text-[12px]">local_fire_department</span> 4:32
+      </span>
+    </div>
+  </div>
+
+</main>
+
+<!-- Input Bar -->
+<footer class="shrink-0 px-4 py-3 flex items-center gap-2.5 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button class="size-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+    <span class="material-symbols-outlined text-slate-500 text-[21px]">add_circle</span>
+  </button>
+  <div class="flex-1 flex items-center gap-2 h-10 rounded-full px-4" style="background:#0D1929; border:1px solid #1E2D45;">
+    <input class="flex-1 bg-transparent border-none focus:ring-0 text-[13px] text-slate-100 placeholder-slate-600 focus:outline-none p-0"
+      placeholder="Type a secure message..." type="text"/>
+    <button class="text-slate-600 hover:text-slate-400 transition-colors">
+      <span class="material-symbols-outlined text-[18px]">sentiment_satisfied</span>
+    </button>
+  </div>
+  <button onclick="openTimer()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors">
+    <span class="material-symbols-outlined text-slate-500 text-[21px]">schedule</span>
+  </button>
+  <button class="size-9 flex items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+    style="background:#2563EB; box-shadow:0 4px 14px rgba(37,99,235,0.4);">
+    <span class="material-symbols-outlined filled text-white text-[18px]">mic</span>
+  </button>
+</footer>
+
+<!-- Timer Bottom Sheet -->
+<div id="timer-overlay" class="fixed inset-0 z-50 flex flex-col justify-end hidden" style="background:rgba(0,0,0,0.65);">
+  <div id="timer-sheet" class="w-full rounded-t-[22px] flex flex-col border-t shadow-2xl"
+    style="background:#0D1929; border-color:#1E2D45; height:360px; transform:translateY(100%); transition:transform 0.3s ease;">
+    <div class="pt-3 pb-2 px-4 flex flex-col items-center shrink-0">
+      <div class="h-1.5 w-10 rounded-full mb-4" style="background:#1E2D45;"></div>
+      <div class="w-full flex justify-between items-center">
+        <div class="w-8"></div>
+        <h2 class="font-bold text-[15px]">Message disappears after</h2>
+        <button onclick="closeTimer()" class="size-8 flex items-center justify-center rounded-full hover:bg-white/5">
+          <span class="material-symbols-outlined text-slate-400 text-[20px]">close</span>
+        </button>
+      </div>
+    </div>
+    <div class="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
+      <div class="absolute top-1/2 -translate-y-1/2 w-full h-12 pointer-events-none z-10" style="background:rgba(37,99,235,0.08); border-top:1px solid rgba(37,99,235,0.2); border-bottom:1px solid rgba(37,99,235,0.2);"></div>
+      <div id="picker-scroll" class="w-full h-full overflow-y-auto flex flex-col items-center snap-y snap-mandatory" style="scrollbar-width:none; padding:48px 0;">
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'Off')">Off</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'5s')">5s</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'30s')">30s</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center font-bold text-[17px] cursor-pointer" id="selected-opt" style="color:#2563EB;" onclick="selectTimer(this,'1m')">1m</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'5m')">5m</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'1h')">1h</div>
+        <div class="h-12 w-full flex items-center justify-center snap-center text-slate-500 font-medium text-[15px] cursor-pointer" onclick="selectTimer(this,'24h')">24h</div>
+      </div>
+      <div class="pointer-events-none absolute inset-0 z-20" style="background:linear-gradient(to bottom,#0D1929 0%,transparent 35%,transparent 65%,#0D1929 100%);"></div>
+    </div>
+    <p id="timer-preview" class="text-slate-400 text-[12px] italic text-center px-6 pb-3 shrink-0">This message will be deleted 1 minute after it is read.</p>
+    <div class="px-5 pb-6 shrink-0">
+      <button onclick="closeTimer()" class="w-full font-bold py-3.5 rounded-xl text-white text-[14px]"
+        style="background:linear-gradient(135deg,#2563EB,#1d4ed8); box-shadow:0 6px 20px rgba(37,99,235,0.35);">Set Timer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    window.parent.loadScreen('screens/' + screen, document.createElement('div'));
+  }
+
+  const previewMap = {
+    'Off':'Messages will not auto-delete.',
+    '5s':'This message will be deleted 5 seconds after it is read.',
+    '30s':'This message will be deleted 30 seconds after it is read.',
+    '1m':'This message will be deleted 1 minute after it is read.',
+    '5m':'This message will be deleted 5 minutes after it is read.',
+    '1h':'This message will be deleted 1 hour after it is read.',
+    '24h':'This message will be deleted 24 hours after it is read.',
+  };
+
+  function openTimer() {
+    const overlay = document.getElementById('timer-overlay');
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => { document.getElementById('timer-sheet').style.transform='translateY(0)'; });
+  }
+  function closeTimer() {
+    document.getElementById('timer-sheet').style.transform='translateY(100%)';
+    setTimeout(() => document.getElementById('timer-overlay').classList.add('hidden'), 300);
+  }
+  function selectTimer(el, val) {
+    document.querySelectorAll('#picker-scroll > div').forEach(d => {
+      d.style.color=''; d.style.fontWeight=''; d.style.fontSize=''; d.removeAttribute('id');
+    });
+    el.style.color='#2563EB'; el.style.fontWeight='700'; el.style.fontSize='17px'; el.id='selected-opt';
+    document.getElementById('timer-preview').textContent = previewMap[val];
+  }
+  document.getElementById('timer-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeTimer();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+name: Mirror to client repo
+
+# When main is updated here, publish a CLEAN snapshot of the current code to the
+# client's code-reference repo. Snapshot (NOT full history) on purpose: upstream
+# commits carry co-author / session trailers we do not want surfaced downstream, so
+# each run force-pushes a single fresh commit authored by the maintainer.
+#
+# Setup (one-time): add a repo secret MIRROR_TOKEN = a GitHub PAT (or fine-grained
+# token with Contents: write) that can push to digital7rdr/bravosecure-app.
+#   Settings -> Secrets and variables -> Actions -> New repository secret.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: mirror-to-client
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Publish clean snapshot
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN }}
+          TARGET: digital7rdr/bravosecure-app
+          TARGET_BRANCH: main
+        run: |
+          set -euo pipefail
+          if [ -z "${MIRROR_TOKEN:-}" ]; then
+            echo "::error::MIRROR_TOKEN secret is not set. Add a PAT with write access to ${TARGET}."
+            exit 1
+          fi
+
+          # Strip CI config so none of THESE workflows run (or attempt deploys) in the
+          # client repo, and so infra/secret references are not published downstream.
+          rm -rf .github
+
+          # Strip Claude assistant config (settings, skills, commands) — keep it out of
+          # the client-facing snapshot.
+          rm -rf .claude
+
+          # Internal build spec — kept in OUR repo for the team, but OUT of the client
+          # snapshot (it carries security stop-conditions + architecture internals).
+          rm -f docs/planning/BUILD_RUNBOOK.md
+
+          # Internal-only files to keep OUT of the client snapshot (uncomment as desired).
+          # sqa.md carries the internal bug log incl. security findings — recommended to strip.
+          # rm -f sqa.md
+          # rm -rf docs/handoffs docs/qa docs/audits
+
+          # Rebuild as a single-commit history with no upstream trailers, then publish.
+          rm -rf .git
+          git init -q
+          git config user.name "Ranak"
+          git config user.email "piyaldeb87@gmail.com"
+          git add -A
+          git commit -q -m "Sync ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git branch -M "${TARGET_BRANCH}"
+          git push --force "https://x-access-token:${MIRROR_TOKEN}@github.com/${TARGET}.git" "${TARGET_BRANCH}"
+          echo "Published clean snapshot to ${TARGET}@${TARGET_BRANCH}"

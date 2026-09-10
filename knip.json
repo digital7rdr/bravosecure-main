@@ -1,0 +1,28 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "index.js",
+    "App.tsx",
+    "src/navigation/**/*.{ts,tsx}",
+    "src/screens/**/index.{ts,tsx}",
+    "scripts/**/*.{mjs,ts,js}"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "App.tsx", "index.js"],
+  "ignore": [
+    "**/__tests__/**",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}",
+    "android/**",
+    "ios/**",
+    "apps/**",
+    "worldmonitor/**"
+  ],
+  "ignoreDependencies": [
+    "@babel/runtime",
+    "babel-preset-expo",
+    "@react-native/babel-preset",
+    "@react-native/metro-config",
+    "@react-native/typescript-config"
+  ],
+  "ignoreBinaries": ["adb", "gradlew", "expo"]
+}

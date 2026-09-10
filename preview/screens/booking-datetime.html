@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  .wheel-fade {
+    background: linear-gradient(to bottom,
+      #0D1929 0%,
+      transparent 28%,
+      transparent 72%,
+      #0D1929 100%);
+  }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="shrink-0 flex items-center justify-between px-4 border-b" style="padding-top:50px; padding-bottom:12px; background:#0A0F1E; border-color:#1E2D45;">
+  <div class="flex items-center gap-3">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-300" style="font-size:20px;">arrow_back</span>
+    </button>
+    <span class="text-[11px] font-bold uppercase tracking-[2px] text-slate-400">Date &amp; Time</span>
+  </div>
+  <div></div>
+</header>
+
+<!-- Scrollable content -->
+<main class="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+
+  <!-- Booking summary card -->
+  <div class="flex items-center gap-3 px-4 py-3 rounded-xl" style="background:#0D1929; border:1px solid #1E2D45;">
+    <div class="size-9 rounded-[10px] flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+      <span class="material-symbols-outlined text-primary" style="font-size:18px;">schedule</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Booking Type</p>
+      <p class="text-[13px] font-bold text-slate-100">Time Slot <span class="text-slate-500 font-normal">· 1–24 hours</span></p>
+    </div>
+    <span class="text-[12px] font-extrabold text-primary">From 450 cr</span>
+  </div>
+
+  <!-- Date picker -->
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[13px] font-bold text-slate-100">Select Date</p>
+      <span class="text-[12px] font-semibold text-primary">March 2026</span>
+    </div>
+    <div class="flex gap-2 overflow-x-auto pb-1" id="date-row">
+
+      <button onclick="selectDate(this, 25)" data-day="25"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Tue</span>
+        <span class="text-[19px] font-extrabold text-slate-300">25</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 26)" data-day="26"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all date-selected"
+        style="width:56px; height:76px; background:#0D1929; border-color:#2563EB; box-shadow:0 0 0 1px #2563EB, 0 0 16px rgba(37,99,235,0.15);">
+        <span class="text-[9px] font-bold uppercase text-primary">Wed</span>
+        <span class="text-[19px] font-extrabold text-white">26</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#2563EB;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 27)" data-day="27"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Thu</span>
+        <span class="text-[19px] font-extrabold text-slate-300">27</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 28)" data-day="28"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Fri</span>
+        <span class="text-[19px] font-extrabold text-slate-300">28</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 29)" data-day="29"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Sat</span>
+        <span class="text-[19px] font-extrabold text-slate-300">29</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 30)" data-day="30"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Sun</span>
+        <span class="text-[19px] font-extrabold text-slate-300">30</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+      <button onclick="selectDate(this, 31)" data-day="31"
+        class="date-card shrink-0 flex flex-col items-center justify-center rounded-2xl border transition-all"
+        style="width:56px; height:76px; background:#0D1929; border-color:#1E2D45;">
+        <span class="text-[9px] font-bold uppercase text-slate-500">Mon</span>
+        <span class="text-[19px] font-extrabold text-slate-300">31</span>
+        <div class="size-1.5 rounded-full mt-0.5" style="background:#1E2D45;"></div>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Time picker wheel -->
+  <div>
+    <p class="text-[13px] font-bold text-slate-100 mb-3">Start Time</p>
+    <div class="relative rounded-2xl overflow-hidden" style="background:#0D1929; border:1px solid #1E2D45; height:168px;">
+      <!-- Selection stripe -->
+      <div class="absolute top-1/2 -translate-y-1/2 w-full h-12 pointer-events-none z-10"
+        style="background:rgba(37,99,235,0.07); border-top:1px solid rgba(37,99,235,0.2); border-bottom:1px solid rgba(37,99,235,0.2);"></div>
+      <!-- Fade overlay -->
+      <div class="wheel-fade absolute inset-0 pointer-events-none z-20"></div>
+
+      <div class="flex h-full relative z-10">
+        <div id="wheel-hour" class="flex-1 overflow-y-auto flex flex-col items-center snap-y snap-mandatory"></div>
+        <div class="flex items-center justify-center shrink-0 text-[22px] font-extrabold text-primary" style="width:20px;">:</div>
+        <div id="wheel-min"  class="flex-1 overflow-y-auto flex flex-col items-center snap-y snap-mandatory"></div>
+        <div id="wheel-ampm" class="flex-1 overflow-y-auto flex flex-col items-center snap-y snap-mandatory"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Duration chips -->
+  <div>
+    <p class="text-[13px] font-bold text-slate-100 mb-3">Duration</p>
+    <div class="grid grid-cols-4 gap-2">
+      <button onclick="selectDuration(this)" class="duration-chip py-3 rounded-xl text-[13px] font-bold text-slate-300 transition-all"
+        style="background:#0D1929; border:1px solid #1E2D45;">4h</button>
+      <button onclick="selectDuration(this)" class="duration-chip py-3 rounded-xl text-[13px] font-extrabold text-white transition-all duration-selected"
+        style="background:rgba(37,99,235,0.15); border:2px solid #2563EB; box-shadow:0 0 16px rgba(37,99,235,0.15);">8h</button>
+      <button onclick="selectDuration(this)" class="duration-chip py-3 rounded-xl text-[13px] font-bold text-slate-300 transition-all"
+        style="background:#0D1929; border:1px solid #1E2D45;">12h</button>
+      <button onclick="selectDuration(this)" class="duration-chip py-3 rounded-xl text-[13px] font-bold text-slate-300 transition-all"
+        style="background:#0D1929; border:1px solid #1E2D45;">24h</button>
+    </div>
+  </div>
+
+  <!-- 3-hour advance notice -->
+  <div class="rounded-2xl overflow-hidden" style="background:#0D1929; border:1px solid #1E2D45;">
+    <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:#1E2D45;">
+      <span class="material-symbols-outlined filled shrink-0" style="font-size:18px; color:#2563EB;">schedule_send</span>
+      <div class="flex-1">
+        <p class="text-[11px] font-bold text-slate-100">3-Hour Advance Booking Required</p>
+        <p class="text-[10px] text-slate-500 mt-0.5">All protection services require minimum 3 hours lead time</p>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-4 py-3">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Earliest Available</p>
+        <p id="earliest-label" class="text-[13px] font-extrabold text-slate-100 mt-0.5">--:-- --</p>
+      </div>
+      <button onclick="jumpToEarliest()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all active:opacity-70" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.25); color:#60A5FA;">
+        <span class="material-symbols-outlined" style="font-size:13px;">arrow_forward</span>
+        Jump to earliest
+      </button>
+    </div>
+  </div>
+
+  <!-- Validation error (hidden by default) -->
+  <div id="time-error" class="hidden flex items-start gap-3 px-4 py-3 rounded-xl" style="background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.3);">
+    <span class="material-symbols-outlined shrink-0 mt-0.5" style="font-size:16px; color:#F87171;">error</span>
+    <p class="text-[12px] font-semibold text-red-300 leading-snug">Selected time is less than 3 hours from now. Please choose a later time or a future date.</p>
+  </div>
+
+  <div class="pb-4"></div>
+
+</main>
+
+<!-- Footer CTA -->
+<div class="shrink-0 px-4 py-4 border-t" style="background:#0A0F1E; border-color:#1E2D45;">
+  <button onclick="goNext()" id="continue-btn" class="w-full py-4 rounded-xl font-extrabold text-[14px] text-white tracking-wide transition-all active:scale-[0.98]"
+    style="background:#2563EB; box-shadow:0 6px 20px rgba(37,99,235,0.35);">
+    Continue
+  </button>
+</div>
+
+<script>
+  let selectedDay = 26;
+
+  function selectDate(el, day) {
+    selectedDay = day;
+    document.querySelectorAll('.date-card').forEach(c => {
+      c.style.borderColor = '#1E2D45';
+      c.style.boxShadow = 'none';
+      c.querySelector('span:nth-child(1)').style.color = '';
+      c.querySelector('span:nth-child(2)').style.color = '';
+      c.querySelector('div').style.background = '#1E2D45';
+    });
+    el.style.borderColor = '#2563EB';
+    el.style.boxShadow = '0 0 0 1px #2563EB, 0 0 16px rgba(37,99,235,0.15)';
+    el.querySelector('span:nth-child(1)').style.color = '#2563EB';
+    el.querySelector('span:nth-child(2)').style.color = '#ffffff';
+    el.querySelector('div').style.background = '#2563EB';
+  }
+
+  function getWheelValue(id) {
+    const el = document.getElementById(id);
+    const idx = Math.round(el.scrollTop / ITEM_H);
+    return el.querySelectorAll('.wheel-item')[Math.max(0, idx)]?.textContent || '';
+  }
+
+  function saveDatetime() {
+    const h = getWheelValue('wheel-hour');
+    const m = getWheelValue('wheel-min');
+    const ap = getWheelValue('wheel-ampm');
+    sessionStorage.setItem('bs_datetime', `Mar ${selectedDay} · ${h}:${m} ${ap}`);
+  }
+
+  function selectDuration(el) {
+    document.querySelectorAll('.duration-chip').forEach(c => {
+      c.style.background = '#0D1929';
+      c.style.border = '1px solid #1E2D45';
+      c.style.boxShadow = 'none';
+      c.style.color = '';
+      c.style.fontWeight = '700';
+    });
+    el.style.background = 'rgba(37,99,235,0.15)';
+    el.style.border = '2px solid #2563EB';
+    el.style.boxShadow = '0 0 16px rgba(37,99,235,0.15)';
+    el.style.color = '#ffffff';
+    el.style.fontWeight = '800';
+  }
+
+  // ── Time Picker Wheels ──────────────────────────────────────────
+  const ITEM_H = 48;      // px — must match selection stripe height
+  const CONTAINER_H = 168; // px — matches the wheel container height
+
+  function buildWheel(containerId, items, defaultIndex) {
+    const el = document.getElementById(containerId);
+    // Padding exactly so item 0 / last item can reach the visual center
+    const pad = (CONTAINER_H - ITEM_H) / 2; // = 60px
+    el.style.padding = pad + 'px 0';
+    items.forEach((label, i) => {
+      const div = document.createElement('div');
+      div.className = 'wheel-item';
+      div.dataset.index = i;
+      div.textContent = label;
+      div.style.cssText = [
+        'height:' + ITEM_H + 'px',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'width:100%',
+        'cursor:pointer',
+        'user-select:none',
+        'scroll-snap-align:center',
+        'transition:font-size 0.12s, color 0.12s, font-weight 0.12s',
+        'font-family:Manrope,sans-serif',
+        'flex-shrink:0',
+      ].join(';');
+      div.addEventListener('click', () => {
+        el.scrollTo({ top: i * ITEM_H, behavior: 'smooth' });
+      });
+      el.appendChild(div);
+    });
+    // Scroll to default without animation
+    el.scrollTop = defaultIndex * ITEM_H;
+    updateWheel(el);
+    el.addEventListener('scroll', () => updateWheel(el), { passive: true });
+  }
+
+  function updateWheel(el) {
+    const centerIndex = Math.round(el.scrollTop / ITEM_H);
+    el.querySelectorAll('.wheel-item').forEach((item, i) => {
+      const dist = Math.abs(i - centerIndex);
+      if (dist === 0) {
+        item.style.fontSize = '22px';
+        item.style.fontWeight = '800';
+        item.style.color = '#ffffff';
+      } else if (dist === 1) {
+        item.style.fontSize = '18px';
+        item.style.fontWeight = '500';
+        item.style.color = '#94a3b8';
+      } else {
+        item.style.fontSize = '15px';
+        item.style.fontWeight = '400';
+        item.style.color = '#475569';
+      }
+    });
+  }
+
+  // Hours 01–12, minutes 00/05/.../55, AM/PM
+  const hours   = Array.from({length:12}, (_,i) => String(i+1).padStart(2,'0'));
+  const minutes = Array.from({length:12}, (_,i) => String(i*5).padStart(2,'0'));
+  const ampm    = ['AM', 'PM'];
+
+  buildWheel('wheel-hour', hours,   8);  // default 09
+  buildWheel('wheel-min',  minutes, 0);  // default :00
+  buildWheel('wheel-ampm', ampm,    0);  // default AM
+
+  // ── 3-Hour Advance Booking Enforcement ──────────────────
+  const LEAD_HOURS = 3;
+  const TODAY_DAY = 26; // current demo date
+
+  function getEarliestTime() {
+    const now = new Date();
+    now.setHours(now.getHours() + LEAD_HOURS);
+    return now;
+  }
+
+  function formatTime12(date) {
+    let h = date.getHours();
+    const m = String(date.getMinutes()).padStart(2,'0');
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return String(h).padStart(2,'0') + ':' + m + ' ' + ap;
+  }
+
+  function updateEarliestLabel() {
+    const earliest = getEarliestTime();
+    document.getElementById('earliest-label').textContent = formatTime12(earliest);
+  }
+
+  function jumpToEarliest() {
+    const earliest = getEarliestTime();
+    let h = earliest.getHours();
+    const ap = h >= 12 ? 1 : 0;
+    h = h % 12 || 12;
+    // Round minutes up to nearest 5
+    const rawMin = earliest.getMinutes();
+    const minIdx = Math.min(Math.ceil(rawMin / 5), 11);
+    const hourIdx = h - 1;
+    const hEl = document.getElementById('wheel-hour');
+    const mEl = document.getElementById('wheel-min');
+    const apEl = document.getElementById('wheel-ampm');
+    hEl.scrollTo({ top: hourIdx * ITEM_H, behavior: 'smooth' });
+    mEl.scrollTo({ top: minIdx * ITEM_H, behavior: 'smooth' });
+    apEl.scrollTo({ top: ap * ITEM_H, behavior: 'smooth' });
+    setTimeout(() => { validateTime(); }, 400);
+  }
+
+  function getSelectedDateTime() {
+    const h = parseInt(getWheelValue('wheel-hour'));
+    const m = parseInt(getWheelValue('wheel-min'));
+    const ap = getWheelValue('wheel-ampm');
+    let hour24 = h % 12 + (ap === 'PM' ? 12 : 0);
+    const dt = new Date();
+    dt.setHours(hour24, m, 0, 0);
+    // If selected day is not today, booking is always valid
+    return { dt, isToday: selectedDay === TODAY_DAY };
+  }
+
+  function validateTime() {
+    const { dt, isToday } = getSelectedDateTime();
+    const earliest = getEarliestTime();
+    const errEl = document.getElementById('time-error');
+    const btn = document.getElementById('continue-btn');
+    if (isToday && dt < earliest) {
+      errEl.classList.remove('hidden');
+      errEl.classList.add('flex');
+      btn.style.opacity = '0.45';
+      btn.style.pointerEvents = 'none';
+      return false;
+    } else {
+      errEl.classList.add('hidden');
+      errEl.classList.remove('flex');
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = '';
+      return true;
+    }
+  }
+
+  // Re-validate when wheels scroll
+  ['wheel-hour','wheel-min','wheel-ampm'].forEach(id => {
+    document.getElementById(id).addEventListener('scroll', () => setTimeout(validateTime, 200), { passive: true });
+  });
+
+  updateEarliestLabel();
+  setTimeout(validateTime, 300);
+
+  function goNext() {
+    if (!validateTime()) return;
+    saveDatetime();
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('add-ons'));
+      window.parent.loadScreen('screens/add-ons.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('booking-type'));
+      window.parent.loadScreen('screens/booking-type.html', navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+</script>
+
+</body></html>

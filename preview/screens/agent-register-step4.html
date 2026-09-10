@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "primary":"#2563EB","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  @keyframes clock-tick { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+  .clock-anim { animation:clock-tick 2s ease-in-out infinite; transform-origin:center; }
+
+  @keyframes pulse-ring { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(1.6);opacity:0} }
+  .pulse-ring { animation:pulse-ring 2.4s ease-out infinite; }
+
+  .toggle-track {
+    width:48px; height:26px; background:#1E2D45; border-radius:9999px;
+    position:relative; cursor:pointer; transition:background 0.2s; flex-shrink:0;
+  }
+  .toggle-track.on { background:#2563EB; }
+  .toggle-thumb {
+    position:absolute; top:3px; left:3px;
+    width:20px; height:20px; background:white; border-radius:50%;
+    transition:transform 0.2s; box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  }
+  .toggle-track.on .toggle-thumb { transform:translateX(22px); }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <h2 class="text-sm font-bold text-slate-200 flex-1 text-center -ml-9">Verification Status</h2>
+</header>
+
+<!-- Progress -->
+<div class="px-5 pb-4">
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-xs font-semibold" style="color:#60A5FA">Step 4 of 4</span>
+    <span class="text-xs text-slate-500 uppercase tracking-wider font-medium">Under Review</span>
+  </div>
+  <div class="flex gap-1.5 h-1.5 w-full">
+    <div class="flex-1 rounded-full" style="background:linear-gradient(90deg,#2563EB,#60A5FA)"></div>
+    <div class="flex-1 rounded-full" style="background:linear-gradient(90deg,#2563EB,#60A5FA)"></div>
+    <div class="flex-1 rounded-full" style="background:linear-gradient(90deg,#2563EB,#60A5FA)"></div>
+    <div class="flex-1 rounded-full" style="background:linear-gradient(90deg,#F59E0B,#FCD34D)"></div>
+  </div>
+</div>
+
+<main class="flex-1 overflow-y-auto px-5 pb-24">
+
+  <!-- Clock icon -->
+  <div class="flex flex-col items-center pt-4 pb-8">
+    <div class="relative flex items-center justify-center mb-6">
+      <div class="pulse-ring absolute size-28 rounded-full" style="border:2px solid rgba(245,158,11,0.3)"></div>
+      <div class="pulse-ring absolute size-28 rounded-full" style="border:2px solid rgba(245,158,11,0.2);animation-delay:0.8s"></div>
+      <div class="size-24 rounded-full flex items-center justify-center" style="background:rgba(245,158,11,0.1);border:2px solid rgba(245,158,11,0.25)">
+        <span class="material-symbols-outlined filled clock-anim" style="font-size:52px;color:#F59E0B">history_toggle_off</span>
+      </div>
+    </div>
+    <h1 class="text-2xl font-extrabold mb-2 text-center">Under Review</h1>
+    <p class="text-sm text-slate-400 leading-relaxed text-center max-w-xs">Our compliance team will review your documents within 24–48 hours.</p>
+  </div>
+
+  <!-- Estimated completion card -->
+  <div class="rounded-2xl overflow-hidden mb-5" style="background:#0D1929;border:1px solid #1E2D45">
+    <!-- Decorative header -->
+    <div class="h-14 relative flex items-center justify-center" style="background:linear-gradient(135deg,rgba(37,99,235,0.2),rgba(245,158,11,0.15))">
+      <div class="absolute inset-0" style="background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,0.02) 10px,rgba(255,255,255,0.02) 20px)"></div>
+      <div class="flex items-center gap-2 relative z-10">
+        <span class="material-symbols-outlined text-amber-400" style="font-size:18px">calendar_clock</span>
+        <span class="text-[10px] font-bold tracking-widest uppercase text-amber-400">Estimated Completion</span>
+      </div>
+    </div>
+    <div class="py-5 text-center">
+      <p class="text-xl font-bold text-slate-100">17 March 2026</p>
+      <p class="text-xs text-slate-500 mt-1">Usually within 1–2 business days</p>
+    </div>
+  </div>
+
+  <!-- Review steps -->
+  <div class="rounded-xl p-4 mb-5" style="background:#0D1929;border:1px solid #1E2D45">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Review Checklist</p>
+    <div class="space-y-3">
+      <div class="flex items-center gap-3">
+        <div class="size-6 rounded-full flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.15)">
+          <span class="material-symbols-outlined filled text-emerald-400" style="font-size:14px">check</span>
+        </div>
+        <p class="text-xs text-slate-300">Documents received</p>
+        <span class="ml-auto text-[10px] text-emerald-400 font-bold">Done</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="size-6 rounded-full flex items-center justify-center shrink-0" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25)">
+          <span class="material-symbols-outlined text-amber-400" style="font-size:13px">hourglass_empty</span>
+        </div>
+        <p class="text-xs text-slate-300">Identity verification</p>
+        <span class="ml-auto text-[10px] text-amber-400 font-bold">Pending</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="size-6 rounded-full flex items-center justify-center shrink-0" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-600" style="font-size:13px">lock</span>
+        </div>
+        <p class="text-xs text-slate-500">Security clearance check</p>
+        <span class="ml-auto text-[10px] text-slate-600 font-bold">Waiting</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="size-6 rounded-full flex items-center justify-center shrink-0" style="background:#07111f;border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-600" style="font-size:13px">badge</span>
+        </div>
+        <p class="text-xs text-slate-500">Agent activation</p>
+        <span class="ml-auto text-[10px] text-slate-600 font-bold">Waiting</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notify toggle -->
+  <div class="flex items-center justify-between p-4 rounded-xl mb-5" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined filled" style="color:#2563EB;font-size:22px">notifications_active</span>
+      <div>
+        <p class="text-sm font-semibold text-slate-200">Notify me when verified</p>
+        <p class="text-[10px] text-slate-500">Push + email notification</p>
+      </div>
+    </div>
+    <div class="toggle-track on" id="notif-toggle" onclick="this.classList.toggle('on')">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+
+  <!-- Contact support -->
+  <div class="text-center">
+    <button class="text-slate-500 hover:text-slate-300 transition-colors text-xs font-medium inline-flex items-center gap-1">
+      Contact Support <span class="material-symbols-outlined" style="font-size:14px">open_in_new</span>
+    </button>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 70%,transparent)">
+  <div class="flex gap-3">
+    <button onclick="goVerified()" class="flex-1 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+      style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:0 4px 16px rgba(37,99,235,0.3);color:white;letter-spacing:0.04em;font-size:0.75rem">
+      <span class="material-symbols-outlined" style="font-size:16px">check_circle</span>
+      Preview: Approved
+    </button>
+    <button onclick="goRejected()" class="flex-1 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+      style="background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);color:#f87171;letter-spacing:0.04em;font-size:0.75rem">
+      <span class="material-symbols-outlined" style="font-size:16px">cancel</span>
+      Preview: Rejected
+    </button>
+  </div>
+</footer>
+
+<script>
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="agent-availability"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-availability.html', nav||document.createElement('div'));
+    }
+  }
+  function goVerified() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="agent-verified"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-verified.html', nav||document.createElement('div'));
+    }
+  }
+  function goRejected() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="agent-rejected"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/agent-rejected.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

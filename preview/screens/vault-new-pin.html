@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" },
+        fontFamily: { display: ["Manrope", "sans-serif"] },
+      },
+    },
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled-icon { font-variation-settings: 'FILL' 1; }
+
+  .key-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 58px; height: 58px; border-radius: 50%;
+    background: rgba(37,99,235,0.08); border: 1px solid #1E2D45;
+    cursor: pointer; user-select: none; transition: all 0.1s;
+  }
+  .key-btn:active { background: rgba(37,99,235,0.25); transform: scale(0.94); }
+  .key-num { font-size: 19px; font-weight: 700; color: #f1f5f9; line-height: 1; }
+  .key-alpha { font-size: 7px; font-weight: 600; color: #64748b; letter-spacing: 1.5px; margin-top: 1px; }
+
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid #1E2D45; background: transparent;
+    transition: all 0.2s;
+  }
+  .dot.filled  { background: #2563EB; border-color: #2563EB; box-shadow: 0 0 8px rgba(37,99,235,0.5); }
+  .dot.success { background: #00C851; border-color: #00C851; box-shadow: 0 0 8px rgba(0,200,81,0.4); }
+  .dot.error   { background: #FF3B3B; border-color: #FF3B3B; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100" style="height:100vh; display:flex; flex-direction:column;">
+
+  <!-- Header -->
+  <header class="flex items-center px-4 justify-between border-b border-primary/10 shrink-0" style="padding-top:50px; padding-bottom:8px;">
+    <button onclick="goBack()" class="flex size-9 items-center justify-center hover:bg-primary/10 rounded-full transition-colors">
+      <span class="material-symbols-outlined text-slate-300 text-[20px]">arrow_back</span>
+    </button>
+    <span id="header-label" class="text-xs font-bold tracking-[2px] uppercase text-slate-400">New PIN</span>
+    <div class="size-9"></div>
+  </header>
+
+  <!-- Icon + title -->
+  <div class="flex flex-col items-center pt-4 pb-2 shrink-0">
+    <div class="flex size-12 items-center justify-center rounded-2xl mb-2" style="background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.2);">
+      <span id="header-icon" class="material-symbols-outlined filled-icon text-blue-400" style="font-size:24px;">lock_open</span>
+    </div>
+    <h1 id="title-text" class="text-base font-extrabold text-slate-100 mb-0.5">Set New PIN</h1>
+    <p id="sub-text" class="text-[11px] text-slate-500">Enter a new 6-digit PIN</p>
+  </div>
+
+  <!-- PIN dots -->
+  <div id="dots-row" class="flex justify-center gap-4 mb-2 mt-3 shrink-0">
+    <div class="dot" id="d0"></div>
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+    <div class="dot" id="d4"></div>
+    <div class="dot" id="d5"></div>
+  </div>
+
+  <!-- Status message -->
+  <div id="status-msg" class="text-center text-[11px] font-semibold mb-2 h-4 shrink-0" style="color:transparent;">–</div>
+
+  <!-- Keypad -->
+  <div class="flex flex-col items-center gap-2 px-6 shrink-0">
+    <div class="flex gap-5">
+      <button class="key-btn" onclick="press('1')"><span class="key-num">1</span><span class="key-alpha"></span></button>
+      <button class="key-btn" onclick="press('2')"><span class="key-num">2</span><span class="key-alpha">ABC</span></button>
+      <button class="key-btn" onclick="press('3')"><span class="key-num">3</span><span class="key-alpha">DEF</span></button>
+    </div>
+    <div class="flex gap-5">
+      <button class="key-btn" onclick="press('4')"><span class="key-num">4</span><span class="key-alpha">GHI</span></button>
+      <button class="key-btn" onclick="press('5')"><span class="key-num">5</span><span class="key-alpha">JKL</span></button>
+      <button class="key-btn" onclick="press('6')"><span class="key-num">6</span><span class="key-alpha">MNO</span></button>
+    </div>
+    <div class="flex gap-5">
+      <button class="key-btn" onclick="press('7')"><span class="key-num">7</span><span class="key-alpha">PQRS</span></button>
+      <button class="key-btn" onclick="press('8')"><span class="key-num">8</span><span class="key-alpha">TUV</span></button>
+      <button class="key-btn" onclick="press('9')"><span class="key-num">9</span><span class="key-alpha">WXYZ</span></button>
+    </div>
+    <div class="flex gap-5 items-center">
+      <!-- empty spacer -->
+      <div class="key-btn" style="background:transparent; border-color:transparent;"></div>
+      <button class="key-btn" onclick="press('0')"><span class="key-num">0</span></button>
+      <button class="key-btn" onclick="backspace()">
+        <span class="material-symbols-outlined text-slate-300 text-[22px]">backspace</span>
+      </button>
+    </div>
+  </div>
+
+<script>
+  let step = 'new';   // 'new' | 'confirm'
+  let newPin = '';
+  let entered = '';
+
+  function updateDots(dotClass) {
+    for (let i = 0; i < 6; i++) {
+      const d = document.getElementById('d' + i);
+      d.className = 'dot' + (i < entered.length ? ' ' + (dotClass || 'filled') : '');
+    }
+  }
+
+  function press(digit) {
+    if (entered.length >= 6) return;
+    entered += digit;
+    updateDots();
+    if (entered.length === 6) setTimeout(next, 120);
+  }
+
+  function backspace() {
+    entered = entered.slice(0, -1);
+    updateDots();
+    setMsg('', 'transparent');
+  }
+
+  function setMsg(text, color) {
+    const el = document.getElementById('status-msg');
+    el.textContent = text || '–';
+    el.style.color = color || 'transparent';
+  }
+
+  function next() {
+    if (step === 'new') {
+      newPin = entered;
+      entered = '';
+      step = 'confirm';
+      // Switch UI to confirm mode
+      document.getElementById('header-label').textContent = 'Confirm PIN';
+      document.getElementById('header-icon').textContent = 'lock';
+      document.getElementById('title-text').textContent = 'Confirm New PIN';
+      document.getElementById('sub-text').textContent = 'Re-enter your 6-digit PIN';
+      setMsg('PIN set — now confirm it', '#60A5FA');
+      updateDots();
+    } else {
+      // Confirm step
+      if (entered === newPin) {
+        updateDots('success');
+        setMsg('PIN updated successfully!', '#00C851');
+        setTimeout(() => navigate('screens/vault-lock.html'), 900);
+      } else {
+        const row = document.getElementById('dots-row');
+        updateDots('error');
+        row.classList.add('shake');
+        setMsg('PINs do not match. Try again.', '#FF3B3B');
+        setTimeout(() => {
+          row.classList.remove('shake');
+          entered = '';
+          step = 'new';
+          newPin = '';
+          document.getElementById('header-label').textContent = 'New PIN';
+          document.getElementById('header-icon').textContent = 'lock_open';
+          document.getElementById('title-text').textContent = 'Set New PIN';
+          document.getElementById('sub-text').textContent = 'Enter a new 6-digit PIN';
+          setMsg('', 'transparent');
+          updateDots();
+        }, 600);
+      }
+    }
+  }
+
+  function navigate(src) {
+    if (window.parent && window.parent.loadScreen) {
+      const navItem = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+        .find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes(src.replace('screens/','')));
+      window.parent.loadScreen(src, navItem || window.parent.document.querySelector('.nav-item'));
+    }
+  }
+
+  function goBack() { navigate('screens/vault-otp-verify.html'); }
+</script>
+
+</body>
+</html>

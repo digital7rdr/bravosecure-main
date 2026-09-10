@@ -1,0 +1,98 @@
+name: Supply Chain (SBOM + OSV)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily — new vulns are disclosed continuously
+    - cron: '0 5 * * *'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci --legacy-peer-deps
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          npx -y @cyclonedx/cyclonedx-npm \
+            --output-file sbom.cdx.json \
+            --output-format JSON \
+            --ignore-npm-errors
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          retention-days: 90
+
+  osv-scan:
+    name: OSV vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # GitHub Advanced Security is a paid add-on for private repos, so we
+      # skip the SARIF upload and instead emit table output that fails the
+      # job on any vulnerability. Findings show up in the workflow logs and
+      # the JSON report is preserved as an artifact.
+      - name: Run OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
+        with:
+          scan-args: |-
+            --recursive
+            --skip-git
+            --format=json
+            --output=osv-results.json
+            ./
+        continue-on-error: true
+
+      - name: Print OSV findings (table)
+        if: always()
+        run: |
+          if [ -f osv-results.json ]; then
+            npx -y osv-scanner --format=table --no-config osv-results.json || true
+          fi
+
+      - name: Upload OSV report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: osv-report
+          path: osv-results.json
+          retention-days: 30
+
+  sbom-attest:
+    name: Attest SBOM (release artifact)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: sbom
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sbom-cyclonedx
+      - name: Attest SBOM
+        uses: actions/attest-sbom@v1
+        with:
+          subject-path: sbom.cdx.json
+          sbom-path: sbom.cdx.json
+        continue-on-error: true

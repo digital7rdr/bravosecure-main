@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+# Commit-message linter — runs after the user enters a commit message
+# and before the commit is created.
+#
+# Enforces a loose Conventional Commits-style format so commit history
+# is greppable and changelog tooling can parse it later.
+#
+# Accepted shape (line 1):
+#   <type>(<optional-scope>): <subject>
+#
+# Examples:
+#   feat(messenger): add backup restore flow
+#   fix(crypto): tighten constant-time compare
+#   chore: bump expo to 54.0.10
+#   docs: README typo
+#
+# Allowed types: feat, fix, chore, docs, refactor, test, perf, build, ci, revert, wip.
+#
+# Bypass: `git commit --no-verify` if you have a one-off reason.
+
+MSG_FILE=$1
+FIRST_LINE=$(head -n1 "$MSG_FILE")
+
+# Skip merge commits and revert commits — git creates these and the
+# format is fixed.
+if echo "$FIRST_LINE" | grep -qE '^(Merge|Revert) '; then
+  exit 0
+fi
+
+PATTERN='^(feat|fix|chore|docs|refactor|test|perf|build|ci|revert|wip)(\([a-z0-9._-]+\))?: .{1,80}$'
+
+if ! echo "$FIRST_LINE" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "[commit-msg] commit message does not match Conventional Commits format."
+  echo ""
+  echo "  Expected: <type>(<optional-scope>): <subject>"
+  echo "  Types:    feat, fix, chore, docs, refactor, test, perf, build, ci, revert, wip"
+  echo ""
+  echo "  Examples:"
+  echo "    feat(messenger): add backup restore"
+  echo "    fix(crypto): tighten constant-time compare"
+  echo "    chore: bump expo"
+  echo ""
+  echo "  Got: $FIRST_LINE"
+  echo ""
+  echo "  To intentionally bypass once: git commit --no-verify"
+  exit 1
+fi

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2563EB","background-dark":"#0A0F1E"},fontFamily:{display:["Manrope","sans-serif"]}}}}
+</script>
+<style>
+  body{font-family:'Manrope',sans-serif;height:100dvh;overflow:hidden;}
+  main::-webkit-scrollbar{display:none;}main{scrollbar-width:none;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .filled{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .kpi-card{flex:1;text-align:center;padding:10px 6px;border-radius:12px;background:#0D1929;border:1px solid #1E2D45;}
+  .menu-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #1E2D45;cursor:pointer;transition:opacity 0.15s;}
+  .menu-row:last-child{border-bottom:none;}
+  .menu-row:active{opacity:0.7;}
+  .bottom-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;transition:opacity 0.15s;}
+  .toggle-track{width:44px;height:24px;background:#1E2D45;border-radius:9999px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+  .toggle-track.on{background:#2563EB;}
+  .toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;background:white;border-radius:50%;transition:transform 0.2s;}
+  .toggle-track.on .toggle-thumb{transform:translateX(20px);}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<div class="px-4 pt-[50px] pb-3 shrink-0">
+  <div class="flex items-center justify-between mb-3">
+    <div>
+      <p class="text-[9px] font-bold tracking-[0.2em] text-slate-500 uppercase">Partner Agent</p>
+      <div class="flex items-center gap-2 mt-0.5">
+        <div class="size-8 rounded-full flex items-center justify-center" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+          <span class="material-symbols-outlined filled" style="font-size:16px;color:#2563EB">shield_person</span>
+        </div>
+        <p class="text-[17px] font-extrabold text-slate-100 tracking-wide">MARCUS THORNTON</p>
+      </div>
+      <div class="flex items-center gap-2 mt-1.5">
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.3)">ONLINE</span>
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(37,99,235,0.1);color:#93c5fd;border:1px solid rgba(37,99,235,0.25)">REG: BRV-AG-4157</span>
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full" style="background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.25)">TIER 2</span>
+      </div>
+    </div>
+    <div class="toggle-track on" id="avail-toggle" onclick="this.classList.toggle('on')">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+  <div class="flex gap-2">
+    <div class="kpi-card">
+      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Jobs</p>
+      <p class="text-[18px] font-extrabold" style="color:#2563EB">3</p>
+    </div>
+    <div class="kpi-card">
+      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Earned</p>
+      <p class="text-[18px] font-extrabold text-slate-100">8.4K cr</p>
+    </div>
+    <div class="kpi-card">
+      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rating</p>
+      <p class="text-[18px] font-extrabold text-amber-400">4.92★</p>
+    </div>
+  </div>
+</div>
+
+<main class="flex-1 overflow-y-auto px-4 pb-24 pt-3 space-y-3">
+  <div class="rounded-2xl p-4" style="background:#0D1929;border:1px solid rgba(37,99,235,0.25)">
+    <div class="flex items-center gap-1.5 mb-2">
+      <span class="size-1.5 rounded-full inline-block animate-pulse" style="background:#22c55e"></span>
+      <p class="text-[9px] font-bold tracking-[0.2em] text-emerald-400 uppercase">Active Job Now</p>
+    </div>
+    <p class="text-[14px] font-extrabold text-slate-100 tracking-wide">VIP ESCORT — DIFC → PALM</p>
+    <p class="text-[11px] text-slate-500 mt-0.5">Client: Platinum Corp · ETA 22 min</p>
+    <div class="flex gap-2 mt-3">
+      <button class="flex-1 py-2.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5" style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);color:white">
+        <span class="material-symbols-outlined filled" style="font-size:14px">location_on</span>TRACK
+      </button>
+      <button class="flex-1 py-2.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5" style="background:#1E2D45;color:#94a3b8;border:1px solid #1E2D45">
+        <span class="material-symbols-outlined filled" style="font-size:14px">headset_mic</span>COMMS
+      </button>
+    </div>
+  </div>
+
+  <div class="rounded-2xl px-4 py-1" style="background:#0D1929;border:1px solid #1E2D45">
+    <div class="menu-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">work</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Job Requests</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">3 new pending</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="size-5 rounded-full flex items-center justify-center text-[10px] font-extrabold" style="background:#2563EB;color:white">3</div>
+        <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+      </div>
+    </div>
+    <div class="menu-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">map</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Region Map</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">UAE · UK active</p>
+      </div>
+      <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+    </div>
+    <div class="menu-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled" style="font-size:18px;color:#2563EB">payments</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Earnings</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">8,420 credits this month</p>
+      </div>
+      <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+    </div>
+    <div class="menu-row">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(245,158,11,0.1)">
+        <span class="material-symbols-outlined filled text-amber-400" style="font-size:18px">star</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-bold text-slate-200">Ratings</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">4.92 / 5.0 · Compliant</p>
+      </div>
+      <span class="material-symbols-outlined text-slate-700" style="font-size:16px">chevron_right</span>
+    </div>
+  </div>
+</main>
+
+<div class="fixed bottom-0 left-0 right-0 flex items-center shrink-0" style="background:#0A0F1E;border-top:1px solid #1E2D45;padding-bottom:env(safe-area-inset-bottom,0px)">
+  <div class="bottom-tab" id="btab-jobs" onclick="setTab('jobs')">
+    <span class="material-symbols-outlined filled" style="font-size:22px;color:#2563EB">work</span>
+    <span class="text-[9px] font-bold" style="color:#2563EB">Jobs</span>
+  </div>
+  <div class="bottom-tab" id="btab-map" onclick="setTab('map')">
+    <span class="material-symbols-outlined" style="font-size:22px;color:#475569">map</span>
+    <span class="text-[9px] font-bold text-slate-600">Map</span>
+  </div>
+  <div class="bottom-tab" id="btab-active" onclick="setTab('active')">
+    <span class="material-symbols-outlined" style="font-size:22px;color:#475569">radio_button_checked</span>
+    <span class="text-[9px] font-bold text-slate-600">Active</span>
+  </div>
+  <div class="bottom-tab" id="btab-earn" onclick="setTab('earn')">
+    <span class="material-symbols-outlined" style="font-size:22px;color:#475569">payments</span>
+    <span class="text-[9px] font-bold text-slate-600">Earn</span>
+  </div>
+  <div class="bottom-tab" id="btab-ratings" onclick="setTab('ratings')">
+    <span class="material-symbols-outlined" style="font-size:22px;color:#475569">star</span>
+    <span class="text-[9px] font-bold text-slate-600">Ratings</span>
+  </div>
+</div>
+
+<script>
+  function setTab(t){
+    const icons={jobs:'work',map:'map',active:'radio_button_checked',earn:'payments',ratings:'star'};
+    Object.keys(icons).forEach(k=>{
+      const tab=document.getElementById('btab-'+k);
+      const icon=tab.querySelector('.material-symbols-outlined');
+      const label=tab.querySelector('span:last-child');
+      const active=k===t;
+      icon.style.color=active?'#2563EB':'#475569';
+      label.style.color=active?'#2563EB':'#6b7280';
+      if(active) icon.classList.add('filled'); else icon.classList.remove('filled');
+    });
+  }
+</script>
+</body></html>

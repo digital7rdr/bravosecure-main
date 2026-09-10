@@ -1,0 +1,36 @@
+# Bravo Secure code ownership — auto-requests review for matching paths.
+#
+# Format: <path-pattern>  @owner1 @owner2
+# Last matching pattern takes precedence.
+# Replace @ranak with your actual GitHub usernames as the team grows.
+
+# Default owner for everything
+*                                          @ranak
+
+# ── High-stakes: crypto, transport, runtime ────────────────────────
+/src/modules/messenger/crypto/             @ranak
+/src/modules/messenger/transport/          @ranak
+/src/modules/messenger/runtime/            @ranak
+/src/modules/messenger/push/               @ranak
+
+# ── Native code ─────────────────────────────────────────────────────
+/android/                                  @ranak
+/ios/                                      @ranak
+/app.json                                  @ranak
+/eas.json                                  @ranak
+
+# ── CI / build / release ───────────────────────────────────────────
+/.github/                                  @ranak
+/scripts/                                  @ranak
+/.eslintrc.js                              @ranak
+/tsconfig.json                             @ranak
+/package.json                              @ranak
+/package-lock.json                         @ranak
+
+# ── Design system (master) ─────────────────────────────────────────
+/src/theme/                                @ranak
+/src/components/                           @ranak
+
+# ── Backend / infra ────────────────────────────────────────────────
+/apps/                                     @ranak
+/supabase/                                 @ranak

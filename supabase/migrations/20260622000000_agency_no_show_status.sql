@@ -1,0 +1,14 @@
+-- Auto-dispatch — add the AGENCY_NO_SHOW booking status (BUILD_RUNBOOK Step 8 / LB5).
+--
+-- A booking the agency ACCEPTED (DISPATCHING -> CONFIRMED, client charged at Step 9)
+-- but never crewed before crew_deadline_at is a PROVIDER-fault breach — distinct
+-- from a client-initiated CANCELLED. The Step 8 crew-SLA watchdog flips
+-- CONFIRMED -> AGENCY_NO_SHOW, bumps agents.reliability_breaches, supersedes any
+-- live offer, and (Step 9) refunds the client from escrow. Keeping it a dedicated
+-- terminal state — not CANCELLED — preserves the actor-fault signal for ratings,
+-- refunds, and marketplace-integrity analytics.
+--
+-- SEPARATE migration from the trigger update (20260622000001): Postgres forbids
+-- referencing a freshly-ADD VALUE'd enum label in the same transaction (same reason
+-- DISPATCHING/NO_PROVIDER were split across 20260620000000/000001).
+ALTER TYPE lite_booking_status ADD VALUE IF NOT EXISTS 'AGENCY_NO_SHOW';

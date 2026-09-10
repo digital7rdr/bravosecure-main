@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode:"class",
+    theme:{ extend:{
+      colors:{ "pro":"#6366F1","background-dark":"#0A0F1E" },
+      fontFamily:{ "display":["Manrope","sans-serif"] },
+      borderRadius:{ "DEFAULT":"0.5rem","lg":"1rem","xl":"1.5rem","full":"9999px" }
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Manrope',sans-serif; height:100dvh; overflow:hidden; }
+  main::-webkit-scrollbar { display:none; } main { scrollbar-width:none; }
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .filled { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+
+  /* Hero shimmer */
+  @keyframes shimmer {
+    0%   { background-position:200% center; }
+    100% { background-position:-200% center; }
+  }
+  .shimmer-text {
+    background: linear-gradient(90deg, #a5b4fc 0%, #e0e7ff 40%, #6366F1 60%, #a5b4fc 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+
+  /* Glow orb */
+  @keyframes orb-pulse { 0%,100%{opacity:0.35;transform:scale(1)} 50%{opacity:0.55;transform:scale(1.08)} }
+  .orb { position:absolute; border-radius:50%; filter:blur(60px); animation:orb-pulse 5s ease-in-out infinite; pointer-events:none; }
+
+  /* Feature card */
+  .feat-card {
+    background:#0D1929; border:1px solid #1E2D45;
+    border-radius:1rem; padding:14px;
+    display:flex; align-items:flex-start; gap:12px;
+    transition:border-color 0.2s;
+  }
+  .feat-card:hover { border-color:rgba(99,102,241,0.35); }
+
+  /* Plan card */
+  .plan-card {
+    background:#0D1929; border:1.5px solid #1E2D45;
+    border-radius:1.25rem; padding:18px;
+    cursor:pointer; transition:all 0.2s; position:relative;
+  }
+  .plan-card:hover { border-color:rgba(99,102,241,0.4); transform:translateY(-1px); }
+  .plan-card.popular {
+    border-color:#6366F1;
+    background:linear-gradient(160deg,rgba(99,102,241,0.1),rgba(79,70,229,0.04));
+    box-shadow:0 0 0 1px rgba(99,102,241,0.15), 0 12px 32px rgba(99,102,241,0.12);
+  }
+
+  .popular-badge {
+    position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(90deg,#6366F1,#4F46E5);
+    color:white; font-size:9px; font-weight:800; letter-spacing:0.1em;
+    padding:3px 12px; border-radius:9999px; white-space:nowrap;
+  }
+
+  /* Divider line */
+  .divider { height:1px; background:linear-gradient(90deg,transparent,#1E2D45,transparent); }
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 h-screen flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between relative z-10">
+  <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+    <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+  </button>
+  <div class="flex items-center gap-2">
+    <span class="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
+    <span class="text-[10px] font-bold text-emerald-400 tracking-widest uppercase">Live</span>
+  </div>
+</header>
+
+<main class="flex-1 overflow-y-auto pb-32">
+
+  <!-- Hero -->
+  <div class="relative px-5 pt-2 pb-6 overflow-hidden">
+    <div class="orb" style="width:200px;height:200px;background:#6366F1;top:-60px;left:-40px;opacity:0.3"></div>
+    <div class="orb" style="width:150px;height:150px;background:#4F46E5;top:20px;right:-30px;opacity:0.2;animation-delay:2s"></div>
+
+    <div class="relative z-10">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3)">
+        <span class="material-symbols-outlined filled text-sm" style="color:#6366F1">verified_user</span>
+        <span class="text-[11px] font-bold tracking-widest uppercase" style="color:#a5b4fc">Bravo Pro</span>
+      </div>
+
+      <h1 class="text-3xl font-extrabold leading-tight mb-2">
+        <span class="shimmer-text">Enterprise</span><br/>
+        <span class="text-white">Security Intelligence</span>
+      </h1>
+      <p class="text-sm text-slate-400 leading-relaxed">Dedicated protection for VIP individuals and corporate clients — powered by AI scheduling and real-time threat analysis.</p>
+    </div>
+  </div>
+
+  <!-- Feature List -->
+  <div class="px-4 mb-6 space-y-2.5">
+
+    <div class="feat-card">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.14)">
+        <span class="material-symbols-outlined filled text-[18px]" style="color:#818cf8">groups</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-slate-100 mb-0.5">Dedicated CPO Team</p>
+        <p class="text-xs text-slate-500 leading-relaxed">Named agents assigned exclusively to your profile — available 24/7 for any deployment.</p>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.14)">
+        <span class="material-symbols-outlined filled text-[18px]" style="color:#818cf8">auto_awesome</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-slate-100 mb-0.5">AI Itinerary Scheduling</p>
+        <p class="text-xs text-slate-500 leading-relaxed">Upload travel plans and AI automatically schedules security coverage, route optimisation and standby slots.</p>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(239,68,68,0.1)">
+        <span class="material-symbols-outlined filled text-[18px]" style="color:#f87171">crisis_alert</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-slate-100 mb-0.5">Event Risk Scoring</p>
+        <p class="text-xs text-slate-500 leading-relaxed">Every event in your itinerary is scored for threat level — AI explains why and recommends additional resources.</p>
+      </div>
+    </div>
+
+    <div class="feat-card">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.1)">
+        <span class="material-symbols-outlined filled text-[18px]" style="color:#4ade80">history</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-slate-100 mb-0.5">Trip History & Activity Logs</p>
+        <p class="text-xs text-slate-500 leading-relaxed">Complete audit trail of all operations, agent actions, and security incidents for compliance and review.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider mx-4 mb-6"></div>
+
+  <!-- Subscription Plans -->
+  <div class="px-4">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-xs font-bold tracking-widest uppercase text-slate-500">Retainer Plans</p>
+      <span class="text-[10px] text-slate-600">billed monthly</span>
+    </div>
+
+    <div class="space-y-3">
+
+      <!-- Silver -->
+      <div class="plan-card" onclick="selectPlan('silver',this)">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="size-9 rounded-xl flex items-center justify-center" style="background:rgba(148,163,184,0.1)">
+              <span class="text-lg">🥈</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-slate-200">Silver</p>
+              <p class="text-[10px] text-slate-500 uppercase tracking-wide">Individual VIP</p>
+            </div>
+          </div>
+          <div>
+            <p class="text-right text-sm font-extrabold text-slate-200">19,000 cr</p>
+            <p class="text-right text-[10px] text-slate-500">/month</p>
+          </div>
+        </div>
+        <div class="divider mb-3"></div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-slate-500" style="font-size:13px">check</span><p class="text-[11px] text-slate-400">1 dedicated CPO</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-slate-500" style="font-size:13px">check</span><p class="text-[11px] text-slate-400">80 hrs / month coverage</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-slate-500" style="font-size:13px">check</span><p class="text-[11px] text-slate-400">AI itinerary scheduling</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-slate-500" style="font-size:13px">check</span><p class="text-[11px] text-slate-400">Basic risk scoring</p></div>
+        </div>
+      </div>
+
+      <!-- Gold — popular -->
+      <div class="plan-card popular" id="plan-gold" onclick="selectPlan('gold',this)">
+        <div class="popular-badge">MOST POPULAR</div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="size-9 rounded-xl flex items-center justify-center" style="background:rgba(245,158,11,0.12)">
+              <span class="text-lg">🥇</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold" style="color:#FCD34D">Gold</p>
+              <p class="text-[10px] text-slate-500 uppercase tracking-wide">Corporate VIP</p>
+            </div>
+          </div>
+          <div>
+            <p class="text-right text-sm font-extrabold" style="color:#FCD34D">42,000 cr</p>
+            <p class="text-right text-[10px] text-slate-500">/month</p>
+          </div>
+        </div>
+        <div class="divider mb-3" style="background:linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)"></div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:13px;color:#6366F1">check</span><p class="text-[11px] text-slate-300">2 dedicated CPOs + 1 driver</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:13px;color:#6366F1">check</span><p class="text-[11px] text-slate-300">180 hrs / month · 2 vehicles</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:13px;color:#6366F1">check</span><p class="text-[11px] text-slate-300">Full AI scheduling + risk scoring</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:13px;color:#6366F1">check</span><p class="text-[11px] text-slate-300">Trip history &amp; compliance logs</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined" style="font-size:13px;color:#6366F1">check</span><p class="text-[11px] text-slate-300">Dedicated ops room handler</p></div>
+        </div>
+      </div>
+
+      <!-- Platinum -->
+      <div class="plan-card" onclick="selectPlan('platinum',this)">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="size-9 rounded-xl flex items-center justify-center" style="background:rgba(99,102,241,0.12)">
+              <span class="text-lg">💎</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold" style="color:#a5b4fc">Platinum</p>
+              <p class="text-[10px] text-slate-500 uppercase tracking-wide">Enterprise / C-Suite</p>
+            </div>
+          </div>
+          <div>
+            <p class="text-right text-sm font-extrabold" style="color:#a5b4fc">95,000 cr</p>
+            <p class="text-right text-[10px] text-slate-500">/month</p>
+          </div>
+        </div>
+        <div class="divider mb-3"></div>
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-indigo-400" style="font-size:13px">check</span><p class="text-[11px] text-slate-300">Full CPO team · unlimited hours</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-indigo-400" style="font-size:13px">check</span><p class="text-[11px] text-slate-300">Armoured vehicles · 24/7 standby</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-indigo-400" style="font-size:13px">check</span><p class="text-[11px] text-slate-300">Predictive threat intelligence</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-indigo-400" style="font-size:13px">check</span><p class="text-[11px] text-slate-300">AES-256 encrypted comms</p></div>
+          <div class="flex items-center gap-2"><span class="material-symbols-outlined text-indigo-400" style="font-size:13px">check</span><p class="text-[11px] text-slate-300">Global operations · multi-country</p></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Enterprise note -->
+    <div class="flex items-center gap-3 mt-4 p-3.5 rounded-xl" style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.18)">
+      <span class="material-symbols-outlined shrink-0 text-sm" style="color:#6366F1">business</span>
+      <p class="text-[11px] text-slate-400 leading-relaxed">Need a custom enterprise plan? Contact our ops team for bespoke pricing and multi-site coverage.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 right-0 p-5" style="background:linear-gradient(to top,#0A0F1E 80%,transparent)">
+  <button onclick="goNext()" class="w-full font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all"
+    style="background:linear-gradient(160deg,#818cf8,#6366F1,#4338ca);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 16px rgba(99,102,241,0.32);color:white;letter-spacing:0.04em">
+    <span class="material-symbols-outlined filled text-xl">construction</span>
+    Build Your Own Retainer
+  </button>
+</footer>
+
+<script>
+  let selectedPlan = 'gold';
+
+  function selectPlan(plan, card) {
+    selectedPlan = plan;
+    document.querySelectorAll('.plan-card').forEach(c => {
+      if (c.id !== 'plan-gold') { c.style.borderColor=''; c.style.boxShadow=''; }
+    });
+    if (plan !== 'gold') {
+      const color = plan==='platinum' ? '#6366F1' : '#475569';
+      card.style.borderColor = color;
+      card.style.boxShadow = `0 0 0 1px ${color}33, 0 8px 24px ${color}18`;
+    }
+  }
+
+  function goBack() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="dashboard"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/dashboard.html', nav||document.createElement('div'));
+    }
+  }
+
+  function goNext() {
+    if(window.parent && window.parent.loadScreen){
+      const nav = window.parent.document.querySelector('[onclick*="bravo-pro-retainers"]')||
+                  window.parent.document.querySelector('.nav-item.active');
+      window.parent.loadScreen('screens/bravo-pro-retainers.html', nav||document.createElement('div'));
+    }
+  }
+</script>
+</body></html>

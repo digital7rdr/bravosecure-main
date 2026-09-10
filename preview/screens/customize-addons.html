@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: { colors: { primary: "#2563EB", "bg-dark": "#0A0F1E", surface: "#0D1929", border: "#1E2D45" }, fontFamily: { display: ["Manrope","sans-serif"] } } }
+  }
+</script>
+<style>
+  *, *::before, *::after { scrollbar-width: none; -ms-overflow-style: none; }
+  *::-webkit-scrollbar { display: none; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Toggle switch */
+  .toggle { position:relative; width:42px; height:24px; border-radius:12px; cursor:pointer; transition:background 0.2s; background:#1E2D45; flex-shrink:0; }
+  .toggle.on { background:#2563EB; }
+  .toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:white; transition:transform 0.2s; }
+  .toggle.on::after { transform:translateX(18px); }
+
+  /* Warning box */
+  .warn-box { background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.2); border-radius:12px; }
+</style>
+</head>
+<body class="bg-[#0A0F1E] text-slate-100 h-full flex flex-col">
+
+<!-- Header -->
+<header class="px-4 pt-[50px] pb-3 flex items-center justify-between shrink-0">
+  <div class="flex items-center gap-2">
+    <button onclick="goBack()" class="size-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+      <span class="material-symbols-outlined text-slate-400" style="font-size:20px">arrow_back</span>
+    </button>
+    <h1 class="text-[13px] font-extrabold tracking-[0.12em] text-slate-100 uppercase">Team &amp; Add-Ons</h1>
+  </div>
+  <span class="text-[10px] font-bold tracking-widest text-slate-500 bg-slate-800 px-2.5 py-1 rounded-full">STEP 4/5</span>
+</header>
+
+<!-- Content -->
+<main class="flex-1 overflow-y-auto px-4 pt-2 pb-36 space-y-4">
+
+  <!-- Team Composition -->
+  <div class="rounded-2xl border border-slate-700/60 overflow-hidden" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase px-4 pt-4 pb-3">Team Composition</p>
+
+    <!-- CPOs -->
+    <div class="flex items-center px-4 py-3 border-t border-slate-700/40">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">CPOs</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Close protection officers</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="decr('cpo')" class="size-8 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06);border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-400" style="font-size:14px">remove</span>
+        </button>
+        <span id="val-cpo" class="text-[15px] font-extrabold text-slate-100 w-6 text-center">1</span>
+        <button onclick="incr('cpo')" class="size-8 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+          <span class="material-symbols-outlined text-primary" style="font-size:14px">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Vehicles + Drivers -->
+    <div class="flex items-center px-4 py-3 border-t border-slate-700/40">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Vehicles + Drivers</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Armoured vehicle with driver</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="decr('veh')" class="size-8 rounded-full flex items-center justify-center transition-colors" style="background:rgba(255,255,255,0.06);border:1px solid #1E2D45">
+          <span class="material-symbols-outlined text-slate-400" style="font-size:14px">remove</span>
+        </button>
+        <span id="val-veh" class="text-[15px] font-extrabold text-slate-100 w-6 text-center">1</span>
+        <button onclick="incr('veh')" class="size-8 rounded-full flex items-center justify-center transition-colors" style="background:rgba(37,99,235,0.15);border:1px solid rgba(37,99,235,0.3)">
+          <span class="material-symbols-outlined text-primary" style="font-size:14px">add</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Driver Only toggle -->
+    <div class="flex items-start gap-3 px-4 py-3 border-t border-slate-700/40">
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Driver Only (Client Vehicle)</p>
+        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Client provides own vehicle — Bravo driver deployed only</p>
+      </div>
+      <div id="toggle-driver" class="toggle mt-0.5" onclick="this.classList.toggle('on'); updateRate()"></div>
+    </div>
+  </div>
+
+  <!-- Ops approval warning (hidden by default) -->
+  <div id="warn-ops" class="warn-box px-4 py-3 hidden">
+    <div class="flex items-start gap-2">
+      <span class="material-symbols-outlined text-amber-400 shrink-0 mt-0.5" style="font-size:16px">warning</span>
+      <p class="text-[12px] text-amber-300 leading-relaxed">Selecting more than the baseline (1 CPO + 1 Vehicle) requires Control Room approval and a minimum 3-hour additional lead time.</p>
+    </div>
+  </div>
+
+  <!-- Optional Add-Ons -->
+  <div class="rounded-2xl border border-slate-700/60 overflow-hidden" style="background:#0D1929">
+    <p class="text-[10px] font-bold tracking-[0.15em] text-slate-500 uppercase px-4 pt-4 pb-3">Optional Add-Ons</p>
+
+    <!-- Female CPO Team -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t border-slate-700/40">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(244,114,182,0.12)">
+        <span class="material-symbols-outlined filled text-pink-400" style="font-size:18px">diversity_3</span>
+      </div>
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Female CPO Team</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Female close protection officer(s)</p>
+      </div>
+      <div id="toggle-female" class="toggle" onclick="this.classList.toggle('on'); updateRate()"></div>
+    </div>
+
+    <!-- Recon Team -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t border-slate-700/40">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(37,99,235,0.12)">
+        <span class="material-symbols-outlined filled text-blue-400" style="font-size:18px">radar</span>
+      </div>
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Recon Team</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Area recon &amp; route assessment</p>
+      </div>
+      <div id="toggle-recon" class="toggle on" onclick="this.classList.toggle('on'); updateRate()"></div>
+    </div>
+
+    <!-- Medical Support -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t border-slate-700/40">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(34,197,94,0.12)">
+        <span class="material-symbols-outlined filled text-green-400" style="font-size:18px">medical_services</span>
+      </div>
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Medical Support</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Paramedic on standby</p>
+      </div>
+      <div id="toggle-medical" class="toggle" onclick="this.classList.toggle('on'); updateRate()"></div>
+    </div>
+
+    <!-- Comms / SIGINT -->
+    <div class="flex items-center gap-3 px-4 py-3 border-t border-slate-700/40">
+      <div class="size-9 rounded-xl flex items-center justify-center shrink-0" style="background:rgba(99,102,241,0.12)">
+        <span class="material-symbols-outlined filled text-indigo-400" style="font-size:18px">settings_input_antenna</span>
+      </div>
+      <div class="flex-1">
+        <p class="text-[13px] font-bold text-slate-200">Comms / SIGINT</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">Encrypted comms specialist</p>
+      </div>
+      <div id="toggle-comms" class="toggle" onclick="this.classList.toggle('on'); updateRate()"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer: Current Rate + Submit -->
+<footer class="fixed bottom-0 left-0 right-0 px-4 pb-5 pt-3 space-y-3" style="background:linear-gradient(to top,#0A0F1E 80%,transparent)">
+  <div class="flex items-center justify-between px-1">
+    <p class="text-[11px] font-bold tracking-widest text-slate-500 uppercase">Current Rate</p>
+    <div class="text-right">
+      <span id="rate-credits" class="text-[18px] font-extrabold text-slate-100">540 credits/hr</span>
+    </div>
+  </div>
+  <button onclick="goNext()" class="w-full font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2"
+    style="background:linear-gradient(160deg,#3b82f6,#2563EB,#1d4ed8);box-shadow:inset 0 1px 0 rgba(255,255,255,0.14),0 4px 14px rgba(37,99,235,0.35);color:white;letter-spacing:0.06em;font-size:0.75rem">
+    SUBMIT FOR OPS REVIEW
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_forward</span>
+  </button>
+</footer>
+
+<script>
+  const BASE_CREDITS = 540;
+  const ADDON_RATES = { recon: 65, female: 92, medical: 110, comms: 73 };
+  let counts = { cpo: 1, veh: 1 };
+
+  function decr(key) {
+    if (counts[key] <= 1) return;
+    counts[key]--;
+    document.getElementById('val-' + key).textContent = counts[key];
+    checkWarn(); updateRate();
+  }
+  function incr(key) {
+    counts[key]++;
+    document.getElementById('val-' + key).textContent = counts[key];
+    checkWarn(); updateRate();
+  }
+  function checkWarn() {
+    const over = counts.cpo > 1 || counts.veh > 1;
+    document.getElementById('warn-ops').classList.toggle('hidden', !over);
+  }
+  function updateRate() {
+    let cr = BASE_CREDITS;
+    cr += (counts.cpo - 1) * 200 + (counts.veh - 1) * 145;
+    ['recon','female','medical','comms'].forEach(k => {
+      if (document.getElementById('toggle-' + k)?.classList.contains('on')) {
+        cr += ADDON_RATES[k];
+      }
+    });
+    document.getElementById('rate-credits').textContent = cr + ' credits/hr';
+  }
+
+  function nav(screen) {
+    if (!window.parent || !window.parent.loadScreen) return;
+    const el = Array.from(window.parent.document.querySelectorAll('.nav-item'))
+      .find(e => e.getAttribute('onclick')?.includes(screen)) ||
+      window.parent.document.querySelector('.nav-item.active');
+    window.parent.loadScreen('screens/' + screen, el || document.createElement('div'));
+  }
+  function goBack() { nav('baseline-package.html'); }
+  function goNext() { nav('ops-room-review.html'); }
+</script>
+</body></html>
