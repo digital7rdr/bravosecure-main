@@ -66,55 +66,50 @@ Installs Docker + Caddy, opens only 22/80/443/3478/5349/49160-49200, stages
 Supabase, and re-checks DNS. It does **not** touch SSH auth — harden that
 deliberately, per the note it prints, with a second session open.
 
-## 2. Supabase
+## 2–3. Supabase: configure, start, migrate — one script
 
 ```bash
-cd /opt/supabase
-# Fill .env: POSTGRES_PASSWORD, JWT_SECRET, ANON_KEY, SERVICE_ROLE_KEY,
-# DASHBOARD_USERNAME/PASSWORD. Derive the two keys from JWT_SECRET:
-#   https://supabase.com/docs/guides/self-hosting#api-keys
-docker compose up -d
-docker compose ps          # wait for healthy
+bash /opt/bravo/deploy/production/setup-supabase.sh
 ```
 
-Set `API_EXTERNAL_URL=https://api.bravosecure.cloud` and
-`SUPABASE_PUBLIC_URL=https://api.bravosecure.cloud` in `/opt/supabase/.env` —
-GoTrue and Storage put this into the URLs they hand back, so a wrong value
-here surfaces as broken links on phones, not as an error on the box.
+It generates `/opt/supabase/.env` (Postgres password, `JWT_SECRET`, and the
+`ANON_KEY` / `SERVICE_ROLE_KEY` JWTs minted from it, dashboard credentials,
+`API_EXTERNAL_URL` / `SUPABASE_PUBLIC_URL` = `https://api.bravosecure.cloud`,
+`DISABLE_SIGNUP=true`), starts the stack, waits for Postgres, applies the
+158 migrations in order with `ON_ERROR_STOP`, tracks them in
+`public._bravo_migrations` so re-runs only apply new ones, then loads
+`seed.sql` (intel-source reference data, no users).
 
-Caddy exposes **only** `/rest/v1`, `/auth/v1`, `/storage/v1`, `/realtime/v1`
-and `/functions/v1` on `api.bravosecure.cloud`. Studio and the Postgres port
-are never published; reach Studio over an SSH tunnel:
-`ssh -L 8000:localhost:8000 root@31.97.126.211` then `http://localhost:8000`.
+Two things it does that the upstream defaults get wrong on a public box:
 
-## 3. Schema — 158 migrations, in order
+- **Docker bypasses ufw.** Published ports are written straight into iptables,
+  so upstream's Kong `:8000` and pooler `:5432/:6543` on `0.0.0.0` would be
+  open to the internet regardless of the firewall. The script binds all of
+  them to `127.0.0.1` (env for Kong and the transaction pooler; a compose
+  `!override` for the pooler's `5432`, since `POSTGRES_PORT` is used as a bare
+  number in connection strings and can't carry a host prefix) and refuses to
+  continue if anything is still on `0.0.0.0`.
+- **The example keys are demo keys.** `ANON_KEY`/`SERVICE_ROLE_KEY` are HS256
+  JWTs that must be signed by *your* `JWT_SECRET`; the script mints them.
 
-The app services do **not** run migrations at boot. Apply them once:
+An existing `/opt/supabase/.env` is never regenerated — that would rotate
+`JWT_SECRET` and invalidate every anon key already compiled into a client.
 
-```bash
-cd /opt/bravo
-for f in supabase/migrations/*.sql; do
-  echo "→ $f"
-  docker exec -i supabase-db psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$f" || break
-done
-```
-
-`ON_ERROR_STOP=1` plus `break` matters: without it a failed migration scrolls
-past and later ones apply onto a half-built schema. They need `postgis`,
-`pgcrypto`, `citext`, `pg_trgm` and `btree_gist`, and they reference
-`auth.uid()`, `anon`, `authenticated` and `service_role` — all present in
-Supabase, none in vanilla Postgres. That is why self-hosted Supabase rather
-than a bare `postgres` container.
+Studio is reachable only over a tunnel: `ssh -L 8000:localhost:8000
+root@31.97.126.211` → `http://localhost:8000`, dashboard credentials in
+`/opt/supabase/.env`.
 
 ## 4. Secrets and services
 
 ```bash
 cd /opt/bravo/deploy/production
-./make-env.sh                      # fresh secrets; refuses to overwrite
-# fill every PASTE_* it lists, then:
+./make-env.sh                      # fresh secrets; reads the Supabase creds itself; refuses to overwrite
+# ONE placeholder remains — NEXT_PUBLIC_MAPBOX_TOKEN in .env (the pk. token from config/staging.env on your Mac), then:
 cp <your>/firebase-service-account.json secrets/
 cp Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
-journalctl -u caddy -f             # watch all five certs issue
+journalctl -u caddy -f             # watch all six certs issue, then Ctrl-C
+./sync-turn-certs.sh               # coturn needs turn.'s cert BEFORE it starts
+(crontab -l 2>/dev/null; echo "17 4 * * * /opt/bravo/deploy/production/sync-turn-certs.sh") | crontab -
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -155,26 +150,12 @@ WebSocket and rolling coturn drops every call.
 ## 5. coturn's certificate
 
 TURN-over-TLS on 5349 is the transport that gets calls through networks
-blocking UDP, and it needs a real certificate. Caddy owns the renewal, so copy
-on renew:
-
-```bash
-cat > /usr/local/bin/sync-turn-certs.sh <<'EOF'
-#!/bin/bash
-set -e
-S=/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/turn.bravosecure.cloud
-D=/opt/bravo/deploy/production/secrets/coturn-certs
-install -m 644 "$S/turn.bravosecure.cloud.crt" "$D/"
-install -m 640 "$S/turn.bravosecure.cloud.key" "$D/"
-docker restart bravo-coturn
-EOF
-chmod +x /usr/local/bin/sync-turn-certs.sh
-/usr/local/bin/sync-turn-certs.sh
-(crontab -l 2>/dev/null; echo "17 4 * * * /usr/local/bin/sync-turn-certs.sh") | crontab -
-```
-
-Certificates renew every ~60 days; without this, TLS-TURN silently expires and
-only the calls that needed it most start failing.
+blocking UDP, and it needs a real certificate. Caddy owns issuance and renewal;
+`sync-turn-certs.sh` copies the current cert into `secrets/coturn-certs/` and
+restarts coturn only when it changed. It runs once in §4 before the first
+start and daily from cron for renewals (~every 60 days). Without the cron,
+TLS-TURN silently expires and only the calls that needed it most start
+failing.
 
 ## 6. Point the clients at production
 
@@ -194,6 +175,16 @@ EXPO_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64=<printed by make-env.sh>
 ```
 
 ## 7. What is deliberately inert
+
+- **Profile-photo upload.** The mobile app calls a Supabase Edge Function,
+  `avatar-upload-url`, whose source was never in this repo — it existed only on
+  the old hosted project. Until it is recreated under `supabase/functions/`
+  (verify the Bravo JWT via `/auth/me`, return a service-role signed upload
+  URL scoped to that user's path), avatar upload fails with
+  `avatar_upload_url_failed`. Everything else on the profile works.
+- **Error tracking.** `SENTRY_DSN` is blank; auth-service warns at boot that
+  dispatch-SLO and money-drift alerts are silent. Stand up GlitchTip and fill
+  the DSN when ready — nothing fails closed without it.
 
 - **Wallet top-up and subscriptions.** No PSP, and `ALLOW_NO_STRIPE_TOPUP=1`
   is refused in production because it mints free credits. Bookings that need

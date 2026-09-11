@@ -23,6 +23,21 @@ done
 
 command -v openssl >/dev/null || die "openssl not found"
 
+# Supabase values come straight from the file setup-supabase.sh generated —
+# no copy-paste of a 200-char service-role key through a terminal.
+SB_ENV=/opt/supabase/.env
+if [[ -f "$SB_ENV" ]]; then
+  sbget() { grep -E "^$1=" "$SB_ENV" | head -1 | cut -d= -f2-; }
+  SB_DB_PASSWORD="$(sbget POSTGRES_PASSWORD)"
+  SB_SERVICE_ROLE="$(sbget SERVICE_ROLE_KEY)"
+  SB_ANON="$(sbget ANON_KEY)"
+  [[ -n "$SB_DB_PASSWORD" && -n "$SB_SERVICE_ROLE" ]] || die "$SB_ENV exists but lacks POSTGRES_PASSWORD/SERVICE_ROLE_KEY — run setup-supabase.sh first"
+  ok "Supabase credentials read from $SB_ENV"
+else
+  SB_DB_PASSWORD="PASTE_SUPABASE_DB_PASSWORD"; SB_SERVICE_ROLE="PASTE_SUPABASE_SERVICE_ROLE_KEY"; SB_ANON="PASTE_SUPABASE_ANON_KEY"
+  warn "$SB_ENV not found — Supabase values left as PASTE_* placeholders"
+fi
+
 gen()    { openssl rand -base64 36 | tr -d '\n/+=' | head -c 48; }
 genhex() { openssl rand -hex 32; }
 
@@ -79,7 +94,7 @@ NODE_ENV=production
 PORT=3001
 
 # Self-hosted Supabase Postgres (joined via the supabase_default network).
-DATABASE_URL=postgresql://postgres:PASTE_SUPABASE_DB_PASSWORD@supabase-db:5432/postgres
+DATABASE_URL=postgresql://postgres:${SB_DB_PASSWORD}@supabase-db:5432/postgres
 REDIS_URL=redis://:${REDIS_PW}@redis:6379
 
 # The ops-console origin. An EMPTY value yields origin:false in main.ts — CORS
@@ -133,9 +148,10 @@ SENDER_CERT_PRIVATE_KEY_B64=${SENDER_PRIV}
 SENDER_CERT_TTL_SECONDS=86400
 SENDER_CERT_ISSUER=auth-service
 
-# Self-hosted GlitchTip (Sentry-compatible). Without a DSN, dispatch SLO and
-# money-drift alerts are silent — main.ts warns loudly at boot.
-SENTRY_DSN=PASTE_GLITCHTIP_DSN
+# Optional. Leave blank until GlitchTip (self-hosted, Sentry-compatible) is
+# stood up — auth-service then WARNS at boot that dispatch SLO / money-drift
+# alerts are silent, but nothing fails closed. Fill with the GlitchTip DSN later.
+SENTRY_DSN=
 
 ANDROID_PACKAGE_NAME=com.bravosecure
 RATE_LIMIT_AUTH_PER_HOUR=5
@@ -197,13 +213,13 @@ MEDIA_MAX_UPLOAD_BYTES=52428800
 # key bypasses RLS — required for encrypted backup + privacy sweeps, and in
 # production the service refuses to boot without both.
 SUPABASE_URL=http://supabase-kong:8000
-SUPABASE_SERVICE_ROLE_KEY=PASTE_SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_SERVICE_ROLE_KEY=${SB_SERVICE_ROLE}
 
 # FCM — the only reliable killed-app wake path on stock Android.
 GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-service-account.json
 APNS_VOIP_BUNDLE_ID=com.bravosecure.mobile
 
-SENTRY_DSN=PASTE_GLITCHTIP_DSN
+SENTRY_DSN=
 EOF
 ok ".env.messenger"
 
@@ -212,6 +228,9 @@ echo
 printf '\033[1mGenerated. Now fill every PASTE_* placeholder:\033[0m\n'
 grep -n 'PASTE_' .env .env.auth .env.messenger || true
 echo
+printf '\033[1mValues the MOBILE build needs (EXPO_PUBLIC_*):\033[0m\n'
+printf '  EXPO_PUBLIC_SUPABASE_URL=https://api.bravosecure.cloud\n'
+printf '  EXPO_PUBLIC_SUPABASE_ANON_KEY=%s\n' "$SB_ANON"
 printf '\033[1mSender-cert PUBLIC key — needed by the mobile app and ops-console builds:\033[0m\n'
 printf '  %s\n' "$SENDER_PUB"
 printf '  (mobile: EXPO_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64, ops: NEXT_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64)\n'

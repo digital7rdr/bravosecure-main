@@ -49,6 +49,13 @@ if ! command -v caddy >/dev/null; then
 fi
 ok "$(caddy version)"
 
+say "Node.js 20 (make-env.sh mints the sender-cert keypair with it)"
+if ! command -v node >/dev/null || [[ "$(node -v | cut -c2-3)" -lt 20 ]]; then
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null
+  apt-get install -y -qq nodejs
+fi
+ok "$(node -v)"
+
 say "Firewall"
 # Open ONLY what Bravo needs. Everything else — including the app ports —
 # stays shut; the containers bind 127.0.0.1 and Caddy is the sole ingress.
@@ -84,11 +91,7 @@ if [[ ! -d /opt/supabase ]]; then
   git clone --depth 1 https://github.com/supabase/supabase /opt/supabase-src
   mkdir -p /opt/supabase
   cp -r /opt/supabase-src/docker/* /opt/supabase/
-  cp /opt/supabase/.env.example /opt/supabase/.env
-  ok "supabase docker/ staged at /opt/supabase"
-  warn "EDIT /opt/supabase/.env before starting it — at minimum POSTGRES_PASSWORD,"
-  warn "JWT_SECRET, ANON_KEY, SERVICE_ROLE_KEY, DASHBOARD_USERNAME/PASSWORD."
-  warn "Generate ANON_KEY/SERVICE_ROLE_KEY from JWT_SECRET at supabase.com/docs/guides/self-hosting#api-keys"
+  ok "supabase docker/ staged at /opt/supabase — setup-supabase.sh configures and starts it"
 else
   ok "/opt/supabase already present — leaving it alone"
 fi
@@ -101,10 +104,9 @@ ok "/opt/bravo"
 say "Done"
 cat <<'NEXT'
   Next, in order:
-    1. Fill /opt/supabase/.env, then:  cd /opt/supabase && docker compose up -d
-       Apply the 158 migrations (README §3) BEFORE starting the app services.
-    2. Copy this repo to /opt/bravo, then:  cd /opt/bravo/deploy/production && ./make-env.sh
-       Fill every PASTE_* placeholder it reports.
+    1. bash deploy/production/setup-supabase.sh      (secrets, loopback ports, start, migrate)
+    2. cd deploy/production && ./make-env.sh           (reads the Supabase creds itself)
+       Fill the ONE remaining placeholder: NEXT_PUBLIC_MAPBOX_TOKEN in .env
     3. Drop firebase-service-account.json into deploy/production/secrets/.
     4. cp Caddyfile /etc/caddy/Caddyfile && systemctl reload caddy
        Watch certs issue:  journalctl -u caddy -f

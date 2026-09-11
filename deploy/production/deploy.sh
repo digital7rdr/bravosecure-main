@@ -33,6 +33,8 @@ git -C ../.. pull --ff-only
 after="$(git -C ../.. rev-parse --short HEAD)"
 ok "$before → $after"
 
+case " ${SERVICES[*]} " in *" coturn "*) ./sync-turn-certs.sh || die "coturn cert not available";; esac
+
 say "Build + roll: ${SERVICES[*]}"
 docker compose -f "$COMPOSE" build "${SERVICES[@]}"
 docker compose -f "$COMPOSE" up -d "${SERVICES[@]}"
