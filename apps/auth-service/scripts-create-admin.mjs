@@ -52,10 +52,13 @@ if (existing.length > 0) {
     type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 1,
   });
   const id = randomUUID();
+  // `users.role` is restricted to individual | agent | service_provider since
+  // 20260707120000_tighten_users_role_taxonomy. Ops privilege is NOT a users.role
+  // value — it is the admin_users row bound below (see ops/admin.guard.ts).
   await pg.query(
     `INSERT INTO public.users
        (id, email, phone_e164, display_name, role, subscription_tier, password_hash, kyc_status)
-     VALUES ($1, $2, $3, $4, 'admin', 'lite', $5, 'approved')`,
+     VALUES ($1, $2, $3, $4, 'individual', 'lite', $5, 'approved')`,
     [id, `${callSign.toLowerCase()}@bravo.local`, phone, displayName, hash],
   );
   userId = id;
