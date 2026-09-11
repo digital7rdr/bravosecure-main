@@ -126,6 +126,41 @@ scripts. Builds read it from the environment:
 
 - **Production box** — `deploy/production/.env` (`NEXT_PUBLIC_MAPBOX_TOKEN`).
 
+## 4b. Building against production (bravosecure.cloud)
+
+Every endpoint the app talks to comes from `EXPO_PUBLIC_*` at bundle time — nothing
+is hardcoded to staging in source. `config/production.env` points them all at the
+VPS; two of its values (the Supabase anon key, the sender-cert public key) are minted
+on the box, so a script fetches them over SSH rather than having you retype them:
+
+```bash
+bash scripts/pull-prod-client-env.sh      # writes config/production.env (gitignored)
+npm run android:prod:mac                  # debug build against production
+npm run apk:prod:mac                      # release APK against production
+```
+
+| Value | Source |
+| --- | --- |
+| `EXPO_PUBLIC_API_BASE_URL` | `https://auth.bravosecure.cloud` |
+| `EXPO_PUBLIC_MSG_BASE_URL` | `https://relay.bravosecure.cloud` |
+| `EXPO_PUBLIC_SUPABASE_URL` | `https://api.bravosecure.cloud` (self-hosted gateway) |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | `/opt/supabase/.env` on the box |
+| `EXPO_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64` | `deploy/production/.env` on the box |
+| `EXPO_PUBLIC_MAPBOX_TOKEN` | the one external dependency kept (tiles) |
+
+For EAS cloud builds the URLs live in the `production` / `production-apk` profiles
+of `eas.json`; the two keys go in as project secrets:
+
+```bash
+npx eas secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value '<anon>' --type string
+npx eas secret:create --scope project --name EXPO_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64 --value '<pub>' --type string
+```
+
+> Until the mobile login screens are updated for the TOTP contract, a production
+> build reaches the server but cannot complete sign-in (the app posts `/auth/verify`
+> without `challengeId`). Connectivity, TLS and the Supabase gateway can still be
+> smoke-tested with it.
+
 ## 5. Sign in
 
 Staging accounts are whatever exists on the Contabo backend. Against a **local** stack you'd

@@ -54,6 +54,20 @@
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://auth.bravosecure.cloud",
+        "EXPO_PUBLIC_MSG_BASE_URL": "https://relay.bravosecure.cloud",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://api.bravosecure.cloud",
+        "EXPO_PUBLIC_AUTO_DISPATCH": "true",
+        "EXPO_PUBLIC_DEPT_CHAT_V2": "true"
+      }
+    },
+    "production-apk": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
       }
     }
   },

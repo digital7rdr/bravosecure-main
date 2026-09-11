@@ -143,3 +143,5 @@ deploy/production/secrets/
 
 # QA perf traces (24 MB each) — keep them out of every clone
 docs/qa/perf-runs/*.pftrace
+# production client env — written by scripts/pull-prod-client-env.sh from the box
+config/production.env
