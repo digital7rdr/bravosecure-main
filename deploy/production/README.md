@@ -124,8 +124,14 @@ a DEV authority key and sealed-sender certs do not verify.
 then sign in at `https://ops.bravosecure.cloud`:
 
 ```bash
-docker exec -it bravo-auth node scripts-create-admin.mjs +971501234567 'Str0ngPass!23' OPS-1 ADMIN 'Sudeesh'
+./create-admin.sh +971501234567            # generates a password and prints it once
+./create-admin.sh +971501234567 'YourOwn!Pass23' OPS-2 SUPERVISOR 'Night shift'
 ```
+
+There is deliberately no default username/password in the repo — a known
+credential on a security product's admin console is the first thing an
+attacker tries. The console signs in with a **phone number** (E.164), and the
+password alone never opens it: first login enrols an authenticator app.
 
 Because the account has no authenticator yet, the password step returns an
 enrolment payload: the console shows a QR, the manual key, and eight backup
