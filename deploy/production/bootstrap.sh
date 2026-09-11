@@ -90,7 +90,8 @@ say "Supabase (self-hosted)"
 if [[ ! -d /opt/supabase ]]; then
   git clone --depth 1 https://github.com/supabase/supabase /opt/supabase-src
   mkdir -p /opt/supabase
-  cp -r /opt/supabase-src/docker/* /opt/supabase/
+  # `/.` not `/*` — a shell glob skips dotfiles, and .env.example is one.
+  cp -r /opt/supabase-src/docker/. /opt/supabase/
   ok "supabase docker/ staged at /opt/supabase — setup-supabase.sh configures and starts it"
 else
   ok "/opt/supabase already present — leaving it alone"

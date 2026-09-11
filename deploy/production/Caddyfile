@@ -64,8 +64,8 @@ media.bravosecure.cloud {
 
 # The MOBILE app uses supabase-js directly — PostgREST (`from`), Realtime
 # (`channel`, WebSocket) and Storage — not via auth-service. So the Supabase
-# gateway (Kong, :8000) must be public. Only the four API prefixes are
-# proxied: Studio and the dashboard sit behind Kong's basic-auth at `/` and
+# gateway (Envoy, :8000) must be public. Only the four API prefixes are
+# proxied: Studio and the dashboard sit behind the gateway's basic-auth at `/` and
 # must never face the internet. Everything else here is a 404.
 api.bravosecure.cloud {
 	import security

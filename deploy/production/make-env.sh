@@ -212,7 +212,7 @@ MEDIA_MAX_UPLOAD_BYTES=52428800
 # Self-hosted Supabase, reached over the shared docker network. Service-role
 # key bypasses RLS — required for encrypted backup + privacy sweeps, and in
 # production the service refuses to boot without both.
-SUPABASE_URL=http://supabase-kong:8000
+SUPABASE_URL=http://supabase-envoy:8000
 SUPABASE_SERVICE_ROLE_KEY=${SB_SERVICE_ROLE}
 
 # FCM — the only reliable killed-app wake path on stock Android.

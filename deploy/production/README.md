@@ -83,11 +83,11 @@ It generates `/opt/supabase/.env` (Postgres password, `JWT_SECRET`, and the
 Two things it does that the upstream defaults get wrong on a public box:
 
 - **Docker bypasses ufw.** Published ports are written straight into iptables,
-  so upstream's Kong `:8000` and pooler `:5432/:6543` on `0.0.0.0` would be
+  so upstream's gateway `:8000` and pooler `:5432/:6543` on `0.0.0.0` would be
   open to the internet regardless of the firewall. The script binds all of
-  them to `127.0.0.1` (env for Kong and the transaction pooler; a compose
-  `!override` for the pooler's `5432`, since `POSTGRES_PORT` is used as a bare
-  number in connection strings and can't carry a host prefix) and refuses to
+  them to `127.0.0.1` (by patching the `ports:` lines in our copy of the compose file — `POSTGRES_PORT`
+  is used as a bare number in connection strings, so the variables themselves
+  can't carry a host prefix) and refuses to
   continue if anything is still on `0.0.0.0`.
 - **The example keys are demo keys.** `ANON_KEY`/`SERVICE_ROLE_KEY` are HS256
   JWTs that must be signed by *your* `JWT_SECRET`; the script mints them.

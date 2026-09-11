@@ -32,6 +32,12 @@ die()  { printf '  \033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
 [[ "$(id -u)" -eq 0 ]] || die "run as root"
 [[ -f "$SB/docker-compose.yml" ]] || die "$SB not staged — run bootstrap.sh first"
+# Older bootstrap copied with a glob and missed dotfiles; recover the example
+# from the source checkout rather than failing.
+if [[ ! -f "$SB/.env.example" && -f /opt/supabase-src/docker/.env.example ]]; then
+  cp /opt/supabase-src/docker/.env.example "$SB/.env.example"
+fi
+[[ -f "$SB/.env.example" ]] || die "$SB/.env.example missing and /opt/supabase-src/docker/.env.example not found"
 command -v docker >/dev/null || die "docker missing — run bootstrap.sh first"
 
 gen()    { openssl rand -base64 48 | tr -d '\n/+=' | head -c 40; }
@@ -76,29 +82,28 @@ else
   # Accounts are created by auth-service, never by GoTrue self-signup on a
   # public endpoint.
   setkv DISABLE_SIGNUP              "true"
-  # Loopback-only publishing (see header). These two vars appear ONLY in the
-  # `ports:` lines, so a host prefix is valid here; POSTGRES_PORT is used as a
-  # bare number in connection strings and is handled by the override below.
-  setkv KONG_HTTP_PORT              "127.0.0.1:8000"
-  setkv KONG_HTTPS_PORT             "127.0.0.1:8443"
-  setkv POOLER_PROXY_PORT_TRANSACTION "127.0.0.1:6543"
   setkv BRAVO_GENERATED             "$(date -u +%FT%TZ)"
   chmod 600 "$SB/.env"
   ok "generated (JWT_SECRET, anon + service_role keys, dashboard creds, public URLs)"
 fi
 
-# ── 2. loopback override for the pooler's 5432 ────────────────────────────
-cat > "$SB/docker-compose.override.yml" <<'YAML'
-# Written by deploy/production/setup-supabase.sh — bind the pooler to loopback.
-# `!override` REPLACES the upstream ports list (a plain `ports:` would append,
-# leaving the 0.0.0.0 binding in place). Requires Compose v2.24+.
-services:
-  supavisor:
-    ports: !override
-      - "127.0.0.1:5432:5432"
-      - "127.0.0.1:6543:6543"
-YAML
-ok "override: pooler on 127.0.0.1 only"
+# ── 2. bind every published port to loopback ─────────────────────────────
+# /opt/supabase is OUR copy of upstream's docker/ dir, so patch it directly:
+# deterministic, and independent of Compose's support for `!override`. The
+# port variables stay plain numbers (POSTGRES_PORT is also used as a bare
+# number in six connection strings). Idempotent — already-prefixed lines are
+# left alone. Re-run after any upstream refresh of /opt/supabase.
+say "Loopback-only publishing"
+# a previous run may have prefixed these in .env — normalise back to numbers
+for k in API_GW_HTTP_PORT KONG_HTTP_PORT KONG_HTTPS_PORT POSTGRES_PORT POOLER_PROXY_PORT_TRANSACTION; do
+  v="$(grep -E "^$k=" "$SB/.env" | head -1 | cut -d= -f2- || true)"
+  [[ "$v" == 127.0.0.1:* ]] && setkv "$k" "${v#127.0.0.1:}"
+done
+rm -f "$SB/docker-compose.override.yml"
+sed -i -E 's#^(\s+- )(\$\{.*\}:(8000|8443|5432|6543)(/tcp)?)$#\1127.0.0.1:\2#' "$SB/docker-compose.yml"
+patched="$(grep -cE '^\s+- 127\.0\.0\.1:\$\{[A-Z_]' "$SB/docker-compose.yml")"
+[[ "$patched" -ge 3 ]] || die "expected to pin ≥3 published ports in $SB/docker-compose.yml, pinned $patched — upstream layout changed; inspect the ports: blocks"
+ok "$patched published ports pinned to 127.0.0.1 (gateway 8000, pooler 5432/6543)"
 
 # ── 3. up ─────────────────────────────────────────────────────────────────
 say "Starting Supabase"
