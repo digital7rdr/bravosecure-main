@@ -23,7 +23,9 @@ SERVICES=("${@:-${APP_SERVICES[@]}}")
 say "Pre-flight"
 for f in .env .env.auth .env.messenger; do [[ -f $f ]] || die "$f missing — run ./make-env.sh first"; done
 grep -q 'PASTE_' .env .env.auth .env.messenger && die "unfilled PASTE_* placeholders remain in the env files" || ok "env files present, no placeholders"
-[[ -f secrets/firebase-service-account.json ]] || die "secrets/firebase-service-account.json missing (FCM push)"
+case " ${SERVICES[*]} " in
+  *" messenger-service "*) [[ -f secrets/firebase-service-account.json ]] || die "secrets/firebase-service-account.json missing (FCM push — only messenger-service mounts it)";;
+esac
 grep -qE '^AUTH_SECOND_FACTOR=totp' .env.auth || die ".env.auth must set AUTH_SECOND_FACTOR=totp — no Twilio here, and production refuses 'sms' without it"
 ok "second factor: totp"
 
