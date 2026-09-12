@@ -61,8 +61,8 @@ function AcceptInviteForm() {
         <div style={authCol(12)}>
           <Note>
             Account created — call sign <b style={{color:'var(--tx-1)'}}>{done.call_sign}</b>,
-            role <b style={{color:'var(--tx-1)'}}>{done.role}</b>. Sign in with your phone,
-            password and the SMS code.
+            role <b style={{color:'var(--tx-1)'}}>{done.role}</b>. Sign in with your phone and
+            password — the first sign-in enrols your authenticator app.
           </Note>
           <Link href="/login" className="btn btn-pri"
             style={{height:42, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13}}>

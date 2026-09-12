@@ -44,7 +44,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!step?.enrol) { setQr(null); return; }
     let live = true;
-    QRCode.toDataURL(step.enrol.uri, {margin: 1, width: 196, color: {dark: '#F2F4F8', light: '#0E1320'}})
+    QRCode.toDataURL(step.enrol.uri, {margin: 2, width: 196, color: {dark: '#06142B', light: '#FFFFFF'}})   // dark-on-white: inverted codes trip some phone scanners
       .then(url => { if (live) setQr(url); })
       .catch(() => { if (live) setQr(null); });   // manual key is always shown as the fallback
     return () => { live = false; };
@@ -121,9 +121,9 @@ export default function LoginPage() {
                 any TOTP app, then enter the 6-digit code it shows.
               </Note>
               <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- generated data-URL; nothing for next/image to fetch or optimise */}
                 {qr
-                  ? <img src={qr} alt="Authenticator enrolment QR" width={148} height={148}
+                  ? // eslint-disable-next-line @next/next/no-img-element -- generated data-URL; nothing for next/image to fetch or optimise
+                    <img src={qr} alt="Authenticator enrolment QR" width={148} height={148}
                       style={{borderRadius:8,border:'1px solid var(--ln-1)',flex:'0 0 auto'}}/>
                   : <div style={{width:148,height:148,borderRadius:8,border:'1px dashed var(--ln-1)',
                       display:'grid',placeItems:'center',fontSize:11,color:'var(--tx-3)'}}>QR unavailable</div>}

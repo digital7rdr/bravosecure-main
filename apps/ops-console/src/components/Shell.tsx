@@ -9,6 +9,7 @@ import { hasRole, type AdminRole } from '@/lib/rbac';
 import { useMessenger } from './messenger/MessengerProvider';
 import NotificationBell from './NotificationBell';
 import SosAlertBar from './SosAlertBar';
+import {BravoMark} from './BrandLogo';
 
 // Audit fix 4.1 — refresh the access cookie this many seconds BEFORE it
 // expires so a long-running request doesn't race the rotation. 60s gives
@@ -375,8 +376,8 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Left rail */}
       <nav className="rail">
         <div className="rail-head">
-          <div className="rail-logo">BR</div>
-          <span className="rail-brand">BRAVO OPS</span>
+          <div className="rail-logo"><BravoMark size={30}/></div>
+          <span className="rail-brand">BRAVO SECURE</span>
           <button
             className="rail-toggle"
             onClick={toggleRail}

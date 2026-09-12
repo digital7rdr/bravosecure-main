@@ -1,18 +1,31 @@
 'use client';
 
 import type {InputHTMLAttributes, CSSProperties, ReactNode} from 'react';
+import {BravoLogo} from './BrandLogo';
 
 const col = (gap: number) => ({display:'flex' as const,flexDirection:'column' as const,gap});
 
 export function AuthLayout({subtitle, children}: {subtitle: string; children: ReactNode}) {
   return (
-    <div style={{minHeight:'100vh',background:'var(--bg-canvas)',display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
-      <div className="card" style={{width:400,padding:28}}>
-        <div style={{fontFamily:'JetBrains Mono',fontSize:10,letterSpacing:1.5,color:'var(--tx-3)',fontWeight:700}}>
-          BRAVO · OPS CONSOLE
+    <div style={{
+      minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24,
+      // bravo-secure.com's dark sections: flat deep navy. A single soft
+      // accent bloom behind the card gives depth without a gradient wash.
+      background:'radial-gradient(900px 520px at 50% 0%, rgba(30,136,255,0.16), transparent 60%), var(--bg-canvas)',
+    }}>
+      <div style={{width:420, display:'flex', flexDirection:'column', alignItems:'center', gap:22}}>
+        <BravoLogo width={168} style={{color:'var(--tx-1)', filter:'drop-shadow(0 8px 24px rgba(30,136,255,0.28))'}}/>
+        <div className="card" style={{width:'100%', padding:'28px 28px 26px', borderRadius:16,
+          boxShadow:'0 30px 70px -25px rgba(4,14,34,0.9), inset 0 1px 0 rgba(255,255,255,0.05)'}}>
+          <div style={{fontFamily:'JetBrains Mono', fontSize:10, letterSpacing:1.6, color:'var(--tx-3)', fontWeight:700}}>
+            OPS CONSOLE
+          </div>
+          <h2 style={{fontFamily:'Manrope', fontSize:20, fontWeight:800, letterSpacing:-0.3, marginTop:6, marginBottom:22, color:'var(--tx-1)'}}>{subtitle}</h2>
+          {children}
         </div>
-        <h2 style={{fontFamily:'Manrope',fontSize:18,fontWeight:800,marginTop:6,marginBottom:24}}>{subtitle}</h2>
-        {children}
+        <div style={{fontFamily:'Manrope', fontSize:11.5, color:'var(--tx-3)', letterSpacing:0.2}}>
+          Restricted system · Authorised operators only
+        </div>
       </div>
     </div>
   );
@@ -28,7 +41,7 @@ export function Field({
         {...rest}
         value={value}
         onChange={e => onChange(e.target.value)}
-        style={{height:38,borderRadius:8,background:'var(--surf-3)',border:'1px solid var(--bd-2)',padding:'0 12px',color:'var(--tx-1)',fontFamily:'Manrope',fontSize:13,outline:'none'}}
+        className="auth-input"
       />
     </label>
   );
@@ -43,7 +56,7 @@ export function Select({
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        style={{height:38,borderRadius:8,background:'var(--surf-3)',border:'1px solid var(--bd-2)',padding:'0 12px',color:'var(--tx-1)',fontFamily:'Manrope',fontSize:13,outline:'none'}}>
+        className="auth-input">
         {options.map(o => <option key={o} value={o}>{o}</option>)}
       </select>
     </label>
